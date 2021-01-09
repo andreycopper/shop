@@ -51,10 +51,9 @@ class RSA
 
         $calcmac = hash_hmac('sha256', $ciphertext_raw, $this->key, true);
 
-        $original_plaintext = openssl_decrypt($ciphertext_raw, self::CIPHER, $this->key, self::OPTION, $iv);
-
-        if (hash_equals($hmac, $calcmac)) return $original_plaintext;
-        return false;
+        return hash_equals($hmac, $calcmac) ?
+            openssl_decrypt($ciphertext_raw, self::CIPHER, $this->key, self::OPTION, $iv) :
+            false;
     }
 
     /**
