@@ -9,6 +9,7 @@
     "ext-pdo": "*",
     "ext-curl": "*",
     "ext-iconv": "*",
-    "ext-simplexml": "*"
+    "ext-simplexml": "*",
+    "ext-openssl": "*"
   }
 }

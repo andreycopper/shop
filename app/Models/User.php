@@ -6,6 +6,7 @@ use App\System\Db;
 use App\System\Access;
 use App\System\Geo;
 use App\System\Logger;
+use App\System\RSA;
 use App\System\Validation;
 use App\Exceptions\DbException;
 use App\Exceptions\UserException;
@@ -235,6 +236,17 @@ class User extends Model
         $db = new Db();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
+    }
+
+    /**
+     * Генерирует публичный ключ шифрования
+     * @return false|string
+     */
+    public static function generatePublicKey()
+    {
+        $public_key = RSA::generateRandomBytes(0,true);
+        $_SESSION['public_key'] = $public_key;
+        return $public_key;
     }
 
     /**
