@@ -6,7 +6,15 @@ namespace Composer\Autoload;
 
 class ComposerStaticInitd4cf6d1fff3f5b2ec1f8ec3dcc3cf3aa
 {
+    public static $files = array (
+        '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
+    );
+
     public static $prefixLengthsPsr4 = array (
+        's' => 
+        array (
+            'setasign\\Fpdi\\' => 14,
+        ),
         'Z' => 
         array (
             'Zend\\Escaper\\' => 13,
@@ -21,6 +29,10 @@ class ComposerStaticInitd4cf6d1fff3f5b2ec1f8ec3dcc3cf3aa
             'PhpOffice\\PhpWord\\' => 18,
             'PhpOffice\\Common\\' => 17,
         ),
+        'M' => 
+        array (
+            'Mpdf\\' => 5,
+        ),
         'F' => 
         array (
             'FontLib\\' => 8,
@@ -28,6 +40,7 @@ class ComposerStaticInitd4cf6d1fff3f5b2ec1f8ec3dcc3cf3aa
         'D' => 
         array (
             'Dompdf\\' => 7,
+            'DeepCopy\\' => 9,
         ),
         'A' =>
         array (
@@ -36,6 +49,10 @@ class ComposerStaticInitd4cf6d1fff3f5b2ec1f8ec3dcc3cf3aa
     );
 
     public static $prefixDirsPsr4 = array (
+        'setasign\\Fpdi\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/setasign/fpdi/src',
+        ),
         'Zend\\Escaper\\' => 
         array (
             0 => __DIR__ . '/..' . '/zendframework/zend-escaper/src',
@@ -60,6 +77,10 @@ class ComposerStaticInitd4cf6d1fff3f5b2ec1f8ec3dcc3cf3aa
         array (
             0 => __DIR__ . '/..' . '/phpoffice/common/src/Common',
         ),
+        'Mpdf\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/mpdf/mpdf/src',
+        ),
         'FontLib\\' => 
         array (
             0 => __DIR__ . '/..' . '/phenx/php-font-lib/src/FontLib',
@@ -67,6 +88,10 @@ class ComposerStaticInitd4cf6d1fff3f5b2ec1f8ec3dcc3cf3aa
         'Dompdf\\' => 
         array (
             0 => __DIR__ . '/..' . '/dompdf/dompdf/src',
+        ),
+        'DeepCopy\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy',
         ),
     );
 

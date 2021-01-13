@@ -10,6 +10,7 @@
     "ext-curl": "*",
     "ext-iconv": "*",
     "ext-simplexml": "*",
-    "ext-openssl": "*"
+    "ext-openssl": "*",
+    "mpdf/mpdf": "^8.0"
   }
 }
