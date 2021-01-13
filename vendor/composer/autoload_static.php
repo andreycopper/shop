@@ -42,10 +42,6 @@ class ComposerStaticInitd4cf6d1fff3f5b2ec1f8ec3dcc3cf3aa
             'Dompdf\\' => 7,
             'DeepCopy\\' => 9,
         ),
-        'A' =>
-        array (
-            'App\\' => 4,
-        ),
     );
 
     public static $prefixDirsPsr4 = array (
@@ -64,10 +60,6 @@ class ComposerStaticInitd4cf6d1fff3f5b2ec1f8ec3dcc3cf3aa
         'Psr\\Log\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
-        ),
-        'App\\' =>
-        array (
-            0 => __DIR__ . '/../..' . '/app',
         ),
         'PhpOffice\\PhpWord\\' => 
         array (

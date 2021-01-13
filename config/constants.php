@@ -2,7 +2,6 @@
 
 use App\Models\Setting;
 use App\Exceptions\DbException;
-use App\System\Geo;
 
 define('ROOT', __DIR__ . '/..');
 define('APP', __DIR__ . '/../app');
