@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\City;
 use App\Models\Delivery;
 use App\Models\OrderItem;
 use App\Models\UserProfile;
@@ -11,7 +12,6 @@ class Orders extends Controller
 {
     protected function actionDefault()
     {
-
         $this->view->deliveries = Delivery::getList(true);
         $this->view->payments = Payment::getList(true);
         $this->view->profiles = UserProfile::getListByUser(true);

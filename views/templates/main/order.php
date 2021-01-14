@@ -75,12 +75,12 @@
                                             data-city="<?= $profile->city ?>"
                                             data-address="<?= $profile->address ?>"
                                             data-comment="<?= $profile->comment ?>"
-                                            data-firm='<?= $profile->firm ?>'
+                                            data-company='<?= $profile->company ?>'
                                             data-address_legal="<?= $profile->address_legal ?>"
                                             data-inn="<?= $profile->inn ?>"
                                             data-kpp="<?= $profile->kpp ?>"
                                     >
-                                        <?= $profile->firm . ', ' . $profile->city . ', ' . $profile->address ?>
+                                        <?= $profile->company . ', ' . $profile->city . ', ' . $profile->address ?>
                                     </option>
                                 <? endforeach;
                             endif; ?>
@@ -95,8 +95,8 @@
                         <label for="j_phone">Телефон <span class="required">*</span></label>
                         <input type="text" name="j_phone" id="j_phone" value="<?= $this->user ? $this->user['phone'] : '' ?>">
 
-                        <label for="firm">Название компании <span class="required">*</span></label>
-                        <input type="text" name="firm" id="firm">
+                        <label for="company">Название компании <span class="required">*</span></label>
+                        <input type="text" name="company" id="company">
 
                         <label for="j_address">Юридический адрес <span class="required">*</span></label>
                         <input type="text" name="j_address" id="j_address">
@@ -114,14 +114,19 @@
                 <a href="" class="order-item-title order-region">Адрес доставки</a>
 
                 <div class="order-item-container">
-                    <label for="city">Населенный пункт <span class="required">*</span></label>
-                    <input type="text" name="city" id="city">
+                    <div class="relative visible">
+                        <label for="delivery_city">Населенный пункт <span class="required">*</span></label>
+                        <input type="text" name="city" id="delivery_city">
+                        <ul class="order-item-search-result"></ul>
+                    </div>
 
-                    <label for="address">Адрес доставки <span class="required">*</span></label>
-                    <input type="text" name="address" id="address">
+                    <div class="relative">
+                        <label for="delivery_address">Адрес доставки <span class="required">*</span></label>
+                        <input type="text" name="address" id="delivery_address">
+                    </div>
 
-                    <label for="comment">Комментарий к заказу</label>
-                    <textarea name="comment" id="comment"></textarea>
+                    <label for="delivery_comment">Комментарий к заказу</label>
+                    <textarea name="comment" id="delivery_comment"></textarea>
 
                     <div class="order-item-comment">
                         Выберите профиль доставки или введите свой город и адрес.

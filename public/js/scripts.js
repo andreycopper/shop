@@ -24,6 +24,15 @@ $(function () {
         }
     }
 
+    /* закрытие модальных блоков */
+    $(document).mouseup(function (e){
+        var orderItemSearchResult = $(".order-item-search-result");
+        // если клик был не по блоку и не по его дочерним элементам
+        if (!orderItemSearchResult.is(e.target) && orderItemSearchResult.has(e.target).length === 0) {
+            orderItemSearchResult.hide();
+        }
+    });
+
     // действия с задержкой при изменении размера экрана
     $(window).onDelay({
         action: 'resize',
@@ -390,6 +399,43 @@ $(function () {
         $('input[name=city]').val(option.data('city'));
         $('input[name=address]').val(option.data('address'));
         $('textarea[name=comment]').val(option.data('comment'));
+    });
+
+    /* поиск населенного пункта */
+    $('#delivery_city').onDelay({
+        action: 'input',
+        interval: 1000
+    }, function(){
+        let $this = $(this),
+            $data = $this.val();
+
+        if ($data.length > 2) {
+            $.ajax({
+                method: "POST",
+                dataType: 'json',
+                url: "/location/findCity/",
+                data: {city: $data},
+                beforeSend: function() {
+                    loader.show();
+                },
+                success: function(data){console.log(data);
+                    loader.hide();
+                    if (data.result) $this.next().html(data.cities).show();
+                }
+            });
+        } else {
+            $this.attr('data-id', '');
+        }
+    });
+
+    /* выбор города */
+    $('.order-item-search-result').on('click', 'a', function (e) {
+        e.preventDefault();
+        let ul = $(this).parent().parent(),
+            input = ul.prev();
+
+        input.val($(this).html()).attr('data-id', $(this).data('id'));
+        ul.hide();
     });
     /**************************** !ORDER ****************************/
     /**************************** PERSONAL ****************************/

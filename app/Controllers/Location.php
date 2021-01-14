@@ -59,4 +59,31 @@ class Location extends Controller
             die;
         }
     }
+
+    protected function actionFindCity()
+    {
+        if (Request::isPost()) {
+            $cities = City::getListBySearchString(Request::post('city'), 20, true);
+            $html = '';
+
+            if (!empty($cities) && is_array($cities)) {
+                foreach ($cities as $city) {
+                    $html .= '
+                        <li>
+                            <a href="#" data-id="' . $city->id . '">' . $city->region . ', ' . $city->name . ' ' . $city->shortname . '</a>
+                        </li>
+                    ';
+                }
+
+                echo json_encode([
+                    'result' => true,
+                    'cities' => $html,
+                ]);
+                die;
+            }
+
+            echo json_encode(['result' => false]);
+            die;
+        }
+    }
 }

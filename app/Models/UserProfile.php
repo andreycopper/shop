@@ -19,7 +19,7 @@ class UserProfile extends Model
     public $email;         // email
     public $name;          // контактное лицо
     public $comment;       // комментарий
-    public $firm;          // название организации
+    public $company;       // название организации
     public $address_legal; // юридический адрес
     public $ogrn;          // ОГРН
     public $inn;           // ИНН

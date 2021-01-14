@@ -32,6 +32,9 @@
 .block {
     display: block !important;
 }
+.visible {
+    overflow: visible;
+}
 .flex-wrap {
     display: flex;
     flex-wrap: wrap;
@@ -4255,7 +4258,7 @@ section.main {
     margin-bottom: 20px;
     list-style: none;
 }
-.main-section ul li {
+.main-section li {
     position: relative;
     margin: 0 0 4px;
     padding-left: 15px;
@@ -5583,6 +5586,33 @@ label.radio:hover .order-item-name {
 .order-item-time span,
 .order-item-desc span {
     color: #333333;
+}
+.order-item-search-result {
+    display: none;
+    position: absolute;
+    top: 60px;
+    width: 100%;
+    max-height: 137px;
+    padding: 5px 0;
+    border: 1px solid #eeeeee;
+    background-color: #ffffff;
+    overflow: auto;
+    z-index: 1;
+}
+.order-item-search-result li {
+    margin: 0;
+    padding: 0;
+}
+.order-item-search-result li:before {
+    display: none !important;
+}
+.order-item-search-result li a {
+    display: block;
+    padding: 0 10px;
+    font: 15px/25px "OpenSansRegular";
+}
+.order-item-search-result li a:hover {
+    background-color: #f7f7f7;
 }
 .order-product,
 .order-product-header {

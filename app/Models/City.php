@@ -78,4 +78,31 @@ class City extends Model
         $data = $db->query($sql, $params, $object ? static::class : null);
         return $data ?? false;
     }
+
+    /**
+     * Поиск города по строке
+     * @param string $city
+     * @param int $limit
+     * @param bool $active
+     * @param bool $object
+     * @return array|false
+     * @throws DbException
+     */
+    public static function getListBySearchString(string $city, int $limit = 10, bool $active = false, $object = true)
+    {
+        $where = !empty($active) ? ' AND c.active IS NOT NULL AND r.active IS NOT NULL' : '';
+        $sql = "
+            SELECT c.id, r.name region, c.name, s1.shortname shortname 
+            FROM fias_cities c 
+            LEFT JOIN fias_regions r ON c.region_id = r.id 
+            LEFT JOIN fias_shortnames s1 ON c.shortname_id = s1.id 
+            WHERE c.formalname LIKE CONCAT('%', :city, '%') {$where} LIMIT {$limit}";
+
+        $params = [
+            ':city' => $city
+        ];
+        $db = new Db();
+        $data = $db->query($sql, $params, $object ? static::class : null);
+        return $data ?? false;
+    }
 }
