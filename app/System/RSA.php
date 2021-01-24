@@ -12,11 +12,13 @@ class RSA
     const OPTION = OPENSSL_RAW_DATA;
     const SHA2LEN = 32;
 
-    protected $key;
+    protected $public_key;
+    protected $private_key;
 
-    public function __construct()
+    public function __construct($private_key)
     {
-        $this->key = $_SESSION['public_key'];var_dump($_SESSION['public_key']);
+        $this->private_key = base64_decode($private_key);
+        $this->public_key = base64_decode($_SESSION['public_key']);
     }
 
     /**
@@ -26,13 +28,12 @@ class RSA
      */
     public function encrypt(string $plaintext)
     {
-        $iv = self::generateRandomBytes();
+        if (empty($plaintext)) return null;
 
-        $ciphertext_raw = openssl_encrypt($plaintext, self::CIPHER, $this->key, self::OPTION, $iv);
+        $ciphertext_raw = openssl_encrypt($plaintext, self::CIPHER, $this->private_key, self::OPTION, $this->public_key);
+        $hmac = hash_hmac('sha256', $ciphertext_raw, $this->private_key, true);
 
-        $hmac = hash_hmac('sha256', $ciphertext_raw, $this->key, $as_binary=true);
-
-        return base64_encode($iv . $hmac . $ciphertext_raw);
+        return base64_encode($this->public_key . $hmac . $ciphertext_raw);
     }
 
     /**
@@ -42,17 +43,17 @@ class RSA
      */
     public function decrypt(string $ciphertext)
     {
-        $c = base64_decode($ciphertext);
+        if (empty($ciphertext)) return null;
 
+        $c = base64_decode($ciphertext);
         $ivlen = self::getIvLength();
-        $iv = substr($c, 0, $ivlen);
+        $public_key = substr($c, 0, $ivlen);
         $hmac = substr($c, $ivlen, self::SHA2LEN);
         $ciphertext_raw = substr($c, $ivlen + self::SHA2LEN);
-
-        $calcmac = hash_hmac('sha256', $ciphertext_raw, $this->key, true);
+        $calcmac = hash_hmac('sha256', $ciphertext_raw, $this->private_key, true);
 
         return hash_equals($hmac, $calcmac) ?
-            openssl_decrypt($ciphertext_raw, self::CIPHER, $this->key, self::OPTION, $iv) :
+            openssl_decrypt($ciphertext_raw, self::CIPHER, $this->private_key, self::OPTION, $public_key) :
             false;
     }
 
@@ -73,7 +74,7 @@ class RSA
      * Определяет длину публичного ключа шифрования
      * @return false|int
      */
-    protected static function getIvLength()
+    public static function getIvLength()
     {
         return openssl_cipher_iv_length(self::CIPHER);
     }

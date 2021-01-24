@@ -19,11 +19,11 @@
                 <input type="password" name="password" class="required">
                 <span class="tooltip"></span>
             </label>
-            <label class="checkbox">
-                <input type="checkbox" name="personal_data" class="required">
-                Я согласен на <a href="">обработку персональных данных</a> <span class="red">*</span>
-                <span class="tooltip"></span>
-            </label>
+<!--            <label class="checkbox">-->
+<!--                <input type="checkbox" name="personal_data" class="required">-->
+<!--                Я согласен на <a href="">обработку персональных данных</a> <span class="red">*</span>-->
+<!--                <span class="tooltip"></span>-->
+<!--            </label>-->
             <div class="flex-wrap additional">
                 <label class="checkbox checked">
                     <input type="checkbox" name="remember" checked>
@@ -33,7 +33,7 @@
             </div>
 
             <div class="flex-wrap additional">
-                <input type="submit" name="send" value="Войти">
+                <input type="submit" value="Войти">
                 <a href="/auth/registration/" class="btn-alt">Регистрация</a>
             </div>
 

@@ -61,8 +61,7 @@ class Event extends Model
                     Logger::getInstance()->error(
                         new DbException(
                             'Ошибка при сохранении события пользователя id = ' . $user_id .
-                            ', шаблон id = ' . $template_id .
-                            ', тип события = ' . $type));
+                            ', шаблон id = ' . $template_id . ', тип события = ' . $type));
                     return false;
                 }
 

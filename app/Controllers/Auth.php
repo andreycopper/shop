@@ -11,9 +11,7 @@ class Auth extends Controller
 {
     protected function before()
     {
-        if (User::isAuthorized() &&
-            (empty(ROUTE[1]) || !in_array(ROUTE[1], ['Logout']))
-        ) {
+        if (User::isAuthorized() && (empty(ROUTE[1]) || !in_array(ROUTE[1], ['Logout']))) {
             header('Location: /personal/');
             die;
         }
@@ -27,7 +25,12 @@ class Auth extends Controller
     protected function actionDefault()
     {
         if (Request::isPost()) {
-            if (User::authorization(Request::post(), Request::isAjax())) {
+            if (User::authorization(
+                Request::post('login'),
+                Request::post('password'),
+                Request::post('remember') ? true : false,
+                Request::isAjax()))
+            {
                 header('Location: /');
                 die;
             }
@@ -44,11 +47,6 @@ class Auth extends Controller
      */
     protected function actionRegistration()
     {
-        if (!empty($this->view->user['id'])) {
-            header('Location: /personal/');
-            die;
-        }
-
         if (Request::isPost()) $this->view->register = User::register(Request::post(), Request::isAjax());
 
         $this->view->display('auth/register');

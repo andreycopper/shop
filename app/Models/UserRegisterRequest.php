@@ -18,7 +18,7 @@ class UserRegisterRequest extends Model
      * @return false|mixed
      * @throws DbException
      */
-    public static function getByHash(string $hash, $active = false, $object = true)
+    public static function getByHash(string $hash, $active = true, $object = true)
     {
         $sql = "SELECT * FROM user_register_requests WHERE hash = :hash";
         $sql .= !empty($active) ? ' AND expire > NOW()' : '';

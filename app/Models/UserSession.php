@@ -10,6 +10,14 @@ class UserSession extends Model
 {
     protected static $table = 'user_sessions';
 
+    public $user_id;
+    public $login;
+    public $ip;
+    public $user_agent;
+    public $session_hash;
+    public $cookie_hash;
+    public $expire;
+
     /**
      * Получает сессию пользователя по хэшу сессии
      * @param string $hash
@@ -67,21 +75,19 @@ class UserSession extends Model
 
     /**
      * Устанавливает текущую сессию пользователя
-     * @param int $user_id
+     * @param array $user
      * @param bool $remember
      * @return bool
      * @throws DbException
      */
-    public function set(int $user_id, $remember = false)
+    public function set(array $user, $remember = false)
     {
-        $session = new UserSession();
-        $session->user_id      = $user_id;
+        $session = new self();
+        $session->user_id      = $user['id'];
         $session->login        = date("Y-m-d H:i:s");
         $session->ip           = $_SERVER['REMOTE_ADDR'];
         $session->user_agent   = $_SERVER['HTTP_USER_AGENT'];
         $session->session_hash = $_SESSION['session_hash'] = hash('sha256', microtime(true) . uniqid());
-
-        $_SESSION['user'] = User::getFullInfoById($user_id, true, false);
 
         if (!empty($remember)) {
             $time = 60 * 60 * 24 * DAYS;
@@ -91,7 +97,7 @@ class UserSession extends Model
         }
 
         if (false === $session->save()) {
-            Logger::getInstance()->error(new DbException('Ошибка записи сессии в БД при авторизации пользователя с id = ' . $user_id));
+            Logger::getInstance()->error(new DbException('Ошибка записи сессии в БД при авторизации пользователя с id = ' . $user['id']));
             return false;
         }
 
@@ -108,7 +114,7 @@ class UserSession extends Model
     {
         $_SESSION['user'] = $user;
 
-        $session = new UserSession();
+        $session = new self();
         $session->id           = $user['session_id'];
         $session->user_id      = $user['id'];
         $session->ip           = $_SERVER['REMOTE_ADDR'];
@@ -136,23 +142,20 @@ class UserSession extends Model
     {
         $session = self::getCurrent();
 
-        if (empty($session->id)) {
-            Logger::getInstance()->error(new DbException('Не обнаружена текущая сессия для удаления'));
-            return false;
-        }
+        if (!empty($session->id)) {
+            $session->session_hash = null;
+            $session->cookie_hash = null;
+            $session->expire = date("Y-m-d H:i:s", time() - 1);
+
+            if (false === $session->save()) {
+                Logger::getInstance()->error(new DbException('Не удалось удалить сессию пользователя с id = ' . $session->user_id));
+                return false;
+            }
+        } else Logger::getInstance()->error(new DbException('Не обнаружена текущая сессия для удаления'));
 
         unset($_SESSION['user']);
         unset($_SESSION['session_hash']);
         setcookie('cookie_hash', '', (time() - 1000), '/', SITE, 0);
-
-        $session->session_hash = null;
-        $session->cookie_hash = null;
-        $session->expire = date("Y-m-d H:i:s", time() - 1);
-
-        if (false === $session->save()) {
-            Logger::getInstance()->error(new DbException('Не удалось удалить сессию пользователя с id = ' . $session->user_id));
-            return false;
-        }
 
         return true;
     }

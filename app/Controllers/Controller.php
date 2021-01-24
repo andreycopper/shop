@@ -31,8 +31,8 @@ abstract class Controller
     public function __construct()
     {
         $class = explode('\\', mb_strtolower(get_class($this)));
-        setcookie('user', $_COOKIE['user'] ?? hash('sha256', microtime(true) . uniqid()), time() + 60 * 60 * 24 * 365, '/', SITE, 0);
         setcookie('page', $_SERVER['REQUEST_URI'] ?? '/', time() + 60 * 60 * 24 * 365, '/', SITE, 0);
+        setcookie('user', $_COOKIE['user'] ?? hash('sha256', microtime(true) . uniqid()), time() + 60 * 60 * 24 * 365, '/', SITE, 0); // кука анонимного юзера
 
         $this->view = new View();
         $this->view->page         = Page::getPageInfo(array_pop($class));

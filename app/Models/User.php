@@ -22,7 +22,7 @@ class User extends Model
     public $id;
     public $active;
     public $blocked;
-    public $group_id;
+    public $group_id = 2; // группа "Пользователи"
     public $last_name;
     public $name;
     public $second_name;
@@ -30,8 +30,9 @@ class User extends Model
     public $phone;
     public $password;
     public $personal_data;
-    public $mailing;
-    public $mailing_type_id;
+    public $mailing = 1; // подписание на рассылку
+    public $mailing_type_id = 2; // тип рассылки html
+    public $private_key;
     public $created;
     public $updated;
 
@@ -48,19 +49,72 @@ class User extends Model
         $where = !empty($active) ? ' AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL' : '';
         $sql = "
             SELECT 
-                u.id, u.name, u.email, u.phone, u.password, 
-                ug.name AS group_name,
-                tt.name AS mailing_type
+                u.id, u.active, u.blocked, u.group_id, u.last_name, u.name, u.second_name, u.email, u.phone, u.password, 
+                u.personal_data, u.mailing, u.mailing_type_id, u.private_key, u.created, u.updated, 
+                ug.name AS group_name, ug.price_type_id, 
+                pt.name AS price_type,
+                tt.name AS mailing_type 
             FROM users u
+            LEFT JOIN user_sessions us
+                ON u.id = us.user_id 
             LEFT JOIN user_groups ug
                 ON u.group_id = ug.id 
+            LEFT JOIN price_types pt
+                ON ug.price_type_id = pt.id 
             LEFT JOIN text_types tt 
-                ON u.mailing_type_id = tt.id
+                ON u.mailing_type_id = tt.id 
             WHERE u.id = :id {$where}
             ";
         $params = [
             ':id' => $id
         ];
+        $db = new Db();
+        $data = $db->query($sql, $params, $object ? static::class : null);
+        return !empty($data) ? array_shift($data) : false;
+    }
+
+    public static function getByHash(bool $active = true, $object = false)
+    {
+        $activity =
+            !empty($active) ?
+                'AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL AND pt.active IS NOT NULL AND tt.active IS NOT NULL' :
+                '';
+
+        if (!empty($_SESSION['session_hash'])) {
+            $where = 'us.session_hash = :hash';
+            $params = [
+                ':hash' => $_SESSION['session_hash']
+            ];
+        }
+        elseif (!empty($_COOKIE['cookie_hash'])) {
+            if (!empty($active)) $activity .= ' AND us.expire > NOW()';
+
+            $where = 'us.cookie_hash = :hash';
+            $params = [
+                ':hash' => $_COOKIE['cookie_hash']
+            ];
+        }
+        else return false;
+
+        $sql = "
+            SELECT 
+                u.id, u.active, u.blocked, u.group_id, u.last_name, u.name, u.second_name, u.email, u.phone, u.password, 
+                u.personal_data, u.mailing, u.mailing_type_id, u.private_key, u.created, u.updated, 
+                ug.name AS group_name, ug.price_type_id, 
+                pt.name AS price_type,
+                tt.name AS mailing_type 
+            FROM users u
+            LEFT JOIN user_sessions us 
+                ON u.id = us.user_id 
+            LEFT JOIN user_groups ug
+                ON u.group_id = ug.id 
+            LEFT JOIN price_types pt
+                ON ug.price_type_id = pt.id 
+            LEFT JOIN text_types tt 
+                ON u.mailing_type_id = tt.id
+            WHERE {$where} {$activity}
+            ";
+
         $db = new Db();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
@@ -78,7 +132,7 @@ class User extends Model
     {
         $where = !empty($active) ? ' AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL' : '';
         $sql = "
-            SELECT * 
+            SELECT u.* 
             FROM users u 
             LEFT JOIN user_groups ug
                 ON u.group_id = ug.id
@@ -104,7 +158,7 @@ class User extends Model
     {
         $where = !empty($active) ? ' AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL' : '';
         $sql = "
-            SELECT * 
+            SELECT u.* 
             FROM users u 
             LEFT JOIN user_groups ug
                 ON u.group_id = ug.id
@@ -112,68 +166,6 @@ class User extends Model
             ";
         $params = [
             ':email' => $email
-        ];
-        $db = new Db();
-        $data = $db->query($sql, $params, $object ? static::class : null);
-        return !empty($data) ? array_shift($data) : false;
-    }
-
-    /**
-     * Получает пользователя по хешу в сессии
-     * @param string $hash
-     * @param bool $active
-     * @param bool $object
-     * @return false|mixed
-     * @throws DbException
-     */
-    public static function getBySessionHash(string $hash, bool $active = false, $object = true)
-    {
-        $where = !empty($active) ? ' AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL' : '';
-        $sql = "
-            SELECT 
-                u.id, u.active, u.group_id, u.name, u.last_name, u.email, u.phone, 
-                us.id AS session_id, us.session_hash, us.cookie_hash, 
-                ug.name AS group_name, ug.price_type_id 
-            FROM users u
-            LEFT JOIN user_sessions us
-                ON u.id = us.user_id 
-            LEFT JOIN user_groups ug
-                ON u.group_id = ug.id 
-            WHERE us.session_hash = :hash {$where}
-            ";
-        $params = [
-            ':hash' => $hash
-        ];
-        $db = new Db();
-        $data = $db->query($sql, $params, $object ? static::class : null);
-        return !empty($data) ? array_shift($data) : false;
-    }
-
-    /**
-     * Получает пользователя по хэшу в куках
-     * @param string $hash
-     * @param bool $active
-     * @param bool $object
-     * @return false|mixed
-     * @throws DbException
-     */
-    public static function getByCookieHash(string $hash, bool $active = false, $object = true)
-    {
-        $where = !empty($active) ? ' AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL AND us.expire > NOW()' : '';
-        $sql = "
-            SELECT 
-                u.id, u.active, u.group_id, u.name, u.last_name, u.email, u.phone, 
-                us.id AS session_id, us.session_hash, us.cookie_hash, 
-                ug.name AS group_name, ug.price_type_id 
-            FROM users u
-            LEFT JOIN user_sessions us
-                ON u.id = us.user_id 
-            LEFT JOIN user_groups ug
-                ON u.group_id = ug.id 
-            WHERE us.cookie_hash = :hash {$where}
-            ";
-        $params = [
-            ':hash' => $hash
         ];
         $db = new Db();
         $data = $db->query($sql, $params, $object ? static::class : null);
@@ -217,18 +209,18 @@ class User extends Model
      * @return false|mixed
      * @throws DbException
      */
-    public static function getByConfirmHash(string $hash, bool $active = false, $object = true)
+    public static function getByConfirmHash(string $hash, bool $active = true, $object = true)
     {
-        $where = !empty($active) ? ' AND u.active IS NULL AND u.blocked IS NULL AND ug.active IS NOT NULL AND urr.expire > NOW()' : '';
+        $activity = !empty($active) ? 'AND u.blocked IS NULL AND ug.active IS NOT NULL AND urr.expire > NOW()' : '';
         $sql = "
             SELECT 
-                u.id, u.active, u.group_id, u.name, u.last_name, u.email, u.phone 
+                u.* 
             FROM users u
             LEFT JOIN user_register_requests urr
                 ON u.id = urr.user_id 
             LEFT JOIN user_groups ug
                 ON u.group_id = ug.id
-            WHERE urr.hash = :hash {$where}
+            WHERE urr.hash = :hash AND u.active IS NULL {$activity}
             ";
         $params = [
             ':hash' => $hash
@@ -244,7 +236,7 @@ class User extends Model
      */
     public static function generatePublicKey()
     {
-        $public_key = RSA::generateRandomBytes(0,true);
+        $public_key = RSA::generateRandomBytes(16,true);
         $_SESSION['public_key'] = $public_key;
         return $public_key;
     }
@@ -258,20 +250,22 @@ class User extends Model
      */
     public static function authorize(int $user_id, bool $remember = false): bool
     {
-        return (new UserSession())->set($user_id, $remember);
+        $user = $_SESSION['user'] = User::getFullInfoById($user_id, true, false);
+
+        return !empty($user['id']) ?
+            (new UserSession())->set($user, $remember) :
+            false;
     }
 
     /**
      * Получает текущего пользователя
      * @return false|mixed|null
-     * @throws DbException
      */
     public static function getCurrent()
     {
-        if (!empty($_SESSION['session_hash'])) $user = self::getBySessionHash($_SESSION['session_hash'], true, false);
-        elseif (!empty($_COOKIE['cookie_hash'])) $user = self::getByCookieHash($_COOKIE['cookie_hash'], true, false);
+        $user = self::getByHash();
 
-        if (!empty($user['cookie_hash'])) UserSession::extend($user);
+        //if (!empty($user['cookie_hash'])) UserSession::extend($user);
 
         return $user ?? null;
     }
@@ -284,7 +278,7 @@ class User extends Model
     public static function isAuthorized()
     {
         $user = self::getCurrent();
-        return !empty($user['id']) && !empty($_SESSION['user']['id']);
+        return !empty($user['id']) && !empty($_SESSION['user']['id']) && $user['id'] === $_SESSION['user']['id'];
     }
 
     /**
@@ -328,11 +322,15 @@ class User extends Model
                                                     if (!empty($form['password']) && !empty($form['password_confirm'])) { // получен пароль и его подтверждение
                                                         if (Validation::password($form['password'])) { // пароль прошел проверку сложности
                                                             if ($form['password'] === $form['password_confirm']) { // пароль и его подтверждение совпадают
-                                                                $user = new User();
+                                                                $private_key = RSA::generateRandomBytes(0, true);
+                                                                $rsa = new RSA($private_key);
+
+                                                                $user = new self();
                                                                 $user->active = null;
-                                                                $user->last_name = strip_tags(trim($form['last_name']));
-                                                                $user->name = strip_tags(trim($form['name']));
-                                                                $user->second_name = !empty($form['second_name']) ? strip_tags(trim($form['second_name'])) : null;
+                                                                $user->private_key = $private_key;
+                                                                $user->last_name = $rsa->encrypt(strip_tags(trim($form['last_name'])));
+                                                                $user->name = $rsa->encrypt(strip_tags(trim($form['name'])));
+                                                                $user->second_name = !empty($form['second_name']) ? $rsa->encrypt(strip_tags(trim($form['second_name']))) : null;
                                                                 $user->email = $email;
                                                                 $user->phone = $phone;
                                                                 $user->password = password_hash($form['password'], PASSWORD_DEFAULT);
@@ -400,90 +398,86 @@ class User extends Model
 
     /**
      * Авторизация
-     * @param array $form
-     * @param bool $isAjax
+     * @param string $login - логин
+     * @param string $password - пароль
+     * @param bool $remember - запомнить пользователя
+     * @param bool $isAjax - авторизация аяксом или нет
      * @return bool
      * @throws DbException
      * @throws UserException
      */
-    public static function authorization(array $form, bool $isAjax = false)
+    public static function authorization(string $login, string $password, bool $remember = false, bool $isAjax = false)
     {
-        if (!empty($form['personal_data'])) { // получено согласие на обработку данных
-            if (!empty($form['login'])) { // не пустой логин
-                if (Validation::phone($form['login'])) { // телефон в качестве логина
-                    $phone = intval(preg_replace('/[^0-9]/', '', $form['login']));
-                    $phone = mb_strlen($phone) === 11 ? mb_substr($phone, 1) : $phone;
-                    $user = User::getByPhone($phone, true);
+        if (!empty($login)) { // не пустой логин
+            if (Validation::phone($login)) { // телефон в качестве логина
+                $phone = intval(preg_replace('/[^0-9]/', '', $login));
+                $phone = mb_strlen($phone) === 11 ? mb_substr($phone, 1) : $phone;
+                $user = User::getByPhone($phone, true);
+            }
+            elseif (Validation::email($login)) { // email в качестве логина
+                $email = strip_tags($login);
+                $user = User::getByEmail($email, true);
+            }
+            else { // логин не прошел проверку валидности
+                $message = 'Проверьте введенный логин';
+                $error = 1;
+
+                if ($isAjax) {
+                    Logger::getInstance()->error(new UserException($message));
+
+                    echo json_encode([
+                        'result' => false,
+                        'message' => $message,
+                        'error_code' => $error
+                    ]);
+                    die;
                 }
-                elseif (Validation::email($form['login'])) { // email в качестве логина
-                    $email = strip_tags($form['login']);
-                    $user = User::getByEmail($email, true);
-                }
-                else { // логин не прошел проверку валидности
-                    $message = 'Проверьте введенный логин';
-                    $error = 1;
-
-                    if ($isAjax) {
-                        Logger::getInstance()->error(new UserException($message));
-
-                        echo json_encode([
-                            'result' => false,
-                            'message' => $message,
-                            'error_code' => $error
-                        ]);
-                        die;
-                    }
-                    else {
-                        $exc = new UserException($message);
-                        Logger::getInstance()->error($exc);
-                        throw $exc;
-                    }
-                }
-
-                if (!empty($user->id)) { // найден пользователь
-                    if (!empty($form['password'])) { // не пустой пароль
-                        if (Validation::password($form['password'])) { // пароль прошел проверку валидности
-                            if (password_verify($form['password'], $user->password)) { // верный пароль
-                                if (self::authorize($user->id, !empty($form['remember']))) { // успешная авторизация
-                                    Access::getInstance()->info(new UserException('Пользователь id = ' . $user->id . ' авторизован'));
-                                    OrderItem::checkAnonymous();
-
-                                    if ($isAjax) {
-                                        echo json_encode(['result' => true]);
-                                        die;
-                                    } else return true;
-
-                                } else { // ошибка авторизации
-                                    Access::getInstance()->error(new UserException('Ошибка при авторизации пользователя id = ' . $user->id));
-                                    $message = 'Ошибка при авторизации. Попробуйте попытку позже.';
-                                    $error = 5;
-                                }
-                            } else { // неверный пароль
-                                Access::getInstance()->error(new UserException('Введен неверный пароль пользователя id = ' . $user->id));
-                                $message = 'Неверный пароль';
-                                $error = 2;
-                            }
-                        } else { // пароль не прошел проверку сложности
-                            $message = 'Проверьте введенный пароль';
-                            $error = 2;
-                        }
-                    } else { // пустой пароль
-                        $message = 'Не введен пароль';
-                        $error = 2;
-                    }
-                } else { // пользователь не найден
-                    $message = 'Пользователь не найден';
-                    $error = 1;
+                else {
+                    $exc = new UserException($message);
+                    Logger::getInstance()->error($exc);
+                    throw $exc;
                 }
             }
-            else { // пустой логин
-                $message = 'Не введен логин';
+
+            if (!empty($user->id)) { // найден пользователь
+                if (!empty($password)) { // не пустой пароль
+                    if (Validation::password($password)) { // пароль прошел проверку валидности
+                        if (password_verify($password, $user->password)) { // верный пароль
+                            if (self::authorize($user->id, !empty($form['remember']))) { // успешная авторизация
+                                Access::getInstance()->info(new UserException('Пользователь id = ' . $user->id . ' авторизован'));
+                                OrderItem::checkAnonymous(); // привязка анонимной корзины к пользователю
+
+                                if ($isAjax) {
+                                    echo json_encode(['result' => true]);
+                                    die;
+                                } else return true;
+
+                            } else { // ошибка авторизации
+                                Access::getInstance()->error(new UserException('Ошибка при авторизации пользователя id = ' . $user->id));
+                                $message = 'Ошибка при авторизации. Попробуйте попытку позже.';
+                                $error = 5;
+                            }
+                        } else { // неверный пароль
+                            Access::getInstance()->error(new UserException('Введен неверный пароль пользователя id = ' . $user->id));
+                            $message = 'Неверный пароль';
+                            $error = 2;
+                        }
+                    } else { // пароль не прошел проверку сложности
+                        $message = 'Проверьте введенный пароль';
+                        $error = 2;
+                    }
+                } else { // пустой пароль
+                    $message = 'Не введен пароль';
+                    $error = 2;
+                }
+            } else { // пользователь не найден
+                $message = 'Пользователь не найден';
                 $error = 1;
             }
         }
-        else { // не отмечено согласие на обработку данных
-            $message = 'Не получено согласие на обработку персональных данных';
-            $error = 3;
+        else { // пустой логин
+            $message = 'Не введен логин';
+            $error = 1;
         }
 
         if ($isAjax) {
@@ -673,17 +667,27 @@ class User extends Model
                 throw $exc;
             }
 
-            $request = UserRegisterRequest::getByHash($hash);
-            $request->expire = date("Y-m-d H:i:s", time() - 1);
+            $event = Event::create(
+                $user->id,
+                Event::TEMPLATE_REGISTRATION,
+                Event::TYPE_MAIL
+            );
 
-            if (!$request->save()) {
-                Logger::getInstance()->error(new DbException('Ошибка деактивации кода запроса на активацию пользователя с id = ' . $user->id));
-            }
+            if ($event) {
+                $request = UserRegisterRequest::getByHash($hash);
+                $request->expire = date("Y-m-d H:i:s", time() - 1);
 
-            return true;
+                if (!$request->save()) Logger::getInstance()->error(new DbException('Ошибка деактивации кода запроса на активацию пользователя с id = ' . $user->id));
+
+                return true;
+
+            } else Logger::getInstance()->error(new DbException('Не удалось создать событие орегистрации пользователя с id = ' . $user->id));
         }
-
-        return false;
+        else {
+            $exc = new UserException('Не найден пользователь для активации.');
+            Logger::getInstance()->error($exc);
+            throw $exc;
+        }
     }
 
     /**

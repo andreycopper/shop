@@ -1,3 +1,16 @@
+<?
+$last_name = '';
+$name = '';
+$second_name = '';
+
+if (!empty($this->user['id']) && !empty($this->user['private_key'])) {
+    $rsa = new \App\System\RSA($this->user['private_key']);
+
+    $last_name = !empty($this->user['last_name']) ? $rsa->decrypt($this->user['last_name']) : '';
+    $name = !empty($this->user['name']) ? $rsa->decrypt($this->user['name']) : '';
+    $second_name = !empty($this->user['second_name']) ? $rsa->decrypt($this->user['second_name']) : '';
+}
+?>
 <div class="container">
     <div class="main-header">
         <div class="breadcrumbs">
@@ -14,7 +27,7 @@
                 <a href="" class="order-item-title order-user">Покупатель</a>
 
                 <div class="order-item-container radio-container">
-                    <div class="order-user-type">
+                    <div class="order-user-type <?= empty($this->user['id']) ? 'hidden' : '' ?>">
                         <label class="radio checked">
                             <input type="radio" name="type" value="1" data-target="order-user-physical" checked>
                             <span class="order-item-name">Физическое лицо</span>
@@ -27,36 +40,40 @@
                     </div>
 
                     <div class="order-item-slider order-user-physical">
-                        <label for="p_profile">Профиль доставки</label>
-                        <select name="p_profile" id="p_profile">
-                            <option value="0" selected>Новый профиль</option>
-                            <? if (!empty($this->profiles) && is_array($this->profiles)):
-                                foreach ($this->profiles as $profile):
-                                    if ($profile->user_type_id !== '1') continue; ?>
-                                    <option value="<?= $profile->id ?>"
-                                            data-user_type_id="<?= $profile->user_type_id ?>"
-                                            data-name="<?= $profile->name ?>"
-                                            data-email="<?= $profile->email ?>"
-                                            data-phone="<?= $profile->phone ?>"
-                                            data-index=""
-                                            data-city="<?= $profile->city ?>"
-                                            data-address="<?= $profile->address ?>"
-                                            data-comment="<?= $profile->comment ?>"
-                                    >
-                                        <?= $profile->city . ', ' . $profile->address ?>
-                                    </option>
-                                <? endforeach;
-                            endif; ?>
-                        </select>
+                        <? if (!empty($this->user['id'])): ?>
+                            <label for="p_profile">Профиль доставки</label>
+                            <select name="p_profile" id="p_profile">
+                                <option value="0" selected>Новый профиль</option>
+                                <? if (!empty($this->profiles) && is_array($this->profiles)):
+                                    foreach ($this->profiles as $profile):
+                                        if ($profile->user_type_id !== '1') continue; ?>
+                                        <option value="<?= $profile->id ?>"
+                                                data-user_type_id="<?= $profile->user_type_id ?>"
+                                                data-name="<?= $profile->name ?>"
+                                                data-email="<?= $profile->email ?>"
+                                                data-phone="<?= $profile->phone ?>"
+                                                data-index=""
+                                                data-city="<?= $profile->city ?>"
+                                                data-address="<?= $profile->address ?>"
+                                                data-comment="<?= $profile->comment ?>"
+                                        >
+                                            <?= $profile->city . ', ' . $profile->address ?>
+                                        </option>
+                                    <? endforeach;
+                                endif; ?>
+                            </select>
+                        <? else: ?>
+                            <input type="hidden" name="p_profile" value="0">
+                        <? endif; ?>
 
                         <label for="p_name">Контактное лицо <span class="required">*</span></label>
-                        <input type="text" name="p_name" id="p_name" value="<?= $this->user ? ($this->user['last_name'] . ' ' . $this->user['name']) : '' ?>">
+                        <input type="text" name="p_name" id="p_name" value="<?= ($last_name . ' ' . $name . ' ' . $second_name) ?>">
 
                         <label for="p_email">E-mail <span class="required">*</span></label>
-                        <input type="text" name="p_email" id="p_email" value="<?= $this->user ? $this->user['email'] : '' ?>">
+                        <input type="text" name="p_email" id="p_email" value="<?= !empty($this->user['id']) ? $this->user['email'] : '' ?>">
 
                         <label for="p_phone">Телефон <span class="required">*</span></label>
-                        <input type="text" name="p_phone" id="p_phone" value="<?= $this->user ? $this->user['phone'] : '' ?>">
+                        <input type="text" name="p_phone" id="p_phone" value="<?= !empty($this->user['id']) ? $this->user['phone'] : '' ?>">
                     </div>
 
                     <div class="order-item-slider order-user-juridical">

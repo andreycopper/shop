@@ -50,7 +50,7 @@ class Mailer
      */
     private function prepareMessage(User $user, array $params = [])
     {
-        $this->message = str_replace('#NAME#', $user->name, $this->message);
+        $this->message = str_replace('#NAME#', (new RSA())->decrypt($user->name, $user->private_key), $this->message);
 
         $constants = get_defined_constants(true);
         if (!empty($constants['user']) && is_array($constants['user'])) { // замена всех констант в шаблоне

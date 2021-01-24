@@ -536,11 +536,11 @@ $(function () {
                     $(this).addClass('error');
                     $(this).parent().find('.tooltip').html('Проверьте введенный пароль').addClass('active');
                 }
-                else if ('checkbox' === $(this).attr('type') && !$(this).prop('checked')) {
+                /*else if ('checkbox' === $(this).attr('type') && !$(this).prop('checked')) {
                     error.push(true);
                     $(this).parent().addClass('error');
                     $(this).parent().find('.tooltip').html('Не получено согласие на обработку персональных данных').addClass('active');
-                }
+                }*/
                 else {
                     error.push(false);
                     $(this).removeClass('error');
@@ -560,7 +560,7 @@ $(function () {
             let $data = {
                 login:         form.find('input[name=login]').val(),
                 password:      form.find('input[name=password]').val(),
-                personal_data: form.find('input[name=personal_data]').prop('checked') ? 1 : 0,
+                //personal_data: form.find('input[name=personal_data]').prop('checked') ? 1 : 0,
                 remember:      form.find('input[name=remember]').prop('checked') ? 1 : 0,
             };
 
@@ -667,7 +667,7 @@ $(function () {
                 }
             });
         }
-    })
+    });
     /*************************** !REGISTER ****************************/
     /*************************** RESTORE ****************************/
     $('.restore form').on('submit', function (e) {

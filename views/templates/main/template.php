@@ -521,11 +521,11 @@
             <input type="password" name="password" class="required">
             <span class="tooltip"></span>
         </label>
-        <label class="checkbox">
-            <input type="checkbox" name="personal_data" class="required">
-            Я согласен на <a href="">обработку персональных данных</a> <span class="red">*</span>
-            <span class="tooltip"></span>
-        </label>
+<!--        <label class="checkbox">-->
+<!--            <input type="checkbox" name="personal_data" class="required">-->
+<!--            Я согласен на <a href="">обработку персональных данных</a> <span class="red">*</span>-->
+<!--            <span class="tooltip"></span>-->
+<!--        </label>-->
         <label class="checkbox checked">
             <input type="checkbox" name="remember" checked>
             Запомнить меня
