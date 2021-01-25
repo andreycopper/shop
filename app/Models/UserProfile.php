@@ -46,7 +46,7 @@ class UserProfile extends Model
             FROM user_profiles up 
             LEFT JOIN users u 
                 ON up.user_id = u.id 
-            LEFT JOIN cities c 
+            LEFT JOIN fias_cities c 
                 ON c.id = up.city_id
             WHERE up.user_id = :user_id {$where}
             ";
@@ -69,7 +69,7 @@ class UserProfile extends Model
             FROM user_profiles up 
             LEFT JOIN users u 
                 ON up.user_id = u.id 
-            LEFT JOIN cities c 
+            LEFT JOIN fias_cities c 
                 ON c.id = up.city_id
             WHERE up.user_hash = :user_hash {$where}
             ";

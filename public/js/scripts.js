@@ -425,6 +425,7 @@ $(function () {
             });
         } else {
             $this.attr('data-id', '');
+            $this.next().html('').hide();
         }
     });
 
@@ -435,6 +436,7 @@ $(function () {
             input = ul.prev();
 
         input.val($(this).html()).attr('data-id', $(this).data('id'));
+        input.prev().val($(this).data('id'));
         ul.hide();
     });
     /**************************** !ORDER ****************************/

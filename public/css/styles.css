@@ -5126,7 +5126,7 @@ section.main {
     position: relative;
     max-width: 700px;
     min-height: 70px;
-    margin: 0 auto 20px;
+    margin: 20px auto;
     padding-top: 130px;
     text-align: center;
     overflow: visible;
