@@ -94,7 +94,7 @@
                                     <? if (!empty($cart_item->discount)): ?>
                                         <div class="basket-item-discount">
                                             Скидка: <span><?= $cart_item->discount ?>%</span>
-                                            (купон "<?= $cart_item->coupon_name ?>")
+                                            (купон "Тест")
                                         </div>
                                     <? endif; ?>
                                     <div class="basket-item-type">Тип цены: <span><?= $cart_item->price_type ?></span></div>
@@ -109,14 +109,12 @@
                                     <div class="basket-item-prices">
                                         <div class="basket-item-price">
                                             <span>
-                                                <?= $cart_item->discount_price ?
-                                                    number_format($cart_item->discount_price, 0, '.', ' ')  :
-                                                    number_format($cart_item->price, 0, '.', ' ') ?>
+                                                <?= $cart_item->discount_price ?? $cart_item->price ?>
                                             </span> <?= CURRENCY ?>
                                         </div>
                                         <? if (!empty($cart_item->discount_price)): ?>
                                             <div class="basket-item-oldprice">
-                                                <span><?= number_format($cart_item->price, 0, '.', ' ') ?></span> <?= CURRENCY ?>
+                                                <span><?= $cart_item->price ?></span> <?= CURRENCY ?>
                                             </div>
                                         <? endif; ?>
                                         <div class="basket-item-measure">цена за 1 <?= $cart_item->unit ?></div>
@@ -138,20 +136,18 @@
                                     <div class="basket-item-total">
                                         <div class="basket-item-totalprice">
                                             <span>
-                                                <?= $cart_item->discount_sum ?
-                                                    number_format($cart_item->discount_sum, 0, '.', ' ') :
-                                                    number_format($cart_item->sum, 0, '.', ' ') ?>
+                                                <?= $cart_item->discount_sum ?? $cart_item->sum ?>
                                             </span> <?= CURRENCY ?>
                                         </div>
                                         <? if (!empty($cart_item->discount_price)): ?>
                                             <div class="basket-item-oldtotalprice">
-                                                <span><?= number_format($cart_item->sum, 0, '.', ' ') ?></span> <?= CURRENCY ?>
+                                                <span><?= $cart_item->sum ?></span> <?= CURRENCY ?>
                                             </div>
                                             <div class="basket-item-economy">
                                                 Экономия<br>
                                                 <b>
                                                     <span>
-                                                        <?= number_format($cart_item->sum - $cart_item->discount_sum, 0, '.', ' ') ?>
+                                                        <?= $cart_item->economy ?>
                                                     </span> <?= CURRENCY ?>
                                                 </b>
                                             </div>

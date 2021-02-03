@@ -77,15 +77,12 @@ class OrderItem extends Model
         $where = !empty($active) ? 'AND p.active IS NOT NULL' : '';
         $sql = "
             SELECT oi.id, oi.order_id, oi.user_id, oi.user_hash, oi.product_id, oi.price_type_id, oi.count, 
-                   oi.coupon_id, oi.discount, oi.price, oi.sum, oi.discount_price, oi.discount_sum, oi.created, 
+                   oi.coupon_id, oi.discount, oi.price, oi.sum, oi.discount_price, oi.discount_sum, (oi.price - oi.discount_price) economy, oi.created, 
                    pt.name AS price_type, 
                    t.value AS tax,
                    p.name, p.preview_image, p.quantity,
                    u.sign AS unit,
                    curr.sign AS currency,
-                   c.name AS coupon_name, c.code AS coupon_code, c.value AS coupon_value, c.discount AS coupon_discount,
-                   c.active AS coupon_active, 
-                   ct.term AS coupon_term,
                    v.name AS vendor 
             FROM order_items oi 
             LEFT JOIN price_types pt 
@@ -98,10 +95,6 @@ class OrderItem extends Model
                 ON p.currency_id = curr.id
             LEFT JOIN taxes t 
                 ON t.id = p.tax_id
-            LEFT JOIN coupons c 
-                ON c.id = oi.coupon_id
-            LEFT JOIN coupon_terms ct 
-                ON ct.id = c.coupon_term_id
             LEFT JOIN vendors v 
                 ON p.vendor_id = v.id
             WHERE oi.user_id = :user_id AND oi.order_id IS NULL {$where}
@@ -119,15 +112,12 @@ class OrderItem extends Model
         $where = !empty($active) ? 'AND p.active IS NOT NULL' : '';
         $sql = "
             SELECT oi.id, oi.order_id, oi.user_id, oi.user_hash, oi.product_id, oi.price_type_id, oi.count, 
-                   oi.coupon_id, oi.discount, oi.price, oi.sum, oi.discount_price, oi.discount_sum, oi.created, 
+                   oi.coupon_id, oi.discount, oi.price, oi.sum, oi.discount_price, oi.discount_sum, (oi.price - oi.discount_price) economy, oi.created, 
                    pt.name AS price_type, 
                    t.value AS tax,
                    p.name, p.preview_image, p.quantity,
                    u.sign AS unit,
                    curr.sign AS currency,
-                   c.name AS coupon_name, c.code AS coupon_code, c.value AS coupon_value, c.discount AS coupon_discount,
-                   c.active AS coupon_active, 
-                   ct.term AS coupon_term,
                    v.name AS vendor 
             FROM order_items oi 
             LEFT JOIN price_types pt 
@@ -140,10 +130,6 @@ class OrderItem extends Model
                 ON p.currency_id = curr.id
             LEFT JOIN taxes t 
                 ON t.id = p.tax_id
-            LEFT JOIN coupons c 
-                ON c.id = oi.coupon_id
-            LEFT JOIN coupon_terms ct 
-                ON ct.id = c.coupon_term_id
             LEFT JOIN vendors v 
                 ON p.vendor_id = v.id
             WHERE oi.user_hash = :user_hash AND oi.order_id IS NULL {$where}";
@@ -299,7 +285,7 @@ class OrderItem extends Model
                 }
 
                 $outdated = str_replace('-', '', explode(' ', $item->created)[0]) < date('Ymd');
-                if ($outdated || $coupon) { // товар в корзине больше суток или введен купон
+                if ($outdated) { // товар в корзине больше суток
                     if ($outdated) $message = 'Цены товаров, добавленных в корзину более суток назад обновлены';
 
                     $price = Product::getPrice($item->product_id, $item->price_type_id); // актуальные цены товара
@@ -307,33 +293,16 @@ class OrderItem extends Model
                     $item->price = round($price->price * $price->rate);
                     $item->sum = round($item->price * $item->count);
                     $item->created = date('Y-m-d');
+                    $item->discount = null;
+                    $item->discount_price = null;
+                    $item->discount_sum = null;
+                    $item->economy = null;
 
-                    if (!empty($item->discount) && !empty($item->coupon_id)) { // если к товару ранее уже был применен купон
-                        if (!empty($item->coupon_active)) { // если купон активен
-                            $item->discount_price = round($price->price * $price->rate * (100 - $item->discount) / 100);
-                            $item->discount_sum = round($item->discount_price * $item->count);
-                        } else { // купон более неактивен
-                            $item->coupon_id = null;
-                            $item->discount = null;
-                            $item->discount_price = null;
-                            $item->discount_sum = null;
-                        }
-                    }
-
-                    if (!empty($price->discount) &&
-                        (empty($item->coupon_id) || (!empty($item->coupon_id) && !empty($item->coupon_active) && $price->discount > $item->discount)))
-                    { // на товар имеется скидка и они больше скидки купона
-                        $item->coupon_id = null;
+                    if (!empty($price->discount)) { // на товар имеется скидка
                         $item->discount = $price->discount;
-                        $item->discount_price = round($price->price * $price->rate * (100 - $price->discount) / 100);
+                        $item->discount_price = round($item->price * (100 - $price->discount) / 100);
                         $item->discount_sum = round($item->discount_price * $item->count);
-                    }
-
-                    if (!empty($coupon) && empty($item->coupon_id) && $coupon->discount > $item->discount) { // введен купон и его скидка больше ранее примененной
-                        $item->coupon_id = $coupon->id;
-                        $item->discount = $coupon->discount;
-                        $item->discount_price = round($price->price * $price->rate * (100 - $coupon->discount) / 100);
-                        $item->discount_sum = round($item->discount_price * $item->count);
+                        $item->economy = round($item->price - $item->discount_price);
                     }
 
                     if (!self::factory($item)->save()) Logger::getInstance()->error(new EditException('Не удалось обновить в корзине товар id=' . $item->id));
@@ -347,6 +316,7 @@ class OrderItem extends Model
                 $item->sum = number_format($item->sum, 0, '.', ' ');
                 $item->discount_price = number_format($item->discount_price, 0, '.', ' ');
                 $item->discount_sum = number_format($item->discount_sum, 0, '.', ' ');
+                $item->economy = number_format($item->economy, 0, '.', ' ');
             }
 
             $result = [
@@ -357,6 +327,7 @@ class OrderItem extends Model
                 'sum'                => number_format($sum, 0, '.', ' '),
                 'discount_sum'       => number_format($discount_sum, 0, '.', ' '),
                 'economy'            => number_format($sum - $discount_sum, 0, '.', ' '),
+                'coupon'            => $coupon ?? null,
                 'message'            => $message ?? ''
             ];
         }

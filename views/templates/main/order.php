@@ -129,6 +129,40 @@ if (!empty($this->user['id']) && !empty($this->user['private_key'])) {
                 </div>
 
                 <div class="order-item">
+                    <a href="" class="order-item-title order-delivery">Доставка</a>
+
+                    <div class="order-item-container">
+                        <? if (!empty($this->deliveries) && is_array($this->deliveries)): ?>
+                            <? foreach ($this->deliveries as $delivery): ?>
+                                <div class="radio-container">
+                                    <label class="radio <?= $delivery->id === '1' ? 'checked' : '' ?>">
+                                        <input type="radio" name="delivery" value="<?= $delivery->id ?>" <?= $delivery->id === '1' ? 'checked' : '' ?>>
+                                        <span class="order-item-name"><?= $delivery->name ?></span>
+                                        <span class="order-item-price">
+                                        Стоимость:
+                                        <? if (!empty($delivery->price)): ?>
+                                            <span><?= $delivery->price ?></span> р.
+                                        <? elseif (!empty($delivery->price_from) || !empty($delivery->price_to)): ?>
+                                            <span>
+                                                <?=
+                                                ($delivery->price_from ? ('от ' . $delivery->price_from . ' ') : '') .
+                                                ($delivery->price_to ? ('до ' . $delivery->price_to) : '')
+                                                ?>
+                                            </span> р.
+                                        <? else: ?>
+                                            бесплатно
+                                        <? endif; ?>
+                                    </span>
+                                        <span class="order-item-time">Срок доставки: <span><?= $delivery->time ?></span></span>
+                                        <span class="order-item-desc"><?= $delivery->description ?></span>
+                                    </label>
+                                </div>
+                            <? endforeach; ?>
+                        <? endif; ?>
+                    </div>
+                </div>
+
+                <div class="order-item hidden">
                     <a href="" class="order-item-title order-region">Адрес доставки</a>
 
                     <div class="order-item-container">
@@ -150,38 +184,6 @@ if (!empty($this->user['id']) && !empty($this->user['private_key'])) {
                         <div class="order-item-comment">
                             Выберите профиль доставки или введите свой город и адрес.
                         </div>
-                    </div>
-                </div>
-
-                <div class="order-item">
-                    <a href="" class="order-item-title order-delivery">Доставка</a>
-
-                    <div class="order-item-container">
-                        <? if (!empty($this->deliveries) && is_array($this->deliveries)): ?>
-                            <? foreach ($this->deliveries as $delivery): ?>
-                                <label class="radio <?= $delivery->id === '1' ? 'checked' : '' ?>">
-                                    <input type="radio" name="delivery" value="<?= $delivery->id ?>" <?= $delivery->id === '1' ? 'checked' : '' ?>>
-                                    <span class="order-item-name"><?= $delivery->name ?></span>
-                                    <span class="order-item-price">
-                                    Стоимость:
-                                    <? if (!empty($delivery->price)): ?>
-                                        <span><?= $delivery->price ?></span> р.
-                                    <? elseif (!empty($delivery->price_from) || !empty($delivery->price_to)): ?>
-                                        <span>
-                                            <?=
-                                            ($delivery->price_from ? ('от ' . $delivery->price_from . ' ') : '') .
-                                            ($delivery->price_to ? ('до ' . $delivery->price_to) : '')
-                                            ?>
-                                        </span> р.
-                                    <? else: ?>
-                                        бесплатно
-                                    <? endif; ?>
-                                </span>
-                                    <span class="order-item-time">Срок доставки: <span><?= $delivery->time ?></span></span>
-                                    <span class="order-item-desc"><?= $delivery->description ?></span>
-                                </label>
-                            <? endforeach; ?>
-                        <? endif; ?>
                     </div>
                 </div>
 
@@ -318,5 +320,4 @@ if (!empty($this->user['id']) && !empty($this->user['private_key'])) {
             <p>Нажмите <a href="/catalog/">здесь</a>, чтобы продолжить покупки</p>
         </div>
     <? endif; ?>
-
 </div>

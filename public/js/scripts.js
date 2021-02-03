@@ -69,8 +69,11 @@ $(function () {
 
     /* переключение стилизованных радиокнопок */
     $('input[type=radio]').on('change', function () {
-        $(this).parents('.radio-container').find('label.radio').removeClass('checked');
+        let name = $(this).attr('name');
+        $('input[name=' + name + ']').parents('.radio-container').find('label.radio').removeClass('checked');
         $(this).parent('label.radio').addClass('checked');
+        // $(this).parents('.radio-container').find('label.radio').removeClass('checked');
+        // $(this).parent('label.radio').addClass('checked');
 
         let target = $(this).attr('data-target');
         $(this).parents('.order-item').find('.order-item-slider').hide();
@@ -383,6 +386,7 @@ $(function () {
         $(this).next().slideToggle();
     });
 
+    /* выбор профиля доставки */
     $('#p_profile, #j_profile').on('change', function () {
         let option = $(this).find('option:selected');
 
@@ -399,6 +403,12 @@ $(function () {
         $('input[name=city]').val(option.data('city'));
         $('input[name=address]').val(option.data('address'));
         $('textarea[name=comment]').val(option.data('comment'));
+    });
+
+    /* показ/скрытие блок с адресом доставки при выборе службы доставки */
+    $('input[name=delivery]').on('change', function () {
+        if ($(this).val() === '1') $(this).parents('.order-item').next().addClass('hidden');
+        else $(this).parents('.order-item').next().removeClass('hidden');
     });
 
     /* поиск населенного пункта */

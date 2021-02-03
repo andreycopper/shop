@@ -55,6 +55,7 @@ class Auth extends Controller
 
     /**
      * Восстановление пароля
+     * @throws DbException
      * @throws UserException
      */
     protected function actionRestore()
