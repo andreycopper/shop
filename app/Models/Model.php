@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Exceptions\UserException;
 use App\System\Db;
+use App\System\Logger;
 use App\Traits\Magic;
 use App\Exceptions\DbException;
 
@@ -183,5 +185,24 @@ abstract class Model
             $this->$key = $value;
         }
         return $this;
+    }
+
+    /**
+     * Показ ошибки
+     * @param $message
+     * @param $isAjax
+     * @throws UserException
+     */
+    protected static function returnError($message, $isAjax = false)
+    {
+        if ($isAjax) {
+            Logger::getInstance()->error(new UserException($message));
+            echo json_encode([
+                'result' => false,
+                'message' => $message
+            ]);
+            die;
+        }
+        else throw new UserException($message);
     }
 }

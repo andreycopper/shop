@@ -2,17 +2,19 @@
 
 namespace App\Controllers;
 
-use App\Exceptions\UserException;
-use App\Models\City;
+use App\Models\Order;
+use App\Models\Payment;
+use App\System\Request;
 use App\Models\Delivery;
 use App\Models\OrderItem;
 use App\Models\UserProfile;
-use App\Models\Payment;
-use App\System\Logger;
-use App\System\Request;
 
 class Orders extends Controller
 {
+    /**
+     * Страница оформления заказа
+     * @throws \App\Exceptions\DbException
+     */
     protected function actionDefault()
     {
         $this->view->deliveries = Delivery::getList(true);
@@ -20,31 +22,43 @@ class Orders extends Controller
         $this->view->profiles = UserProfile::getListByUser(true);
         $this->view->cart = OrderItem::getCart();
 
-        $this->view->display('order');
+        $this->view->display('order/order');
     }
 
+    /**
+     * Завершение заказа
+     * @throws \App\Exceptions\DbException
+     * @throws \App\Exceptions\UserException
+     */
     protected function actionFinish()
     {
-        var_dump($_POST);
+        $cart = OrderItem::getCart(false);
 
-        $profile_id = (new UserProfile())->saveProfile(Request::post(''), $this->view->user['id'] ?? 2, intval(Request::post('type')), Request::isAjax());
+        if (Order::checkData(Request::post(), $cart, Request::isAjax())) {
+            $profile_id = (new UserProfile())->saveProfile(Request::post(), $this->view->user['id'] ?? 2, intval(Request::post('type')), Request::isAjax());
+            $order_id = (new Order())->saveOrder(Request::post(), $cart, $profile_id, Request::isAjax());
 
-        var_dump($profile_id);die;
+            if (Order::updateCart($cart['items'], $order_id, Request::isAjax())) {
+                header('Location: /orders/success/' . $order_id);
+            }
+        }
+    }
 
-        if (!empty(Request::post('payment'))) {
-            $user_profile->payment = Request::post('payment');
-        } else $message = 'Не заполнено поле "Оплата"';
+    /**
+     * Страница с информацией об успешном оформлении заказа
+     * @param $order_id
+     * @throws \App\Exceptions\DbException
+     */
+    protected function actionSuccess($order_id)
+    {
+        if (is_numeric($order_id)) {
+            $this->view->order = Order::getByIdAndUserId(
+                intval($order_id),
+                $this->view->user['id'] ?? 2,
+                !$this->view->user['id'] ? $_COOKIE['user'] : null);
 
-
-
-
-
-
-
-
-
-
-
-        die;
+            var_dump($this->view->order);
+            die;
+        }
     }
 }

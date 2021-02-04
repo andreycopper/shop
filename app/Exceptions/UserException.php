@@ -2,6 +2,9 @@
 
 namespace App\Exceptions;
 
+use App\System\Logger;
+use Throwable;
+
 /**
  * Class UserException
  * @package App\Exceptions

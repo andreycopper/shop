@@ -254,20 +254,21 @@ class OrderItem extends Model
 
     /**
      * Получает актуальную корзину пользователя
+     * @param bool $format_price
      * @param string $coupon_code
      * @return array|false
      * @throws DbException
      */
-    public static function getCart(string $coupon_code = '')
+    public static function getCart(bool $format_price = true, string $coupon_code = '')
     {
         $user = User::getCurrent();
 
         if (!empty($user['id'])) {
-            $coupon = $coupon_code ? Coupon::getByCodeUserId($coupon_code, $user['id'], true) : null;
+            //$coupon = $coupon_code ? Coupon::getByCodeUserId($coupon_code, $user['id'], true) : null;
             $items = self::getListByUserId($user['id']);
         }
         else {
-            $coupon = $coupon_code ? Coupon::getByCodeUserHash($coupon_code, $_COOKIE['user'], true) : null;
+            //$coupon = $coupon_code ? Coupon::getByCodeUserHash($coupon_code, $_COOKIE['user'], true) : null;
             $items = self::getListByUserHash($_COOKIE['user']);
         }
 
@@ -312,11 +313,13 @@ class OrderItem extends Model
                 $sum += $item->sum;
                 $discount_sum += $item->discount_sum ?? $item->sum;
 
-                $item->price = number_format($item->price, 0, '.', ' ');
-                $item->sum = number_format($item->sum, 0, '.', ' ');
-                $item->discount_price = number_format($item->discount_price, 0, '.', ' ');
-                $item->discount_sum = number_format($item->discount_sum, 0, '.', ' ');
-                $item->economy = number_format($item->economy, 0, '.', ' ');
+                if ($format_price) {
+                    $item->price = number_format($item->price, 0, '.', ' ');
+                    $item->sum = number_format($item->sum, 0, '.', ' ');
+                    $item->discount_price = number_format($item->discount_price, 0, '.', ' ');
+                    $item->discount_sum = number_format($item->discount_sum, 0, '.', ' ');
+                    $item->economy = number_format($item->economy, 0, '.', ' ');
+                }
             }
 
             $result = [
@@ -324,9 +327,9 @@ class OrderItem extends Model
                 'notavialable'       => $notavialable,
                 'count_items'        => $count_items,
                 'count_notavialable' => count($notavialable),
-                'sum'                => number_format($sum, 0, '.', ' '),
-                'discount_sum'       => number_format($discount_sum, 0, '.', ' '),
-                'economy'            => number_format($sum - $discount_sum, 0, '.', ' '),
+                'sum'                => $format_price ? number_format($sum, 0, '.', ' ') : $sum,
+                'discount_sum'       => $format_price ? number_format($discount_sum, 0, '.', ' ') : $discount_sum,
+                'economy'            => $format_price ? number_format($sum - $discount_sum, 0, '.', ' ') : ($sum - $discount_sum),
                 'coupon'            => $coupon ?? null,
                 'message'            => $message ?? ''
             ];
@@ -349,7 +352,7 @@ class OrderItem extends Model
         $item = OrderItem::add($product_id, $count, $price_type);
 
         if ($item) { // товар сохранен в корзине
-            $cart = OrderItem::getCart();
+            $cart = OrderItem::getCart(false);
 
             if ($cart) { // получена актуальная корзина
                 $result = [

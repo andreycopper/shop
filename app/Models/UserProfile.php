@@ -31,7 +31,7 @@ class UserProfile extends Model
     public $created;       // дата создания
     public $updated;       // дата обновления
 
-    public static function getByIdAndUserId(int $id, int $user_id, bool $active = false, bool $object = true)
+    public static function getByIdAndUserId(int $id, int $user_id, bool $active = true, bool $object = true)
     {
         $where = !empty($active) ? ' AND active IS NOT NULL' : '';
         $sql = "SELECT * FROM " . static::$table . " WHERE id = :id AND user_id = :user_id {$where}";
@@ -117,137 +117,83 @@ class UserProfile extends Model
 
     protected function savePhisicalProfile($form, $user, $isAjax)
     {
-        $name = $form['p_name'];
-        $email = $form['p_email'];
-        $phone = $form['p_phone'];
-        $delivery = $form['delivery'];
-        $city_id = $form['city_id'];
-        $address = $form['address'];
-        $comment = $form['comment'];
+        $name = trim($form['p_name']);
+        $email = trim($form['p_email']);
+        $phone = trim($form['p_phone']);
+        $delivery = intval($form['delivery']);
+        $city_id = intval($form['city_id']);
+        $address = trim($form['address']);
+        $comment = trim($form['comment']);
 
-        if (!empty($name)) {
-            if (!empty($email)) {
-                if (!empty($phone)) {
-                    $user_profile =
-                        (Request::post('p_profile') === '0') ?
-                            (new UserProfile()) :
-                            UserProfile::getByIdAndUserId(Request::post('p_profile'), $user->id);
+        $user_profile =
+            (Request::post('p_profile') === '0') ?
+                (new UserProfile()) :
+                self::getByIdAndUserId(Request::post('p_profile'), $user->id);
 
-                    $user_profile->active = 1;
-                    $user_profile->user_id = $user->id;
-                    $user_profile->user_hash = $_COOKIE['user'];
-                    $user_profile->user_type_id = 1;
-                    $user_profile->phone = $phone;
-                    $user_profile->email = $email;
-                    $user_profile->name = (new RSA($user->private_key))->encrypt($name);
-                    $user_profile->created = $user_profile->created ?? date('Y-m-d');
-                    $user_profile->updated = $user_profile->id ? date('Y-m-d') : null;
+        $user_profile->active = 1;
+        $user_profile->user_id = $user->id;
+        $user_profile->user_hash = $_COOKIE['user'];
+        $user_profile->user_type_id = 1;
+        $user_profile->phone = $phone;
+        $user_profile->email = $email;
+        $user_profile->name = (new RSA($user->private_key))->encrypt($name);
+        $user_profile->created = $user_profile->created ?? date('Y-m-d');
+        $user_profile->updated = $user_profile->id ? date('Y-m-d') : null;
 
-                    if ($delivery !== '1') {
-                        if (!empty($city_id)) {
-                            if (!empty($address)) {
-                                $user_profile->city_id = $city_id;
-                                $user_profile->address = $address;
-                                $user_profile->comment = $comment;
-                            } else $message = 'Не заполнено поле "Адрес доставки"';
-                        } else $message = 'Не заполнено поле "Населенный пункт"';
-                    }
-
-                    $profile_id = $user_profile->save();
-                    if ($profile_id && empty($message)) return $profile_id;
-
-                } else $message = 'Не заполнено поле "Телефон"';
-            } else $message = 'Не заполнено поле "E-mail"';
-        } else $message = 'Не заполнено поле "Контактные данные"';
-
-        if ($isAjax) {
-            Logger::getInstance()->error(new UserException($message));
-            echo json_encode([
-                'result' => false,
-                'message' => $message
-            ]);
-            die;
+        if ($delivery !== 1) {
+            $user_profile->city_id = $city_id;
+            $user_profile->address = $address;
+            $user_profile->comment = $comment;
         }
-        else {
-            $exc = new UserException($message);
-            Logger::getInstance()->error($exc);
-            throw $exc;
-        }
+
+        $profile_id = $user_profile->save();
+
+        if (!$profile_id) self::returnError('Не удалось сохранить профиль пользователя', $isAjax);
+        return $profile_id;
     }
 
     protected function saveJuridicalProfile($form, $user, $isAjax)
     {
-        $name = $form['j_name'];
-        $email = $form['j_email'];
-        $phone = $form['j_phone'];
-        $company = $form['company'];
-        $j_address = $form['j_address'];
-        $inn = $form['inn'];
-        $kpp = $form['kpp'];
-        $delivery = $form['delivery'];
-        $city_id = $form['city_id'];
-        $address = $form['address'];
-        $comment = $form['comment'];
+        $name = trim($form['j_name']);
+        $email = trim($form['j_email']);
+        $phone = trim($form['j_phone']);
+        $company = trim($form['company']);
+        $j_address = trim($form['j_address']);
+        $inn = trim($form['inn']);
+        $kpp = trim($form['kpp']);
+        $delivery = intval($form['delivery']);
+        $city_id = intval($form['city_id']);
+        $address = trim($form['address']);
+        $comment = trim($form['comment']);
 
-        if (!empty($name)) {
-            if (!empty($email)) {
-                if (!empty($phone)) {
-                    if (!empty($company)) {
-                        if (!empty($j_address)) {
-                            if (!empty($inn)) {
-                                if (!empty($kpp)) {
-                                    $user_profile =
-                                        (Request::post('j_profile') === '0') ?
-                                            (new UserProfile()) :
-                                            UserProfile::getByIdAndUserId(Request::post('j_profile'), $user->id);
+        $user_profile =
+            (Request::post('j_profile') === '0') ?
+                (new UserProfile()) :
+                self::getByIdAndUserId(Request::post('j_profile'), $user->id);
 
-                                    $user_profile->active = 1;
-                                    $user_profile->user_id = $user->id;
-                                    $user_profile->user_hash = $_COOKIE['user'];
-                                    $user_profile->user_type_id = 2;
-                                    $user_profile->phone = $phone;
-                                    $user_profile->email = $email;
-                                    $user_profile->name = (new RSA($user->private_key))->encrypt($name);
-                                    $user_profile->company = $company;
-                                    $user_profile->address_legal = $j_address;
-                                    $user_profile->inn = $inn;
-                                    $user_profile->kpp = $kpp;
-                                    $user_profile->created = $user_profile->created ?? date('Y-m-d');
-                                    $user_profile->updated = $user_profile->id ? date('Y-m-d') : null;
+        $user_profile->active = 1;
+        $user_profile->user_id = $user->id;
+        $user_profile->user_hash = $_COOKIE['user'];
+        $user_profile->user_type_id = 2;
+        $user_profile->phone = $phone;
+        $user_profile->email = $email;
+        $user_profile->name = (new RSA($user->private_key))->encrypt($name);
+        $user_profile->company = $company;
+        $user_profile->address_legal = $j_address;
+        $user_profile->inn = $inn;
+        $user_profile->kpp = $kpp;
+        $user_profile->created = $user_profile->created ?? date('Y-m-d');
+        $user_profile->updated = $user_profile->id ? date('Y-m-d') : null;
 
-                                    if ($delivery !== '1') {
-                                        if (!empty($city_id)) {
-                                            if (!empty($address)) {
-                                                $user_profile->city_id = $city_id;
-                                                $user_profile->address = $address;
-                                                $user_profile->comment = $comment;
-                                            } else $message = 'Не заполнено поле "Адрес доставки"';
-                                        } else $message = 'Не заполнено поле "Населенный пункт"';
-                                    }
-
-                                    $profile_id = $user_profile->save();
-                                    if ($profile_id && empty($message)) return $profile_id;
-
-                                } else $message = 'Не заполнено поле "КПП"';
-                            } else $message = 'Не заполнено поле "ИНН"';
-                        } else $message = 'Не заполнено поле "Юридический адрес"';
-                    } else $message = 'Не заполнено поле "Название компании"';
-                } else $message = 'Не заполнено поле "Телефон"';
-            } else $message = 'Не заполнено поле "E-mail"';
-        } else $message = 'Не заполнено поле "Контактные данные"';
-
-        if ($isAjax) {
-            Logger::getInstance()->error(new UserException($message));
-            echo json_encode([
-                'result' => false,
-                'message' => $message
-            ]);
-            die;
+        if ($delivery !== 1) {
+            $user_profile->city_id = $city_id;
+            $user_profile->address = $address;
+            $user_profile->comment = $comment;
         }
-        else {
-            $exc = new UserException($message);
-            Logger::getInstance()->error($exc);
-            throw $exc;
-        }
+
+        $profile_id = $user_profile->save();
+
+        if (!$profile_id) self::returnError('Не удалось сохранить профиль пользователя', $isAjax);
+        return $profile_id;
     }
 }
