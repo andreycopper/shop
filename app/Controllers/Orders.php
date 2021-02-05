@@ -57,6 +57,7 @@ class Orders extends Controller
                 $this->view->user['id'] ?? 2,
                 !$this->view->user['id'] ? $_COOKIE['user'] : null);
 
+            
             var_dump($this->view->order);
             die;
         }
