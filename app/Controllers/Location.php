@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\City;
 use App\Models\Region;
+use App\Models\Street;
 use App\Models\User;
 use App\System\Request;
 
@@ -75,14 +76,35 @@ class Location extends Controller
                     ';
                 }
 
-                echo json_encode([
-                    'result' => true,
-                    'cities' => $html,
-                ]);
+                echo json_encode(['result' => true, 'cities' => $html]);
                 die;
             }
 
-            echo json_encode(['result' => false]);
+            echo json_encode(['result' => false, 'message' => 'Не найдено']);
+            die;
+        }
+    }
+
+    protected function actionFindStreet()
+    {
+        if (Request::isPost()) {
+            $streets = Street::getListBySearchStringAndCityId(Request::post('city_id'), Request::post('street'), 20, true);
+            $html = '';
+
+            if (!empty($streets) && is_array($streets)) {
+                foreach ($streets as $street) {
+                    $html .= '
+                        <li>
+                            <a href="#" data-id="' . $street->id . '">' . $street->name . ' ' . $street->shortname . '</a>
+                        </li>
+                    ';
+                }
+
+                echo json_encode(['result' => true, 'streets' => $html]);
+                die;
+            }
+
+            echo json_encode(['result' => false, 'message' => 'Не найдено']);
             die;
         }
     }

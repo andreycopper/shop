@@ -168,14 +168,36 @@ if (!empty($this->user['id']) && !empty($this->user['private_key'])) {
                     <div class="order-item-container">
                         <div class="relative visible">
                             <label for="delivery_city">Населенный пункт <span class="required">*</span></label>
-                            <input type="hidden" name="city_id">
-                            <input type="text" name="city" id="delivery_city">
+                            <input type="hidden" name="city_id" value="<?= $this->location['id'] ?? '' ?>">
+                            <input type="text" name="city" id="delivery_city"
+                                   value="<?= $this->location ? ($this->location['region'] . ', ' . $this->location['city'] . ' ' . $this->location['shortname']) : '' ?>">
                             <ul class="order-item-search-result"></ul>
+                            <div class="message_error"></div>
                         </div>
 
-                        <div class="relative">
-                            <label for="delivery_address">Адрес доставки <span class="required">*</span></label>
-                            <input type="text" name="address" id="delivery_address">
+                        <div class="relative visible">
+                            <label for="delivery_street">Улица <span class="required">*</span></label>
+                            <input type="hidden" name="street_id">
+                            <input type="text" name="street" id="delivery_street">
+                            <ul class="order-item-search-result"></ul>
+                            <div class="message_error"></div>
+                        </div>
+
+                        <div class="order-delivery-address">
+                            <div class="order-delivery-house">
+                                <label for="delivery_house">Дом <span class="required">*</span></label>
+                                <input type="text" name="house" id="delivery_house">
+                            </div>
+
+                            <div class="order-delivery-building">
+                                <label for="delivery_building">Корпус</label>
+                                <input type="text" name="building" id="delivery_building">
+                            </div>
+
+                            <div class="order-delivery-flat">
+                                <label for="delivery_flat">Квартира</label>
+                                <input type="text" name="flat" id="delivery_flat">
+                            </div>
                         </div>
 
                         <label for="delivery_comment">Комментарий к заказу</label>

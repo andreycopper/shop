@@ -44,21 +44,23 @@ class City extends Model
      */
     public static function getByName(string $city, bool $active = false, bool $object = true)
     {
-        $where = !empty($active) ? ' AND c.active IS NOT NULL' : '';
+        $where = !empty($active) ? ' AND c.active IS NOT NULL AND r.active IS NOT NULL' : '';
         $sql = "
-            SELECT c.id, c.name AS city, c.lat, c.lng, 
-                   r.name AS region 
-            FROM cities c 
-            LEFT JOIN regions r 
+            SELECT c.id, c.name AS city, r.name AS region, s.shortname 
+            FROM fias_cities c 
+            LEFT JOIN fias_regions r 
                 ON c.region_id = r.id 
+            LEFT JOIN fias_shortnames s 
+                ON c.shortname_id = s.id 
             WHERE c.name = :city {$where} 
             UNION ALL 
-            SELECT c.id, c.name AS city, c.lat, c.lng, 
-                   r.name AS region 
-            FROM cities c 
-            LEFT JOIN regions r 
+            SELECT c.id, c.name AS city, r.name AS region, s.shortname 
+            FROM fias_cities c 
+            LEFT JOIN fias_regions r 
                 ON c.region_id = r.id 
-            WHERE NOT EXISTS(SELECT * FROM cities WHERE name = :city) AND c.name = 'Москва' {$where}";
+            LEFT JOIN fias_shortnames s 
+                ON c.shortname_id = s.id
+            WHERE NOT EXISTS(SELECT * FROM fias_cities WHERE name = :city) AND c.name = 'Москва' {$where}";
         $params = [
             ':city' => $city
         ];

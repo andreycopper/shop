@@ -246,6 +246,9 @@
     .contacts-button {
         width: 100%;
     }
+    .order-item-container {
+        padding: 0 0 20px 0;
+    }
     .footer-bottom-container {
         flex-direction: column;
     }

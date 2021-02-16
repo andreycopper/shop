@@ -46,7 +46,7 @@
                 </div>
                 <div class="header-city-choice">
                     <a class="header-city-link header-action" data-target="location">
-                        <?= $this->city ?? 'Москва' ?>
+                        <?= $this->location['city'] ?? 'Москва' ?>
                     </a>
                     <span></span>
                 </div>
@@ -319,7 +319,7 @@
 
                 <li class="menu-mobile-item">
                     <a href="" class="menu-mobile-link menu-mobile-location parent mobile-action" rel="nofollow" data-target="location">
-                        <span><?= $this->city ?? 'Москва' ?></span>
+                        <span><?= $this->location['city'] ?? 'Москва' ?></span>
                     </a>
                     <i class="svg-address"></i>
                     <span class="menu-mobile-arrow"><i class="svg-triangle-right"></i></span>

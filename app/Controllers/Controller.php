@@ -37,7 +37,7 @@ abstract class Controller
         $this->view = new View();
         $this->view->page         = Page::getPageInfo(array_pop($class));
         $this->view->public_key   = $_SESSION['public_key'] ?? User::generatePublicKey(); // публичный ключ шифрования
-        $this->view->city         = $_SESSION['location']['city'] ?? User::getCity();
+        $this->view->location     = $_SESSION['location'] ?? User::getLocation();
         $this->view->user         = $_SESSION['user'] ?? User::getCurrent();
         $this->view->groups       = $_SESSION['groups'] ?? Group::getCatalog();
         $this->view->menu         = $_SESSION['menu'] ?? Page::getMenuTree(true);

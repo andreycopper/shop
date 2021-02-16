@@ -420,6 +420,7 @@ $(function () {
             $data = $this.val();
 
         if ($data.length > 2) {
+            $this.parent().find('.message_error').html('').hide();
             $.ajax({
                 method: "POST",
                 dataType: 'json',
@@ -430,16 +431,72 @@ $(function () {
                 },
                 success: function(data){console.log(data);
                     loader.hide();
-                    if (data.result) $this.next().html(data.cities).show();
+                    if (data.result) {
+                        $this.parent().find('.message_error').html('').hide();
+                        $this.next().html(data.cities).show();
+                    }
+                    else {
+                        $this.parent().find('.message_error').html(data.message).show();
+                        $this.attr('data-id', '');
+                        $this.next().html('').hide();
+                    }
                 }
             });
         } else {
+            $this.parent().find('.message_error').html('Введите более 2-х букв').show();
             $this.attr('data-id', '');
             $this.next().html('').hide();
         }
     });
 
-    /* выбор города */
+    /* поиск улицы */
+    $('#delivery_street').onDelay({
+        action: 'input',
+        interval: 1000
+    }, function(){
+        let $this = $(this),
+            street = $this.val(),
+            city_id = $('input[name=city_id]').val();
+
+        if (city_id) {
+            $this.parent().find('.message_error').html('').hide();
+
+            if (street.length > 2) {
+                $.ajax({
+                    method: "POST",
+                    dataType: 'json',
+                    url: "/location/findStreet/",
+                    data: {street: street, city_id: city_id},
+                    beforeSend: function() {
+                        loader.show();
+                    },
+                    success: function(data){console.log(data);
+                        loader.hide();
+                        if (data.result) {
+                            $this.parent().find('.message_error').html('').hide();
+                            $this.next().html(data.streets).show();
+                        }
+                        else {
+                            $this.parent().find('.message_error').html(data.message).show();
+                            $this.attr('data-id', '');
+                            $this.next().html('').hide();
+                        }
+                    }
+                });
+            } else {
+                $this.parent().find('.message_error').html('Введите более 2-х букв').show();
+                $this.attr('data-id', '');
+                $this.next().html('').hide();
+            }
+        }
+        else {
+            $this.next().html('').hide();
+            $this.parent().find('.message_error').html('Выберите населенный пункт').show();
+        }
+
+    });
+
+    /* выбор города и улицы */
     $('.order-item-search-result').on('click', 'a', function (e) {
         e.preventDefault();
         let ul = $(this).parent().parent(),
