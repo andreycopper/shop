@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
-use App\Exceptions\UserException;
 use App\System\Db;
 use App\System\Logger;
 use App\Traits\Magic;
+use App\Traits\CastableToArray;
 use App\Exceptions\DbException;
+use App\Exceptions\UserException;
 
 /**
  * Class Model
@@ -17,6 +18,7 @@ abstract class Model
     protected static $table = null;
 
     use Magic;
+    use CastableToArray;
 
     /**
      * Создает объект вызвавшего класса и заполняет его свойства

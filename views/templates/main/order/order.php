@@ -3,12 +3,12 @@ $last_name = '';
 $name = '';
 $second_name = '';
 
-if (!empty($this->user['id']) && !empty($this->user['private_key'])) {
-    $rsa = new \App\System\RSA($this->user['private_key']);
+if (!empty($this->user->id) && !empty($this->user->private_key)) {
+    $rsa = new \App\System\RSA($this->user->private_key);
 
-    $last_name = !empty($this->user['last_name']) ? $rsa->decrypt($this->user['last_name']) : '';
-    $name = !empty($this->user['name']) ? $rsa->decrypt($this->user['name']) : '';
-    $second_name = !empty($this->user['second_name']) ? $rsa->decrypt($this->user['second_name']) : '';
+    $last_name = !empty($this->user->last_name) ? $rsa->decrypt($this->user->last_name) : '';
+    $name = !empty($this->user->name) ? $rsa->decrypt($this->user->name) : '';
+    $second_name = !empty($this->user->second_name) ? $rsa->decrypt($this->user->second_name) : '';
 }
 ?>
 <div class="container">
@@ -28,7 +28,7 @@ if (!empty($this->user['id']) && !empty($this->user['private_key'])) {
                     <a href="" class="order-item-title order-user">Покупатель</a>
 
                     <div class="order-item-container radio-container">
-                        <div class="order-user-type <?= empty($this->user['id']) ? 'hidden' : '' ?>">
+                        <div class="order-user-type <?= empty($this->user->id) ? 'hidden' : '' ?>">
                             <label class="radio checked">
                                 <input type="radio" name="type" value="1" data-target="order-user-physical" checked>
                                 <span class="order-item-name">Физическое лицо</span>
@@ -41,7 +41,7 @@ if (!empty($this->user['id']) && !empty($this->user['private_key'])) {
                         </div>
 
                         <div class="order-item-slider order-user-physical">
-                            <? if (!empty($this->user['id'])): ?>
+                            <? if (!empty($this->user->id)): ?>
                                 <label for="p_profile">Профиль доставки</label>
                                 <select name="p_profile" id="p_profile">
                                     <option value="0" selected>Новый профиль</option>
@@ -71,10 +71,10 @@ if (!empty($this->user['id']) && !empty($this->user['private_key'])) {
                             <input type="text" name="p_name" id="p_name" value="<?= ($last_name . ' ' . $name . ' ' . $second_name) ?>">
 
                             <label for="p_email">E-mail <span class="required">*</span></label>
-                            <input type="text" name="p_email" id="p_email" value="<?= $this->user['email'] ?? '' ?>">
+                            <input type="text" name="p_email" id="p_email" value="<?= $this->user->email ?? '' ?>">
 
                             <label for="p_phone">Телефон <span class="required">*</span></label>
-                            <input type="text" name="p_phone" id="p_phone" value="<?= $this->user['phone'] ?? '' ?>">
+                            <input type="text" name="p_phone" id="p_phone" value="<?= $this->user->phone ?? '' ?>">
                         </div>
 
                         <div class="order-item-slider order-user-juridical">
@@ -108,10 +108,10 @@ if (!empty($this->user['id']) && !empty($this->user['private_key'])) {
                             <input type="text" name="j_name" id="j_name" value="<?= ($last_name . ' ' . $name . ' ' . $second_name) ?>">
 
                             <label for="j_email">E-mail <span class="required">*</span></label>
-                            <input type="text" name="j_email" id="j_email" value="<?= $this->user['email'] ?? '' ?>">
+                            <input type="text" name="j_email" id="j_email" value="<?= $this->user->email ?? '' ?>">
 
                             <label for="j_phone">Телефон <span class="required">*</span></label>
-                            <input type="text" name="j_phone" id="j_phone" value="<?= $this->user['phone'] ?? '' ?>">
+                            <input type="text" name="j_phone" id="j_phone" value="<?= $this->user->phone ?? '' ?>">
 
                             <label for="company">Название компании <span class="required">*</span></label>
                             <input type="text" name="company" id="company">

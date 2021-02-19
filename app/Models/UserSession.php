@@ -75,15 +75,15 @@ class UserSession extends Model
 
     /**
      * Устанавливает текущую сессию пользователя
-     * @param array $user
+     * @param $user
      * @param bool $remember
      * @return bool
      * @throws DbException
      */
-    public function set(array $user, $remember = false)
+    public function set($user, $remember = false)
     {
         $session = new self();
-        $session->user_id      = $user['id'];
+        $session->user_id      = $user->id;
         $session->login        = date("Y-m-d H:i:s");
         $session->ip           = $_SERVER['REMOTE_ADDR'];
         $session->user_agent   = $_SERVER['HTTP_USER_AGENT'];
@@ -106,17 +106,17 @@ class UserSession extends Model
 
     /**
      * Продлевает текущую сессию пользователя
-     * @param int $user
+     * @param $user
      * @return bool
      * @throws DbException
      */
     public static function extend($user)
     {
-        $_SESSION['user'] = $user;
+        $_SESSION['user'] = $user->toArray();
 
         $session = new self();
         $session->id           = $user['session_id'];
-        $session->user_id      = $user['id'];
+        $session->user_id      = $user->id;
         $session->ip           = $_SERVER['REMOTE_ADDR'];
         $session->user_agent   = $_SERVER['HTTP_USER_AGENT'];
         $session->session_hash = $_SESSION['session_hash'] = $user['session_hash'];

@@ -66,8 +66,8 @@ class Coupon extends Model
     {
         if (!empty($coupon)) {
             $user = User::getCurrent();
-            $item = !empty($user['id']) ?
-                self::getByCodeUserId($coupon, $user['id']) :
+            $item = !empty($user->id) ?
+                self::getByCodeUserId($coupon, $user->id) :
                 self::getByCodeUserHash($coupon, $_COOKIE['user']);
         }
 

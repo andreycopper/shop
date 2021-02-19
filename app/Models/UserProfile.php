@@ -101,8 +101,8 @@ class UserProfile extends Model
     public static function getListByUser(bool $active = false)
     {
         $user = User::getCurrent();
-        return !empty($user['id']) ?
-            self::getListByUserId($user['id'], $active) :
+        return !empty($user->id) ?
+            self::getListByUserId($user->id, $active) :
             self::getListByUserHash($_COOKIE['user'], $active);
 
     }

@@ -150,10 +150,10 @@ class OrderItem extends Model
     {
         $user = User::getCurrent();
 
-        if (!empty($user['id'])) {
+        if (!empty($user->id)) {
             $sql = "SELECT count(*) AS count FROM order_items WHERE user_id = :user_id AND order_id IS NULL";
             $params = [
-                ':user_id' => $user['id']
+                ':user_id' => $user->id
             ];
         } else {
             $sql = "SELECT count(*) AS count FROM order_items WHERE user_id = 2 AND user_hash = :user_hash AND order_id IS NULL";
@@ -208,12 +208,12 @@ class OrderItem extends Model
 
                         $user = User::getCurrent();
 
-                        if (!empty($user['id'])) $item = self::getByUserId($user['id'], $product_id);
+                        if (!empty($user->id)) $item = self::getByUserId($user->id, $product_id);
                         else $item = self::getByUserHash($_COOKIE['user'], $product_id);
 
                         if (empty($item->id)) {
                             $item = new self();
-                            $item->user_id = $user['id'] ?? 2; // если не авторизован, пишем корзину на id = 2 (user)
+                            $item->user_id = $user->id ?? 2; // если не авторизован, пишем корзину на id = 2 (user)
                             $item->user_hash = $_COOKIE['user'];
                             $item->product_id = $product_id;
                         }
@@ -263,9 +263,9 @@ class OrderItem extends Model
     {
         $user = User::getCurrent();
 
-        if (!empty($user['id'])) {
-            //$coupon = $coupon_code ? Coupon::getByCodeUserId($coupon_code, $user['id'], true) : null;
-            $items = self::getListByUserId($user['id']);
+        if (!empty($user->id)) {
+            //$coupon = $coupon_code ? Coupon::getByCodeUserId($coupon_code, $user->id, true) : null;
+            $items = self::getListByUserId($user->id);
         }
         else {
             //$coupon = $coupon_code ? Coupon::getByCodeUserHash($coupon_code, $_COOKIE['user'], true) : null;
@@ -388,7 +388,7 @@ class OrderItem extends Model
     {
         $user = User::getCurrent();
 
-        if (!empty($user['id'])) $item = OrderItem::getByUserId($user['id'], $product_id);
+        if (!empty($user->id)) $item = OrderItem::getByUserId($user->id, $product_id);
         else $item = OrderItem::getByUserHash($_COOKIE['user'], $product_id);
 
         if ($item) { // товар найден в корзине
@@ -423,7 +423,7 @@ class OrderItem extends Model
     {
         $user = User::getCurrent();
 
-        if (!empty($user['id'])) $items = self::getListByUserId($user['id']);
+        if (!empty($user->id)) $items = self::getListByUserId($user->id);
         else $items = self::getListByUserHash($_COOKIE['user']);
 
         if (!empty($items) && is_array($items)) { // найдены товары в корзине
@@ -460,10 +460,10 @@ class OrderItem extends Model
         if (!empty($items) && is_array($items)) {
             $user = User::getCurrent();
 
-            if (!empty($user['id'])) {
+            if (!empty($user->id)) {
                 foreach ($items as $item) {
-                    if (intval($user['id']) !== intval($item->user_id)) {
-                        $cart_item = self::getByUserId($user['id'], $item->product_id);
+                    if (intval($user->id) !== intval($item->user_id)) {
+                        $cart_item = self::getByUserId($user->id, $item->product_id);
 
                         if (!empty($cart_item->id)) { // в корзине авторизованного пользователя найден такой же товар, как и у анонимного
                             if (false === $cart_item->delete()) {
@@ -471,7 +471,7 @@ class OrderItem extends Model
                             }
                         }
 
-                        $item->user_id = $user['id'];
+                        $item->user_id = $user->id;
                         $item->price_type_id = $user['price_type_id'];
 
                         if (false === $item->save()) {

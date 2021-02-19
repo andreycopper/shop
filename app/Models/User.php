@@ -73,7 +73,7 @@ class User extends Model
         return !empty($data) ? array_shift($data) : false;
     }
 
-    public static function getByHash(bool $active = true, $object = false)
+    public static function getByHash(bool $active = true, $object = true)
     {
         $activity =
             !empty($active) ?
@@ -250,9 +250,11 @@ class User extends Model
      */
     public static function authorize(int $user_id, bool $remember = false): bool
     {
-        $user = $_SESSION['user'] = User::getFullInfoById($user_id, true, false);
+        $user = self::getFullInfoById($user_id, true, true);
+        $_SESSION['user'] = $user->toArray();
 
-        return !empty($user['id']) ?
+
+        return !empty($user->id) ?
             (new UserSession())->set($user, $remember) :
             false;
     }

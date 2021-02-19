@@ -29,7 +29,7 @@ class Catalog extends Controller
      */
     protected function actionShow($elem)
     {
-        $price_type = User::isAuthorized() ? $this->view->user['price_type_id'] : 2;
+        $price_type = User::isAuthorized() ? $this->view->user->price_type_id : 2;
 
         if (is_numeric($elem)) {
             $this->view->item = Product::getFullInfoById(intval($elem), $price_type);
