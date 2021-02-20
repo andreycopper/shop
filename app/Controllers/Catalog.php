@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Controllers;
+namespace Controllers;
 
-use App\Models\Group;
-use App\Models\User;
-use App\System\Logger;
-use App\Models\Product;
-use App\System\Request;
-use App\Models\OrderItem;
-use App\System\Pagination;
-use App\Exceptions\DbException;
-use App\Exceptions\NotFoundException;
+use Models\Group;
+use Models\User;
+use System\Logger;
+use Models\Product;
+use System\Request;
+use Models\OrderItem;
+use System\Pagination;
+use Exceptions\DbException;
+use Exceptions\NotFoundException;
 
 class Catalog extends Controller
 {

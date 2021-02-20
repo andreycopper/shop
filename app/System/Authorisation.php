@@ -1,12 +1,12 @@
 <?php
 
-namespace App\System;
+namespace System;
 
-use App\System\Logger;
-use App\Models\User;
-use App\Models\UserSession;
-use App\Exceptions\DbException;
-use App\Exceptions\NotFoundException;
+use System\Logger;
+use Models\User;
+use Models\UserSession;
+use Exceptions\DbException;
+use Exceptions\NotFoundException;
 
 class Authorisation
 {

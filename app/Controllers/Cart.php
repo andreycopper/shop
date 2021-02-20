@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Controllers;
+namespace Controllers;
 
-use App\Models\Coupon;
-use App\System\Request;
-use App\Models\OrderItem;
-use App\Exceptions\DbException;
+use Models\Coupon;
+use System\Request;
+use Models\OrderItem;
+use Exceptions\DbException;
 
 class Cart extends Controller
 {

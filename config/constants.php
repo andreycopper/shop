@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\Setting;
-use App\Exceptions\DbException;
+use Models\Setting;
+use Exceptions\DbException;
 
 define('ROOT', __DIR__ . '/..');
 define('APP', __DIR__ . '/../app');
@@ -22,3 +22,6 @@ try {
     }
 } catch (DbException $e) {
 }
+
+setcookie('page', $_SERVER['REQUEST_URI'] ?? '/', time() + 60 * 60 * 24 * 365, '/', SITE, 0);
+setcookie('user', $_COOKIE['user'] ?? hash('sha256', microtime(true) . uniqid()), time() + 60 * 60 * 24 * 365, '/', SITE, 0); // кука анонимного юзера

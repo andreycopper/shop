@@ -1,8 +1,8 @@
 <?php
 
-namespace App\System;
+namespace System;
 
-use App\Exceptions\DbException;
+use Exceptions\DbException;
 
 /**
  * Class Db

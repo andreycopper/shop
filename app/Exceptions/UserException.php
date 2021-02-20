@@ -1,9 +1,6 @@
 <?php
 
-namespace App\Exceptions;
-
-use App\System\Logger;
-use Throwable;
+namespace Exceptions;
 
 /**
  * Class UserException

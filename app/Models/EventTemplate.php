@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Models;
+namespace Models;
 
-use App\System\Db;
-use App\System\Logger;
-use App\Exceptions\DbException;
-use App\System\Mailer;
+use System\Db;
+use System\Logger;
+use Exceptions\DbException;
+use System\Mailer;
 
 class EventTemplate extends Model
 {

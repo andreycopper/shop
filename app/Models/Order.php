@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Models;
+namespace Models;
 
-use App\Exceptions\EditException;
-use App\Exceptions\UserException;
-use App\System\Db;
-use App\System\Logger;
-use App\System\Request;
+use Exceptions\EditException;
+use Exceptions\UserException;
+use System\Db;
+use System\Logger;
+use System\Request;
 
 class Order extends Model
 {

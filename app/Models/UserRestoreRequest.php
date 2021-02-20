@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Models;
+namespace Models;
 
-use App\System\Db;
-use App\System\Logger;
-use App\Exceptions\DbException;
+use System\Db;
+use System\Logger;
+use Exceptions\DbException;
 
 class UserRestoreRequest extends Model
 {

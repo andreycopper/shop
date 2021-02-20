@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Models;
+namespace Models;
 
-use App\System\Db;
-use App\System\Access;
-use App\System\Geo;
-use App\System\Logger;
-use App\System\RSA;
-use App\System\Validation;
-use App\Exceptions\DbException;
-use App\Exceptions\UserException;
+use System\Db;
+use System\Access;
+use System\Geo;
+use System\Logger;
+use System\RSA;
+use System\Validation;
+use Exceptions\DbException;
+use Exceptions\UserException;
 
 /**
  * Class User
@@ -266,6 +266,7 @@ class User extends Model
     public static function getCurrent()
     {
         $user = self::getByHash();
+        $_SESSION['user'] = $user;
 
         //if (!empty($user['cookie_hash'])) UserSession::extend($user);
 
@@ -703,7 +704,7 @@ class User extends Model
         //$location = Geo::GetLocationFromIP('87.250.250.242'); // Москва
         //$location = Geo::GetLocationFromIP(Geo::GetUserIP()); // локальный
 
-        return $_SESSION['location'] = City::getByName($location['city'] ?? 'Москва', true, false);
+        return $_SESSION['location'] = City::getByName($location['city'] ?? 'Москва', true);
     }
 
     /**
@@ -714,7 +715,7 @@ class User extends Model
      */
     public static function setLocation(string $city)
     {
-        return $_SESSION['location'] = City::getByName($city, true, false);
+        return $_SESSION['location'] = City::getByName($city, true);
     }
 
     /**

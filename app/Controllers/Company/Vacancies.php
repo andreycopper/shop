@@ -1,10 +1,10 @@
 <?php
 
 
-namespace App\Controllers\Company;
+namespace Controllers\Company;
 
 
-use App\Controllers\Controller;
+use Controllers\Controller;
 
 class Vacancies extends Controller
 {

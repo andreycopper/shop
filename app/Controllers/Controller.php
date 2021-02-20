@@ -1,19 +1,19 @@
 <?php
 
-namespace App\Controllers;
+namespace Controllers;
 
-use App\Models\City;
-use App\Views\View;
-use App\Models\Page;
-use App\Models\User;
-use App\Models\Group;
-use App\Models\Region;
-use App\System\Logger;
-use App\System\Request;
-use App\Models\District;
-use App\Models\OrderItem;
-use App\Exceptions\DbException;
-use App\Exceptions\NotFoundException;
+use Models\City;
+use Views\View;
+use Models\Page;
+use Models\User;
+use Models\Group;
+use Models\Region;
+use System\Logger;
+use System\Request;
+use Models\District;
+use Models\OrderItem;
+use Exceptions\DbException;
+use Exceptions\NotFoundException;
 
 /**
  * Class Controller
@@ -30,15 +30,11 @@ abstract class Controller
      */
     public function __construct()
     {
-        $class = explode('\\', mb_strtolower(get_class($this)));
-        setcookie('page', $_SERVER['REQUEST_URI'] ?? '/', time() + 60 * 60 * 24 * 365, '/', SITE, 0);
-        setcookie('user', $_COOKIE['user'] ?? hash('sha256', microtime(true) . uniqid()), time() + 60 * 60 * 24 * 365, '/', SITE, 0); // кука анонимного юзера
-
         $this->view = new View();
-        $this->view->page         = Page::getPageInfo(array_pop($class));
+        $this->view->page         = Page::getPageInfo(get_class($this));
         $this->view->public_key   = $_SESSION['public_key'] ?? User::generatePublicKey(); // публичный ключ шифрования
         $this->view->location     = $_SESSION['location'] ?? User::getLocation();
-        $this->view->user         = /*$_SESSION['user'] ??*/ User::getCurrent();
+        $this->view->user         = $_SESSION['user'] ?? User::getCurrent();
         $this->view->groups       = $_SESSION['groups'] ?? Group::getCatalog();
         $this->view->menu         = $_SESSION['menu'] ?? Page::getMenuTree(true);
         $this->view->cart_count   = OrderItem::getCount();

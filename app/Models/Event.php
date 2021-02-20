@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Models;
+namespace Models;
 
-use App\System\Logger;
-use App\System\Mailer;
-use App\Exceptions\DbException;
+use System\Logger;
+use System\Mailer;
+use Exceptions\DbException;
 
 /**
  * Class Event

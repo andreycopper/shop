@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Controllers;
+namespace Controllers;
 
-use App\Models\Test;
-use App\Models\User;
-use App\System\RSA;
+use Models\Test;
+use Models\User;
+use System\RSA;
 
 class Tests extends Controller
 {

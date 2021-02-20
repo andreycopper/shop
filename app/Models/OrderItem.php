@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Models;
+namespace Models;
 
-use App\System\Db;
-use App\System\Logger;
-use App\Exceptions\DbException;
-use App\Exceptions\EditException;
-use App\Exceptions\DeleteException;
+use System\Db;
+use System\Logger;
+use Exceptions\DbException;
+use Exceptions\EditException;
+use Exceptions\DeleteException;
 
 class OrderItem extends Model
 {

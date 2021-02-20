@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Models;
+namespace Models;
 
-use App\System\Db;
+use System\Db;
 
 class Page extends Model
 {
@@ -10,24 +10,26 @@ class Page extends Model
 
     /**
      * Получает информацию по текущей странице
-     * @param string $page
-     * @return bool|mixed
+     * @param string $class
+     * @param bool $active
+     * @param bool $object
+     * @return false|mixed
      * @throws \App\Exceptions\DbException
      */
-    public static function getPageInfo(string $page)
+    public static function getPageInfo(string $class, bool $active = true, $object = true)
     {
-        $sql = "SELECT * FROM `pages` WHERE `name` = :page";
-        $sql .= !empty($active) ? ' AND active IS NOT NULL' : '';
+        $page = explode('\\', mb_strtolower($class));
+        $page = array_pop($page);
+
+        $activity = !empty($active) ? 'AND active IS NOT NULL' : '';
+        $sql = "SELECT * FROM pages WHERE link = :page {$activity}";
         $params = [
             ':page' => $page
         ];
         $db = new Db();
-        $data = $db->query($sql, $params);
+        $data = $db->query($sql, $params,$object ? static::class : null);
 
-        if (!empty($data) && is_array($data)) {
-            $res = array_shift($data);
-            $_SESSION['page'] = $res;
-        }
+        if (!empty($data)) $res = $_SESSION['page'] = array_shift($data);
         return $res ?? false;
     }
 

@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Controllers;
+namespace Controllers;
+
+use Views\View;
 
 /**
  * Class Errors
@@ -8,15 +10,20 @@ namespace App\Controllers;
  */
 class Errors extends Controller
 {
+    public function __construct($e)
+    {
+        $this->view = new View();
+        $this->view->code    = $e->getCode();
+        $this->view->error   = $e->getError();
+        $this->view->message = $e->getMessage();
+    }
+
     /**
      * Проблема с запросом
      */
     protected function action400()
     {
         header('HTTP/1.1 400 Bad Request ', 400);
-        $this->view->code    = $this->error->getCode();
-        $this->view->error   = $this->error->getError();
-        $this->view->message = $this->error->getMessage();
         $this->view->display('errors/error');
         die();
     }
@@ -27,9 +34,6 @@ class Errors extends Controller
     protected function action403()
     {
         header('HTTP/1.1 403 Forbidden', 403);
-        $this->view->code    = $this->error->getCode();
-        $this->view->error   = $this->error->getError();
-        $this->view->message = $this->error->getMessage();
         $this->view->display('errors/error');
         die();
     }
@@ -40,9 +44,6 @@ class Errors extends Controller
     protected function action404()
     {
         header('HTTP/1.1 404 Not Found', 404);
-        $this->view->code    = $this->error->getCode();
-        $this->view->error   = $this->error->getError();
-        $this->view->message = $this->error->getMessage();
         $this->view->display('errors/error');
         die();
     }
@@ -53,9 +54,6 @@ class Errors extends Controller
     protected function action500()
     {
         header('HTTP/1.1 500 Internal Server Error', 500);
-        $this->view->code    = $this->error->getCode();
-        $this->view->error   = $this->error->getError();
-        $this->view->message = $this->error->getMessage();
         $this->view->display('errors/error');
         die();
     }

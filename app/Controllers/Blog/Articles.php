@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Controllers\Blog;
+namespace Controllers\Blog;
 
-use App\Controllers\Controller;
+use Controllers\Controller;
 
 class Articles extends Controller
 {

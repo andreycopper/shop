@@ -1,15 +1,15 @@
 <?php
 
-namespace App\System;
+namespace System;
 
-use App\Exceptions\DbException;
-use App\Exceptions\DeleteException;
-use App\Exceptions\EditException;
-use App\Exceptions\ForbiddenException;
-use App\Exceptions\MailException;
-use App\Exceptions\NotFoundException;
-use App\Exceptions\UploadException;
-use App\Exceptions\UserException;
+use Exceptions\DbException;
+use Exceptions\DeleteException;
+use Exceptions\EditException;
+use Exceptions\ForbiddenException;
+use Exceptions\MailException;
+use Exceptions\NotFoundException;
+use Exceptions\UploadException;
+use Exceptions\UserException;
 
 /**
  * Class Route
@@ -61,47 +61,47 @@ class Route
 
             if ($route[0] === 'Catalog') {
 
-                if (method_exists('App\\Controllers\\Catalog', 'action' . $route[$last])) { // App\Controllers\Catalog -> actionSave()
-                    $class = 'App\\Controllers\\Catalog';
+                if (method_exists('Controllers\\Catalog', 'action' . $route[$last])) { // Controllers\Catalog -> actionSave()
+                    $class = 'Controllers\\Catalog';
                     $action = 'action' . $route[$last];
                 }
-                elseif (method_exists('App\\Controllers\\Catalog', 'action' . $route[$last - 1])) { // App\Controllers\Catalog -> actionEdit('10')
-                    $class = 'App\\Controllers\\Catalog';
+                elseif (method_exists('Controllers\\Catalog', 'action' . $route[$last - 1])) { // Controllers\Catalog -> actionEdit('10')
+                    $class = 'Controllers\\Catalog';
                     $action = 'action' . $route[$last - 1];
                     $param = $route[$last];
                 }
                 else { // App\Controllers\Catalog -> actionShow('10')
-                    $class = 'App\\Controllers\\Catalog';
+                    $class = 'Controllers\\Catalog';
                     $action = 'actionShow';
                     $param = $route[$last];
                 }
             }
             else {
-                $base = 'App\\Controllers';
+                $base = 'Controllers';
                 for ($i = 0; $i < $last - 1; $i++) {
                     $base .= '\\' . $route[$i];
                 }
 
-                if (class_exists($base . '\\' . $route[$last - 1] . '\\' . $route[$last] . '\\Index')) { // App\Controllers\Blog\Index -> actionDefault()
+                if (class_exists($base . '\\' . $route[$last - 1] . '\\' . $route[$last] . '\\Index')) { // \Controllers\Blog\Index -> actionDefault()
                     $class = $base . '\\' . $route[$last - 1] . '\\' . $route[$last] . '\\Index';
                     $action = 'actionDefault';
                 }
-                elseif (class_exists($base . '\\' . $route[$last - 1] . '\\' . $route[$last])) { // App\Controllers\Blog\News -> actionDefault()
+                elseif (class_exists($base . '\\' . $route[$last - 1] . '\\' . $route[$last])) { // Controllers\Blog\News -> actionDefault()
                     $class = $base . '\\' . $route[$last - 1] . '\\' . $route[$last];
                     $action = 'actionDefault';
                 }
                 elseif (class_exists($base . '\\' . $route[$last - 1])) {
-                    if (method_exists($base . '\\' . $route[$last - 1], 'action' . $route[$last])) { // App\Controllers\Blog\News -> actionSave()
+                    if (method_exists($base . '\\' . $route[$last - 1], 'action' . $route[$last])) { // Controllers\Blog\News -> actionSave()
                         $class = $base . '\\' . $route[$last - 1];
                         $action = 'action' . $route[$last];
                     }
-                    else { // App\Controllers\Blog\News -> actionShow(10)
+                    else { // Controllers\Blog\News -> actionShow(10)
                         $class = $base . '\\' . $route[$last - 1];
                         $action = 'actionShow';
                         $param = $route[$last];
                     }
                 }
-                elseif (class_exists($base) && method_exists($base, 'action' . $route[$last - 1])) { // App\Controllers\Blog -> actionEdit(10)
+                elseif (class_exists($base) && method_exists($base, 'action' . $route[$last - 1])) { // Controllers\Blog -> actionEdit(10)
                     $class = $base;
                     $action = 'action' . $route[$last - 1];
                     $param = $route[$last];
@@ -109,17 +109,17 @@ class Route
             }
         }
         elseif ($count === 1) {
-            if (class_exists('App\\Controllers\\' . $route[0])) { // App\Controllers\Blog -> actionDefault()
-                $class  = 'App\\Controllers\\' . $route[0];
+            if (class_exists('Controllers\\' . $route[0])) { // Controllers\Blog -> actionDefault()
+                $class  = 'Controllers\\' . $route[0];
                 $action = 'actionDefault';
             }
-            elseif (class_exists('App\\Controllers\\' . $route[0] . '\\Index')) { // App\Controllers\Blog\Index -> actionDefault()
-                $class  = 'App\\Controllers\\' . $route[0] . '\\Index';
+            elseif (class_exists('Controllers\\' . $route[0] . '\\Index')) { // Controllers\Blog\Index -> actionDefault()
+                $class  = 'Controllers\\' . $route[0] . '\\Index';
                 $action = 'actionDefault';
             }
         }
         else {
-            $class  = 'App\\Controllers\\Index';
+            $class  = 'Controllers\\Index';
             $action = 'actionDefault';
         }
 

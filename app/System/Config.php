@@ -1,8 +1,8 @@
 <?php
 
-namespace App\System;
+namespace System;
 
-use App\Traits\Singleton;
+use Traits\Singleton;
 
 /**
  * Class Config

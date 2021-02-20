@@ -1,13 +1,33 @@
 <?php
 
-namespace App\Models;
+namespace Models;
 
-use App\System\Db;
-use App\Exceptions\DbException;
+use System\Db;
+use Exceptions\DbException;
 
 class City extends Model
 {
     protected static $table = 'cities';
+    public $id;
+    public $active;
+    public $region_id;
+    public $aoid;
+    public $aoguid;
+    public $parentguid;
+    public $name;
+    public $formalname;
+    public $shortname_id;
+    public $postalcode;
+    public $citycode;
+    public $areacode;
+    public $ifnsfl;
+    public $ifnsul;
+    public $terrifnsfl;
+    public $terrifnsul;
+    public $okato;
+    public $oktmo;
+    public $sort;
+    public $created;
 
     public static function getById(int $id, bool $active = false, bool $object = true)
     {

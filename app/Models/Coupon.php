@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Models;
+namespace Models;
 
-use App\System\Db;
-use App\System\Logger;
-use App\Exceptions\UserException;
+use System\Db;
+use System\Logger;
+use Exceptions\UserException;
 
 class Coupon extends Model
 {

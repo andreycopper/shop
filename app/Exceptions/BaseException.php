@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Exceptions;
+namespace Exceptions;
 
-use App\System\Logger;
+use System\Logger;
 use Throwable;
 
 /**

@@ -4,7 +4,7 @@ $name = '';
 $second_name = '';
 
 if (!empty($this->user->id) && !empty($this->user->private_key)) {
-    $rsa = new \App\System\RSA($this->user->private_key);
+    $rsa = new \System\RSA($this->user->private_key);
 
     $last_name = !empty($this->user->last_name) ? $rsa->decrypt($this->user->last_name) : '';
     $name = !empty($this->user->name) ? $rsa->decrypt($this->user->name) : '';
@@ -168,9 +168,9 @@ if (!empty($this->user->id) && !empty($this->user->private_key)) {
                     <div class="order-item-container">
                         <div class="relative visible">
                             <label for="delivery_city">Населенный пункт <span class="required">*</span></label>
-                            <input type="hidden" name="city_id" value="<?= $this->location['id'] ?? '' ?>">
+                            <input type="hidden" name="city_id" value="<?= $this->location->id ?? '' ?>">
                             <input type="text" name="city" id="delivery_city"
-                                   value="<?= $this->location ? ($this->location['region'] . ', ' . $this->location['city'] . ' ' . $this->location['shortname']) : '' ?>">
+                                   value="<?= $this->location->id ? ($this->location->region . ', ' . $this->location->city . ' ' . $this->location->shortname) : '' ?>">
                             <ul class="order-item-search-result"></ul>
                             <div class="message_error"></div>
                         </div>

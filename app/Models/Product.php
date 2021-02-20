@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace Models;
 
-use App\System\Db;
-use App\Exceptions\DbException;
+use System\Db;
+use Exceptions\DbException;
 
 class Product extends Model
 {

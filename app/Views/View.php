@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Views;
+namespace Views;
 
-use App\Traits\Count;
-use App\Traits\Magic;
-use App\Traits\Iterator;
-use App\Traits\ArrayAccess;
+use Traits\Count;
+use Traits\Magic;
+use Traits\Iterator;
+use Traits\ArrayAccess;
 
 /**
  * Class View

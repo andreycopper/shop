@@ -1,9 +1,9 @@
 <?php
 
-namespace App\System;
+namespace System;
 
-use App\Models\EventTemplate;
-use App\Models\User;
+use Models\EventTemplate;
+use Models\User;
 
 /**
  * Class Mailer

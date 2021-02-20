@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Controllers;
+namespace Controllers;
 
-use App\Models\User;
-use App\System\Request;
-use App\Exceptions\DbException;
-use App\Exceptions\UserException;
+use Models\User;
+use System\Request;
+use Exceptions\DbException;
+use Exceptions\UserException;
 
 class Personal extends Controller
 {

@@ -1,14 +1,13 @@
 <?php
 
-namespace App\Controllers;
+namespace Controllers;
 
-use App\Models\City;
-use App\Models\Order;
-use App\Models\Payment;
-use App\System\Request;
-use App\Models\Delivery;
-use App\Models\OrderItem;
-use App\Models\UserProfile;
+use Models\Order;
+use Models\Payment;
+use System\Request;
+use Models\Delivery;
+use Models\OrderItem;
+use Models\UserProfile;
 
 class Orders extends Controller
 {
@@ -18,12 +17,14 @@ class Orders extends Controller
      */
     protected function actionDefault()
     {
-        $this->view->deliveries = Delivery::getList(true);
-        $this->view->payments = Payment::getList(true);
-        $this->view->profiles = UserProfile::getListByUser(true);
-        $this->view->cart = OrderItem::getCart();
+        if (!empty($this->view->user) || !empty($_COOKIE['user'])) {
+            $this->view->deliveries = Delivery::getList(true);
+            $this->view->payments = Payment::getList(true);
+            $this->view->profiles = UserProfile::getListByUser(true);
+            $this->view->cart = OrderItem::getCart();
 
-        $this->view->display('order/order');
+            $this->view->display('order/order');
+        }
     }
 
     /**

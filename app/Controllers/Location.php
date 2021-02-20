@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Controllers;
+namespace Controllers;
 
-use App\Models\City;
-use App\Models\Region;
-use App\Models\Street;
-use App\Models\User;
-use App\System\Request;
+use Models\City;
+use Models\Region;
+use Models\Street;
+use Models\User;
+use System\Request;
 
 class Location extends Controller
 {

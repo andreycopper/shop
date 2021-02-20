@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Models;
+namespace Models;
 
-use App\System\Db;
+use System\Db;
 
 class Group extends Model
 {

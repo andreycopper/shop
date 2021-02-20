@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Models;
+namespace Models;
 
-use App\Exceptions\DbException;
-use App\Exceptions\UserException;
-use App\System\Db;
-use App\System\Logger;
-use App\System\Request;
-use App\System\RSA;
+use Exceptions\DbException;
+use Exceptions\UserException;
+use System\Db;
+use System\Logger;
+use System\Request;
+use System\RSA;
 
 class UserProfile extends Model
 {
@@ -75,7 +75,7 @@ class UserProfile extends Model
         return $data ?? false;
     }
 
-    public static function getListByUserHash(string $user_hash, bool $active = false, $object = true)
+    public static function getListByUserHash($user_hash, bool $active = false, $object = true)
     {
         $where = !empty($active) ? ' AND up.active IS NOT NULL AND u.active IS NOT NULL AND u.blocked IS NULL' : '';
         $sql = "
@@ -103,7 +103,7 @@ class UserProfile extends Model
         $user = User::getCurrent();
         return !empty($user->id) ?
             self::getListByUserId($user->id, $active) :
-            self::getListByUserHash($_COOKIE['user'], $active);
+            self::getListByUserHash($_COOKIE['user'] ?? null, $active);
 
     }
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Traits;
+namespace Traits;
 
 /**
  * Реализует магические методы __set(), __get() и __isset()
