@@ -2,11 +2,10 @@
 
 namespace Models;
 
-use Exceptions\EditException;
-use Exceptions\UserException;
 use System\Db;
-use System\Logger;
-use System\Request;
+use Exceptions\DbException;
+use Exceptions\UserException;
+use System\Validation;
 
 class Order extends Model
 {
@@ -25,30 +24,32 @@ class Order extends Model
     public $created;       // дата создания
 
     /**
-     * Получение заказа пользователя по id
+     * Получение заказа пользователя по id (user_id нужен, чтобы кто попало не мог смотреть чужие заказы)
      * @param int $id
      * @param int $user_id
-     * @param null $user_hash
      * @param bool $object
+     * @param bool $isAjax
      * @return bool|mixed
-     * @throws \App\Exceptions\DbException
+     * @throws DbException
+     * @throws UserException
      */
-    public static function getByIdAndUserId(int $id, int $user_id, $user_hash = null, bool $object = true)
+    public static function getByIdAndUserId(int $id, int $user_id, bool $object = true, bool $isAjax = false)
     {
-        $where = !empty($user_hash) ? 'AND up.user_hash = :user_hash' : '';
-        $sql = "
-            SELECT o.* 
-            FROM orders o 
-            LEFT JOIN user_profiles up ON up.id = o.profile_id 
-            WHERE o.id = :id AND up.user_id = :user_id {$where}
-        ";
+        $hash = ($user_id === 2) ? 'AND up.user_hash = :user_hash' : '';
         $params = [
             ':id' => $id,
             ':user_id' => $user_id
         ];
-        if (!empty($user_hash)) $params[':user_hash'] = $user_hash;
+        if ($user_id === 2) $params[':user_hash'] = $_COOKIE['user'];
+        $sql = "
+            SELECT o.* 
+            FROM orders o 
+            LEFT JOIN user_profiles up ON up.id = o.profile_id 
+            WHERE o.id = :id AND up.user_id = :user_id {$hash}
+        ";
         $db = new Db();
         $data = $db->query($sql, $params, $object ? static::class : null);
+        if (!$data) self::returnError('Не найден заказ пользователя', $isAjax);
         return !empty($data) ? array_shift($data) : false;
     }
 
@@ -60,144 +61,157 @@ class Order extends Model
      * @return bool
      * @throws UserException
      */
-    public static function checkData($form, $cart, bool $isAjax) {
-        if ($form['type'] === '1') return self::checkPhysicalData($form, $cart, $isAjax);
-        elseif ($form['type'] === '2') return self::checkJuridicalData($form, $cart, $isAjax);
+    public static function checkData($form, $cart, bool $isAjax = false)
+    {
+        if (self::checkCart($cart, $isAjax))
+            if (self::checkPersonalData($form, $isAjax))
+                if (self::checkDelivery($form, $isAjax))
+                    if (self::checkPayment($form, $isAjax)) return true;
+
+        return false;
+    }
+
+    /**
+     * Проверка наличия корзины
+     * @param $cart
+     * @param bool $isAjax
+     * @return bool
+     * @throws UserException
+     */
+    public static function checkCart($cart, bool $isAjax = false)
+    {
+        if (empty($cart) || !is_array($cart['items'])) self::returnError('Не найдена корзина пользователя', $isAjax);
+        return true;
+    }
+
+    /**
+     * Проверка персональных данных
+     * @param array $form
+     * @param bool $isAjax
+     * @return bool
+     */
+    public static function checkPersonalData(array $form, bool $isAjax = false)
+    {
+        if ($form['type'] === '1') return self::checkPhysicalData($form, $isAjax);
+        elseif ($form['type'] === '2') return self::checkJuridicalData($form, $isAjax);
         else return false;
     }
 
     /**
      * Проверка данных физического лица
-     * @param $form
-     * @param $cart
+     * @param array $form
      * @param bool $isAjax
      * @return bool
      * @throws UserException
      */
-    public static function checkPhysicalData($form, $cart, bool $isAjax) {
-        $name = trim($form['p_name']);
-        $email = trim($form['p_email']);
-        $phone = trim($form['p_phone']);
-        $delivery = intval($form['delivery']);
-        $payment = intval($form['payment']);
-        $city_id = intval($form['city_id']);
-        $address = trim($form['address']);
-
-        if ($cart) {
-            if (!empty($name)) {
-                if (!empty($email)) {
-                    if (!empty($phone)) {
-                        if (!empty($delivery)) {
-                            if (!empty($payment)) {
-                                if ($delivery !== 1) {
-                                    if (empty($city_id)) $message = 'Не заполнено поле "Адрес доставки"';
-                                    if (empty($address)) $message = 'Не заполнено поле "Населенный пункт"';
-                                }
-                            } else $message = 'Не заполнено поле "Оплата"';
-                        } else $message = 'Не заполнено поле "Доставка"';
-                    } else $message = 'Не заполнено поле "Телефон"';
-                } else $message = 'Не заполнено поле "E-mail"';
-            } else $message = 'Не заполнено поле "Контактные данные"';
-        } else $message = 'Не найдена корзина';
-
-        if (!empty($message)) self::returnError($message, $isAjax);
+    public static function checkPhysicalData(array $form, bool $isAjax = false)
+    {
+        if (empty(trim($form['p_name'])) || !Validation::name(trim($form['p_name']))) self::returnError('Не заполнено поле "Контактное лицо"', $isAjax);
+        if (empty(trim($form['p_email'])) || !Validation::email(trim($form['p_email']))) self::returnError('Не заполнено поле "E-mail"', $isAjax);
+        if (empty(trim($form['p_phone'])) || !Validation::phone(trim($form['p_phone']))) self::returnError('Не заполнено поле "Телефон"', $isAjax);
         return true;
     }
 
     /**
      * Проверка данных юридического лица
-     * @param $form
-     * @param $cart
+     * @param array $form
      * @param bool $isAjax
      * @return bool
      * @throws UserException
      */
-    public static function checkJuridicalData($form, $cart, bool $isAjax) {
-        $name = trim($form['j_name']);
-        $email = trim($form['j_email']);
-        $phone = trim($form['j_phone']);
-        $company = trim($form['company']);
-        $j_address = trim($form['j_address']);
-        $inn = trim($form['inn']);
-        $kpp = trim($form['kpp']);
+    public static function checkJuridicalData(array $form, bool $isAjax = false)
+    {
+        if (empty(trim($form['j_name'])) || !Validation::name(trim($form['j_name']))) self::returnError('Не заполнено поле "Контактное лицо"', $isAjax);
+        if (empty(trim($form['j_email'])) || !Validation::email(trim($form['j_email']))) self::returnError('Не заполнено поле "E-mail"', $isAjax);
+        if (empty(trim($form['j_phone'])) || !Validation::phone(trim($form['j_phone']))) self::returnError('Не заполнено поле "Телефон"', $isAjax);
+        if (empty(trim($form['company'])) || !Validation::name(trim($form['company']))) self::returnError('Не заполнено поле "Название компании"', $isAjax);
+        if (empty(trim($form['j_address']))) self::returnError('Не заполнено поле "Юридический адрес"', $isAjax);
+        if (empty(trim($form['inn'])) || !Validation::numbers(intval(trim($form['inn'])))) self::returnError('Не заполнено поле "ИНН"', $isAjax);
+        return true;
+    }
+
+    /**
+     * Проверка данных доставки
+     * @param array $form
+     * @param bool $isAjax
+     * @return bool
+     * @throws UserException
+     */
+    public static function checkDelivery(array $form, bool $isAjax = false)
+    {
         $delivery = intval($form['delivery']);
-        $payment = intval($form['payment']);
-        $city_id = intval($form['city_id']);
-        $address = trim($form['address']);
+        if (empty($delivery)) self::returnError('Не заполнено поле "Доставка"', $isAjax);
+        if ($delivery !== 1 && empty(intval($form['city_id']))) self::returnError('Не заполнено поле "Населенный пункт"', $isAjax);
+        if ($delivery !== 1 && empty(intval($form['street_id']))) self::returnError('Не заполнено поле "Улица"', $isAjax);
+        if ($delivery !== 1 && empty($form['house'])) self::returnError('Не заполнено поле "Дом"', $isAjax);
+        return true;
+    }
 
-        if ($cart) {
-            if (!empty($name)) {
-                if (!empty($email)) {
-                    if (!empty($phone)) {
-                        if (!empty($company)) {
-                            if (!empty($j_address)) {
-                                if (!empty($inn)) {
-                                    if (!empty($kpp)) {
-                                        if (!empty($delivery)) {
-                                            if (!empty($payment)) {
-                                                if ($delivery !== 1) {
-                                                    if (empty($city_id)) $message = 'Не заполнено поле "Адрес доставки"';
-                                                    if (empty($address)) $message = 'Не заполнено поле "Населенный пункт"';
-                                                }
-                                            } else $message = 'Не заполнено поле "Оплата"';
-                                        } else $message = 'Не заполнено поле "Доставка"';
-                                    } else $message = 'Не заполнено поле "КПП"';
-                                } else $message = 'Не заполнено поле "ИНН"';
-                            } else $message = 'Не заполнено поле "Юридический адрес"';
-                        } else $message = 'Не заполнено поле "Название компании"';
-                    } else $message = 'Не заполнено поле "Телефон"';
-                } else $message = 'Не заполнено поле "E-mail"';
-            } else $message = 'Не заполнено поле "Контактные данные"';
-        } else $message = 'Не найдена корзина';
-
-        if (!empty($message)) self::returnError($message, $isAjax);
+    /**
+     * Проверка данных оплаты
+     * @param array $form
+     * @param bool $isAjax
+     * @return bool
+     * @throws UserException
+     */
+    public static function checkPayment(array $form, bool $isAjax = false)
+    {
+        if (empty(intval($form['payment'])) || !Validation::numbers(intval(trim($form['payment'])))) self::returnError('Не заполнено поле "Оплата"', $isAjax);
         return true;
     }
 
     /**
      * Сохранение заказа
-     * @param $form
-     * @param $cart
+     * @param array $form
+     * @param array $cart
      * @param int $profile_id
      * @param bool $isAjax
      * @return int
      * @throws UserException
-     * @throws \App\Exceptions\DbException
+     * @throws DbException
      */
-    public function saveOrder($form, $cart, int $profile_id, bool $isAjax):int
+    public function saveOrder(array $form, array $cart, int $profile_id, bool $isAjax = false):int
     {
-        $order = new Order();
+        $order = new self();
         $order->status_id = 1;
         $order->profile_id = $profile_id;
         $order->payment_id = intval($form['payment']);
         $order->delivery_id = intval($form['delivery']);
         $order->count = $cart['count_items'];
-        $order->sum = $cart['sum'];
+        $order->sum = $cart['discount_sum'] ?: $cart['sum'];
         $order->created = date('Y-m-d');
-
         $order_id = $order->save();
-        if (!$order_id) self::returnError('Не удалось сохранить заказ пользователя', $isAjax);
 
+        if (!$order_id) self::returnError('Не удалось сохранить заказ пользователя', $isAjax);
         return $order_id;
     }
 
     /**
-     * Обновление корзины - просвоение номера заказа
-     * @param array $items
+     * Обновление корзины - просвоение номера заказа товарам
+     * @param int $user_id
      * @param int $order_id
      * @param bool $isAjax
      * @return bool
+     * @throws DbException
      * @throws UserException
-     * @throws \App\Exceptions\DbException
      */
-    public static function updateCart(array $items, int $order_id, bool $isAjax)
+    public static function moveCartToOrder(int $user_id, int $order_id, bool $isAjax = false)
     {
-        if (empty($items) || !is_array($items)) self::returnError('Не обнаружены товары в корзине', $isAjax);
+        $user_hash = ($user_id === 2) ? 'AND oi.user_hash = :user_hash' : '';
+        $params = [
+            ':user_id' => $user_id,
+            ':order_id' => $order_id
+        ];
+        if ($user_id === 2) $params[':user_hash'] = $_COOKIE['user'];
+        $sql = "
+            UPDATE order_items oi
+            SET oi.order_id = :order_id
+            WHERE oi.user_id = :user_id AND oi.order_id IS NULL {$user_hash}
+        ";
 
-        foreach ($items as $item) {
-            $item->order_id = $order_id;
-            if (!OrderItem::factory($item)->save()) self::returnError('Не удалось обновить в корзине товар id=' . $item->id, $isAjax);
-        }
-        return true;
+        $db = new Db();
+        $res = $db->iquery($sql, $params);
+        if (!$res) self::returnError('Не удалось присвоить номер заказа товарам из корзины', $isAjax);
+        return $order_id;
     }
 }

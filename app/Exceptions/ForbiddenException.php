@@ -2,6 +2,8 @@
 
 namespace Exceptions;
 
+use Throwable;
+
 /**
  * Class ForbiddenException
  * @package App\Exceptions

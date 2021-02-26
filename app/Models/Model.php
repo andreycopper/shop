@@ -2,6 +2,7 @@
 
 namespace Models;
 
+use System\Config;
 use System\Db;
 use System\Logger;
 use Traits\Magic;
@@ -38,16 +39,16 @@ abstract class Model
     /**
      * Находит и возвращает записи из БД
      * @param bool $active
+     * @param bool $object
      * @param string $orderBy
      * @param string $sort
-     * @param bool $object
      * @return array|bool
      * @throws DbException
      */
-    public static function getList(bool $active = false, string $orderBy = 'created', string $sort = 'ASC', $object = true)
+    public static function getList(bool $active = true, $object = true, string $orderBy = 'created', string $sort = 'ASC')
     {
-        $where = !empty($active) ? ' WHERE active IS NOT NULL' : '';
-        $sql = "SELECT * FROM " . static::$table . "{$where} ORDER BY " . $orderBy . " " . strtoupper($sort);
+        $activity = !empty($active) ? 'WHERE active IS NOT NULL' : '';
+        $sql = "SELECT * FROM " . static::$table . " {$activity} ORDER BY " . $orderBy . " " . strtoupper($sort);
         $db = new Db();
         $data = $db->query($sql, [], $object ? static::class : null);
         return $data ?? false;
@@ -126,10 +127,9 @@ abstract class Model
 
     /**
      * Обновляет запись в БД
-     * @return bool
      * @throws DbException
      */
-    public function update(): bool
+    public function update()
     {
         $binds = [];
         $params = [];
@@ -141,7 +141,7 @@ abstract class Model
         }
         $sql = 'UPDATE ' . static::$table . ' SET ' . implode(', ', $binds) . ' WHERE id = :id';
         $db = new Db();
-        return $db->execute($sql, $params);
+        return $db->execute($sql, $params) ? $this->id : false;
     }
 
     /**

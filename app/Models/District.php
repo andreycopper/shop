@@ -4,5 +4,5 @@ namespace Models;
 
 class District extends Model
 {
-    protected static $table = 'districts';
+    protected static $table = 'fias_districts';
 }

@@ -12,10 +12,6 @@ class Db
 {
     protected $dbh;
 
-    /**
-     * Db constructor.
-     * @throws DbException
-     */
     public function __construct()
     {
         $config = Config::getInstance()->data;
@@ -30,7 +26,25 @@ class Db
     }
 
     /**
-     * Выполняет запрос к БД
+     * Выполняет запрос к БД и возвращает результат его выполнения без извлечения данных
+     * @param string $sql
+     * @param array $params
+     * @return bool
+     * @throws DbException
+     */
+    public function iquery(string $sql, array $params = [])
+    {
+        try {
+            $sth = $this->dbh->prepare($sql);
+            return $sth->execute($params);
+        }
+        catch (\PDOException $e) {
+            throw new DbException($e->getMessage(), $e->getCode());
+        }
+    }
+
+    /**
+     * Выполняет запрос к БД и извлекает данные из запроса
      * @param string $sql
      * @param string|null $class
      * @param array $params
@@ -89,9 +103,7 @@ class Db
             $sth = $this->dbh->prepare($sql);
             return $sth->execute($params);
         } catch (\PDOException $e) {
-            $exc = new DbException($e->getMessage(), $e->getCode());
-            Logger::getInstance()->error($exc);
-            throw $exc;
+            throw new DbException($e->getMessage(), $e->getCode());
         }
     }
 

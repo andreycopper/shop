@@ -15,7 +15,7 @@
                     <div class="basket-coupon-title">Введите код купона для скидки:</div>
                     <form action="" method="get" class="basket-coupon-form">
                         <label for="">
-                            <input type="text" name="coupon" value="<?= \App\System\Request::get('coupon') ?? '' ?>">
+                            <input type="text" name="coupon" value="<?= \System\Request::get('coupon') ?? '' ?>">
                         </label>
                         <input type="submit" value="">
                     </form>
@@ -275,7 +275,7 @@
                     <div class="basket-coupon-title">Введите код купона для скидки:</div>
                     <form action="" method="get" class="basket-coupon-form">
                         <label for="">
-                            <input type="text" name="coupon" value="<?= \App\System\Request::get('coupon') ?? '' ?>">
+                            <input type="text" name="coupon" value="<?= \System\Request::get('coupon') ?? '' ?>">
                         </label>
                         <input type="submit" value="">
                     </form>

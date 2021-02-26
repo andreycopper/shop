@@ -32,21 +32,76 @@ class User extends Model
     public $personal_data;
     public $mailing = 1; // подписание на рассылку
     public $mailing_type_id = 2; // тип рассылки html
-    public $private_key;
+    public string $private_key;
     public $created;
     public $updated;
 
     /**
-     * Получает пользователя с полной информацией по id
+     * Генерирует публичный ключ шифрования
+     * @return false|string
+     */
+    public static function generatePublicKey()
+    {
+        return $_SESSION['public_key'] = RSA::generateRandomBytes(RSA::getIvLength(),true);
+    }
+
+    /**
+     * Получает местоположение пользователя по IP
+     * @return false|mixed
+     * @throws DbException
+     */
+    public static function getLocation()
+    {
+        $location = Geo::GetLocationFromIP('213.87.127.224'); // Новосибирск
+        //$location = Geo::GetLocationFromIP('87.250.250.242'); // Москва
+        //$location = Geo::GetLocationFromIP(Geo::GetUserIP()); // локальный
+
+        return $_SESSION['location'] = City::getCityLocationByName($location['city'] ?? 'Москва');
+    }
+
+    /**
+     * Получает текущего пользователя
+     * Неавторизованный пользователь - id=2 Пользователь
+     * @return false|mixed|null
+     * @throws DbException
+     */
+    public static function getCurrent()
+    {
+        $user = self::getByHash() ?: self::getById(2);
+        $_SESSION['user'] = $user;
+        //if (!empty($user['cookie_hash'])) UserSession::extend($user);
+
+        return $user ?? null;
+    }
+
+    /**
+     * Проверяет авторизован ли пользователь
+     * @return bool
+     * @throws DbException
+     */
+    public static function isAuthorized()
+    {
+        $user = self::getCurrent();
+        return !empty($user->id) && $user->id !== '2';
+    }
+
+    /**
+     * Возвращает пользователя по id
      * @param int $id
      * @param bool $active
      * @param bool $object
      * @return bool|mixed
      * @throws DbException
      */
-    public static function getFullInfoById(int $id, bool $active = false, $object = true)
+    public static function getById(int $id, bool $active = true, $object = true)
     {
-        $where = !empty($active) ? ' AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL' : '';
+        $activity =
+            !empty($active) ? 'AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL' : '';
+
+        $params = [
+            ':id' => $id
+        ];
+
         $sql = "
             SELECT 
                 u.id, u.active, u.blocked, u.group_id, u.last_name, u.name, u.second_name, u.email, u.phone, u.password, 
@@ -55,30 +110,33 @@ class User extends Model
                 pt.name AS price_type,
                 tt.name AS mailing_type 
             FROM users u
-            LEFT JOIN user_sessions us
+            LEFT JOIN user_sessions us 
                 ON u.id = us.user_id 
             LEFT JOIN user_groups ug
                 ON u.group_id = ug.id 
             LEFT JOIN price_types pt
                 ON ug.price_type_id = pt.id 
             LEFT JOIN text_types tt 
-                ON u.mailing_type_id = tt.id 
-            WHERE u.id = :id {$where}
+                ON u.mailing_type_id = tt.id
+            WHERE u.id = :id {$activity}
             ";
-        $params = [
-            ':id' => $id
-        ];
+
         $db = new Db();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }
 
+    /**
+     * Возращает пользователя по session_hash и cookie_hash
+     * @param bool $active
+     * @param bool $object
+     * @return false|mixed
+     * @throws DbException
+     */
     public static function getByHash(bool $active = true, $object = true)
     {
         $activity =
-            !empty($active) ?
-                'AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL AND pt.active IS NOT NULL AND tt.active IS NOT NULL' :
-                '';
+            !empty($active) ? 'AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL' : '';
 
         if (!empty($_SESSION['session_hash'])) {
             $where = 'us.session_hash = :hash';
@@ -119,6 +177,100 @@ class User extends Model
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * Получает пользователя с полной информацией по id
+     * @param int $id
+     * @param bool $active
+     * @param bool $object
+     * @return bool|mixed
+     * @throws DbException
+     */
+    public static function getFullInfoById(int $id, bool $active = false, $object = true)
+    {
+        $where = !empty($active) ? ' AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL' : '';
+        $sql = "
+            SELECT 
+                u.id, u.active, u.blocked, u.group_id, u.last_name, u.name, u.second_name, u.email, u.phone, u.password, 
+                u.personal_data, u.mailing, u.mailing_type_id, u.private_key, u.created, u.updated, 
+                ug.name AS group_name, ug.price_type_id, 
+                pt.name AS price_type,
+                tt.name AS mailing_type 
+            FROM users u
+            LEFT JOIN user_sessions us
+                ON u.id = us.user_id 
+            LEFT JOIN user_groups ug
+                ON u.group_id = ug.id 
+            LEFT JOIN price_types pt
+                ON ug.price_type_id = pt.id 
+            LEFT JOIN text_types tt 
+                ON u.mailing_type_id = tt.id 
+            WHERE u.id = :id {$where}
+            ";
+        $params = [
+            ':id' => $id
+        ];
+        $db = new Db();
+        $data = $db->query($sql, $params, $object ? static::class : null);
+        return !empty($data) ? array_shift($data) : false;
+    }
+
+
 
     /**
      * Получает пользователя по номеру телефона
@@ -231,17 +383,6 @@ class User extends Model
     }
 
     /**
-     * Генерирует публичный ключ шифрования
-     * @return false|string
-     */
-    public static function generatePublicKey()
-    {
-        $public_key = RSA::generateRandomBytes(16,true);
-        $_SESSION['public_key'] = $public_key;
-        return $public_key;
-    }
-
-    /**
      * Авторизация пользователя по id
      * @param int $user_id
      * @param bool $remember
@@ -257,31 +398,6 @@ class User extends Model
         return !empty($user->id) ?
             (new UserSession())->set($user, $remember) :
             false;
-    }
-
-    /**
-     * Получает текущего пользователя
-     * @return false|mixed|null
-     */
-    public static function getCurrent()
-    {
-        $user = self::getByHash();
-        $_SESSION['user'] = $user;
-
-        //if (!empty($user['cookie_hash'])) UserSession::extend($user);
-
-        return $user ?? null;
-    }
-
-    /**
-     * Проверяет авторизован ли пользователь
-     * @return bool
-     * @throws DbException
-     */
-    public static function isAuthorized()
-    {
-        $user = self::getCurrent();
-        return !empty($user['id']) && !empty($_SESSION['user']['id']) && $user['id'] === $_SESSION['user']['id'];
     }
 
     /**
@@ -446,7 +562,7 @@ class User extends Model
                 if (!empty($password)) { // не пустой пароль
                     if (Validation::password($password)) { // пароль прошел проверку валидности
                         if (password_verify($password, $user->password)) { // верный пароль
-                            if (self::authorize($user->id, !empty($form['remember']))) { // успешная авторизация
+                            if (self::authorize($user->id, $remember)) { // успешная авторизация
                                 Access::getInstance()->info(new UserException('Пользователь id = ' . $user->id . ' авторизован'));
                                 OrderItem::checkAnonymous(); // привязка анонимной корзины к пользователю
 
@@ -691,20 +807,6 @@ class User extends Model
             Logger::getInstance()->error($exc);
             throw $exc;
         }
-    }
-
-    /**
-     * Получает местоположение пользователя по IP
-     * @return false|mixed
-     * @throws DbException
-     */
-    public static function getLocation()
-    {
-        $location = Geo::GetLocationFromIP('213.87.127.224'); // Новосибирск
-        //$location = Geo::GetLocationFromIP('87.250.250.242'); // Москва
-        //$location = Geo::GetLocationFromIP(Geo::GetUserIP()); // локальный
-
-        return $_SESSION['location'] = City::getByName($location['city'] ?? 'Москва', true);
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace Models;
 
 use System\Db;
+use Exceptions\DbException;
 
 class Group extends Model
 {
@@ -11,24 +12,28 @@ class Group extends Model
     /**
      * Находит и возвращает активные записи из БД и формирует иерархическое меню
      * @param bool $active
+     * @param bool $object
      * @param string $orderBy
      * @param string $order
      * @return array|bool
-     * @throws \App\Exceptions\DbException
+     * @throws DbException
      */
-    public static function getCatalog($active = false, $orderBy = 'sort', $order = 'ASC')
+    public static function getCatalog($active = true, $object = false, $orderBy = 'sort', $order = 'ASC')
     {
-        $where = !empty($active) ? 'WHERE items.active IS NOT NULL' : '';
+        $activity = !empty($active) ? 'WHERE g.active IS NOT NULL' : '';
         $sql = "
-            SELECT g.id, g.parent_id, g.name, g.title, g.image, g.description, text_types.name as description_type, g.sort 
+            SELECT 
+                g.id, g.parent_id, g.name, g.link, g.image, g.description, 
+                tt.id as description_type_id, tt.name as description_type, 
+                g.sort 
             FROM `groups` g 
-            LEFT JOIN text_types ON g.description_type_id = text_types.id 
-            {$where} 
+            LEFT JOIN text_types tt ON g.description_type_id = tt.id 
+            {$activity} 
             ORDER BY g.{$orderBy} {$order}, g.created DESC
         ";
 
         $db = new Db();
-        $data = $db->query($sql);
+        $data = $db->query($sql, [],$object ? static::class : null);
 
         if (!empty($data)) {
             $res = [];
@@ -41,6 +46,28 @@ class Group extends Model
         return $res ?? false;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     /**
      * Находит и возвращает список подкатегорий
      * @param $group_id
@@ -48,7 +75,7 @@ class Group extends Model
      * @param string $orderBy
      * @param string $order
      * @return array|bool
-     * @throws \App\Exceptions\DbException
+     * @throws DbException
      */
     public static function getSubGroups($group_id, $active = false, $orderBy = 'sort', $order = 'ASC')
     {

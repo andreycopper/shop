@@ -6,7 +6,7 @@ use System\Db;
 
 class Region extends Model
 {
-    protected static $table = 'regions';
+    protected static $table = 'fias_regions';
 
     public static function getListByDistrictId(int $district_id, bool $active = false, $object = true)
     {

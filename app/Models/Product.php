@@ -44,12 +44,15 @@ class Product extends Model
         $sql = "
             SELECT p.id, p.name, p.quantity, p.discount,  
                    pp.price, 
-                   cr.rate 
+                   cr.rate, 
+                   t.value tax 
             FROM products p 
             LEFT JOIN product_prices pp 
                 ON p.id = pp.product_id AND pp.price_type_id = :price_type
             LEFT JOIN currency_rates cr 
                 ON pp.currency_id = cr.currency_id 
+            LEFT JOIN taxes t 
+                ON p.tax_id = t.id
             WHERE p.id = :id {$where}
         ";
         $params = [
@@ -129,12 +132,13 @@ class Product extends Model
      */
     public static function getPrice(int $product_id, int $price_type, bool $object = true)
     {
-        $where = !empty($active) ? ' AND p.active IS NOT NULL' : '';
+        $activity = !empty($active) ? ' AND p.active IS NOT NULL' : '';
+        $params = [
+            ':product_id' => $product_id,
+            ':price_type_id' => $price_type
+        ];
         $sql = "
-            SELECT pp.price,
-                   p.discount,
-                   c.sign AS currency,
-                   cr.rate 
+            SELECT pp.price, p.discount, c.sign AS currency, cr.rate, t.value tax 
             FROM product_prices pp 
             LEFT JOIN products p 
                 ON p.id = pp.product_id
@@ -142,13 +146,10 @@ class Product extends Model
                 ON pp.currency_id = c.id
             LEFT JOIN currency_rates cr 
                 ON c.id = cr.currency_id
-            WHERE pp.product_id = :product_id 
-              AND pp.price_type_id = :price_type_id {$where}
+            LEFT JOIN taxes t 
+                ON p.tax_id = t.id
+            WHERE pp.product_id = :product_id AND pp.price_type_id = :price_type_id {$activity}
         ";
-        $params = [
-            ':product_id' => $product_id,
-            ':price_type_id' => $price_type,
-        ];
         $db = new Db();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;

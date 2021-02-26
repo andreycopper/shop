@@ -2,18 +2,16 @@
 
 namespace Controllers;
 
-use Models\City;
 use Views\View;
 use Models\Page;
 use Models\User;
 use Models\Group;
-use Models\Region;
-use System\Logger;
 use System\Request;
 use Models\District;
 use Models\OrderItem;
 use Exceptions\DbException;
 use Exceptions\NotFoundException;
+use Exceptions\ForbiddenException;
 
 /**
  * Class Controller
@@ -31,49 +29,45 @@ abstract class Controller
     public function __construct()
     {
         $this->view = new View();
-        $this->view->page         = Page::getPageInfo(get_class($this));
-        $this->view->public_key   = $_SESSION['public_key'] ?? User::generatePublicKey(); // публичный ключ шифрования
-        $this->view->location     = $_SESSION['location'] ?? User::getLocation();
-        $this->view->user         = $_SESSION['user'] ?? User::getCurrent();
-        $this->view->groups       = $_SESSION['groups'] ?? Group::getCatalog();
-        $this->view->menu         = $_SESSION['menu'] ?? Page::getMenuTree(true);
-        $this->view->cart_count   = OrderItem::getCount();
         $this->view->current_page = intval(Request::get('page') ?? 1);
-
-        $this->view->districts    = District::getList(true);
-        $this->view->regions      = Region::getList(true);
-        $this->view->cities       = City::getList(true);
+        $this->view->page         = Page::getPageInfo(get_class($this)); // информация о странице
+        $this->view->public_key   = $_SESSION['public_key'] ?? User::generatePublicKey(); // публичный ключ шифрования
+        $this->view->location     = $_SESSION['location'] ?? User::getLocation(); // текущее местоположение
+        $this->view->user         = $_SESSION['user'] ?? User::getCurrent(); // текущий пользователь
+        $this->view->groups       = $_SESSION['groups'] ?? Group::getCatalog(); // каталог товаров
+        $this->view->menu         = $_SESSION['menu'] ?? Page::getMenuTree(true); // меню
+        $this->view->cart_count   = OrderItem::getCount(); // количество товаров в корзине
+        $this->view->districts    = District::getList(); // список федеральных округов
     }
 
     /**
      * Проверяет доступ и формирует полное имя action
      * @param string $action
      * @param null $param
-     * @throws NotFoundException
+     * @throws ForbiddenException|NotFoundException
      */
     public function action(string $action, $param = null)
     {
-        if ($this->access()) {
-            if (method_exists($this, $action)) {
+        if (method_exists($this, $action)) {
+            if ($this->access($action)) {
                 if (method_exists($this, 'before')) $this->before();
                 $this->$action($param ?? null);
                 die;
             } else {
-                $exc = new NotFoundException('Не найдено!');
-                Logger::getInstance()->error($exc);
-                throw $exc;
+                throw new ForbiddenException();
             }
-        } else {
-            header('HTTP/1.1 403 Forbidden', 403);
-            die('Доступ запрещен!');
+        }
+        else {
+            throw new NotFoundException();
         }
     }
 
     /**
-     * Проверяет доступ
+     * Проверяет доступ к методу в классе $this
+     * @param $action - метод, доступ к которому проверяется
      * @return bool
      */
-    protected function access():bool
+    protected function access($action):bool
     {
         return true;
     }

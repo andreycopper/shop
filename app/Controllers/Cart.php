@@ -2,7 +2,9 @@
 
 namespace Controllers;
 
+use Exceptions\UserException;
 use Models\Coupon;
+use System\Logger;
 use System\Request;
 use Models\OrderItem;
 use Exceptions\DbException;
@@ -18,7 +20,7 @@ class Cart extends Controller
                 $this->view->coupon_error = true;
         }
 
-        $this->view->cart = OrderItem::getCart(Request::get('coupon') ?? '');
+        $this->view->cart = OrderItem::getCart(Request::get('coupon') ?: '');
         $this->view->favorite = [1];
 
         $this->view->display('cart');
@@ -29,16 +31,15 @@ class Cart extends Controller
      */
     protected function actionCheckCoupon()
     {
-        if (Request::isPost()) {
+        if (Request::isPost() && !empty(Request::post('coupon'))) {
             $coupon = Coupon::get(Request::post('coupon'));
 
             if (!empty($coupon)) Coupon::check($coupon, Request::isAjax());
 
-            echo json_encode([
-                'result' => false,
-                'message' => 'Купон не найден'
-            ]);
-            die;
+            if (Request::isAjax()) {
+                echo json_encode(['result' => false, 'message' => 'Купон не найден']);
+                die;
+            }
         }
     }
 
@@ -49,7 +50,7 @@ class Cart extends Controller
     {
         if (Request::isPost()) {
             $product = Request::post();
-            OrderItem::recalc(intval($product['id']), intval($product['count']), intval($product['price_type']), Request::isAjax());
+            OrderItem::recalc($this->view->user->id, intval($product['id']), intval($product['count']), intval($product['price_type']), Request::isAjax());
         }
     }
 

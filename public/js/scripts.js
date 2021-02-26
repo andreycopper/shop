@@ -390,18 +390,26 @@ $(function () {
     $('#p_profile, #j_profile').on('change', function () {
         let option = $(this).find('option:selected');
 
-        $(this).parents('.order-item-slider').find('input[name=name]').val(option.data('name'));
-        $(this).parents('.order-item-slider').find('input[name=email]').val(option.data('email'));
-        $(this).parents('.order-item-slider').find('input[name=phone]').val(option.data('phone'));
+        $(this).parents('.order-item-slider').find('input[name=p_name]').val(option.data('p_name'));
+        $(this).parents('.order-item-slider').find('input[name=p_email]').val(option.data('p_email'));
+        $(this).parents('.order-item-slider').find('input[name=p_phone]').val(option.data('p_phone'));
 
-        $(this).parents('.order-item-slider').find('input[name=firm]').val(option.data('firm'));
-        $(this).parents('.order-item-slider').find('input[name=address_legal]').val(option.data('address_legal'));
+        $(this).parents('.order-item-slider').find('input[name=j_name]').val(option.data('j_name'));
+        $(this).parents('.order-item-slider').find('input[name=j_email]').val(option.data('j_email'));
+        $(this).parents('.order-item-slider').find('input[name=j_phone]').val(option.data('j_phone'));
+
+        $(this).parents('.order-item-slider').find('input[name=company]').val(option.data('company'));
+        $(this).parents('.order-item-slider').find('input[name=j_address]').val(option.data('j_address'));
         $(this).parents('.order-item-slider').find('input[name=inn]').val(option.data('inn'));
         $(this).parents('.order-item-slider').find('input[name=kpp]').val(option.data('kpp'));
 
-        $('input[name=index]').val(option.data('index'));
+        $('input[name=city_id]').val(option.data('city_id'));
         $('input[name=city]').val(option.data('city'));
-        $('input[name=address]').val(option.data('address'));
+        $('input[name=street_id]').val(option.data('street_id'));
+        $('input[name=street]').val(option.data('street'));
+        $('input[name=house]').val(option.data('house'));
+        $('input[name=building]').val(option.data('building'));
+        $('input[name=flat]').val(option.data('flat'));
         $('textarea[name=comment]').val(option.data('comment'));
     });
 

@@ -46,7 +46,7 @@ class Route
      * Затем проверяется путь App\Controller\Blog\News\Edit\10 -> actionEdit(10)
      * Затем проверяется путь App\Controller\Blog\News -> actionDefault()
      * Проверка идет с конца адресной строки
-     * @throws NotFoundException
+     * @throws NotFoundException|ForbiddenException
      */
     public static function start()
     {
@@ -127,9 +127,7 @@ class Route
             $controller = new $class;
             $controller->action($action, $param ?? null);
         } else {
-            $exc = new NotFoundException();
-            Logger::getInstance()->error($exc);
-            throw $exc;
+            throw new NotFoundException();
         }
     }
 }

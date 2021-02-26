@@ -1,15 +1,9 @@
 <?
-$last_name = '';
-$name = '';
-$second_name = '';
+$rsa = new \System\RSA($this->user->private_key);
 
-if (!empty($this->user->id) && !empty($this->user->private_key)) {
-    $rsa = new \System\RSA($this->user->private_key);
-
-    $last_name = !empty($this->user->last_name) ? $rsa->decrypt($this->user->last_name) : '';
-    $name = !empty($this->user->name) ? $rsa->decrypt($this->user->name) : '';
-    $second_name = !empty($this->user->second_name) ? $rsa->decrypt($this->user->second_name) : '';
-}
+$last_name = !empty($this->user->last_name) ? $rsa->decrypt($this->user->last_name) : '';
+$name = !empty($this->user->name) ? $rsa->decrypt($this->user->name) : '';
+$second_name = !empty($this->user->second_name) ? $rsa->decrypt($this->user->second_name) : '';
 ?>
 <div class="container">
     <div class="main-header">
@@ -50,15 +44,20 @@ if (!empty($this->user->id) && !empty($this->user->private_key)) {
                                             if ($profile->user_type_id !== '1') continue; ?>
                                             <option value="<?= $profile->id ?>"
                                                     data-user_type_id="<?= $profile->user_type_id ?>"
-                                                    data-name="<?= $profile->name ?>"
-                                                    data-email="<?= $profile->email ?>"
-                                                    data-phone="<?= $profile->phone ?>"
+                                                    data-p_name="<?= ($rsa)->decrypt($profile->name) ?>"
+                                                    data-p_email="<?= $profile->email ?>"
+                                                    data-p_phone="<?= $profile->phone ?>"
                                                     data-index=""
+                                                    data-city_id="<?= $profile->city_id ?>"
                                                     data-city="<?= $profile->city ?>"
-                                                    data-address="<?= $profile->address ?>"
+                                                    data-street_id="<?= $profile->street_id ?>"
+                                                    data-street="<?= $profile->street ?>"
+                                                    data-house="<?= $profile->house ?>"
+                                                    data-building="<?= $profile->building ?>"
+                                                    data-flat="<?= $profile->flat ?>"
                                                     data-comment="<?= $profile->comment ?>"
                                             >
-                                                <?= $profile->city . ', ' . $profile->address ?>
+                                                <?= $profile->city . ', ' . $profile->street . ', ' . $profile->house . ($profile->flat ? ('-' . $profile->flat) : '') ?>
                                             </option>
                                         <? endforeach;
                                     endif; ?>
@@ -86,19 +85,24 @@ if (!empty($this->user->id) && !empty($this->user->private_key)) {
                                         if ($profile->user_type_id !== '2') continue; ?>
                                         <option value="<?= $profile->id ?>"
                                                 data-user_type_id="<?= $profile->user_type_id ?>"
-                                                data-name="<?= $profile->name ?>"
-                                                data-email="<?= $profile->email ?>"
-                                                data-phone="<?= $profile->phone ?>"
+                                                data-j_name="<?= ($rsa)->decrypt($profile->name) ?>"
+                                                data-j_email="<?= $profile->email ?>"
+                                                data-j_phone="<?= $profile->phone ?>"
                                                 data-index=""
+                                                data-city_id="<?= $profile->city_id ?>"
                                                 data-city="<?= $profile->city ?>"
-                                                data-address="<?= $profile->address ?>"
+                                                data-street_id="<?= $profile->street_id ?>"
+                                                data-street="<?= $profile->street ?>"
+                                                data-house="<?= $profile->house ?>"
+                                                data-building="<?= $profile->building ?>"
+                                                data-flat="<?= $profile->flat ?>"
                                                 data-comment="<?= $profile->comment ?>"
                                                 data-company='<?= $profile->company ?>'
-                                                data-address_legal="<?= $profile->address_legal ?>"
+                                                data-j_address="<?= $profile->address_legal ?>"
                                                 data-inn="<?= $profile->inn ?>"
                                                 data-kpp="<?= $profile->kpp ?>"
                                         >
-                                            <?= $profile->company . ', ' . $profile->city . ', ' . $profile->address ?>
+                                            <?= $profile->company . ', ' . $profile->city . ', ' . $profile->street . ', ' . $profile->house ?>
                                         </option>
                                     <? endforeach;
                                 endif; ?>

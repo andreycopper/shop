@@ -93,7 +93,7 @@
                 </a>
             </div>
             <div class="header-user">
-                <? if (!empty($user->id)): ?>
+                <? if (\Models\User::isAuthorized()): ?>
                     <a href="/personal/" class="header-user-link" title="Личный кабинет">
                         <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21">
                             <path class="header-user-pic" d="M13.969,16a1,1,0,1,1-2,0H11.927C11.578,14.307,9.518,13,7,13s-4.575,1.3-4.924,3H2.031a1,1,0,0,1-2,0,0.983,0.983,0,0,1,.1-0.424C0.7,12.984,3.54,11,7,11S13.332,13,13.882,15.6a1.023,1.023,0,0,1,.038.158c0.014,0.082.048,0.159,0.058,0.243H13.969ZM7,10a5,5,0,1,1,5-5A5,5,0,0,1,7,10ZM7,2a3,3,0,1,0,3,3A3,3,0,0,0,7,2Z"></path>
@@ -118,22 +118,22 @@
                 </a>
                 <div class="nav-catalog-menu">
                     <ul class="nav-catalog-container">
-                        <? if (!empty($this->groups)): ?>
+                        <? if (!empty($this->groups) && is_array($this->groups)): ?>
                             <? foreach ($this->groups[0] as $group1): ?>
                                 <li>
-                                    <a href="/catalog/<?=$group1['name']?>/" class="nav-catalog-image">
+                                    <a href="/catalog/<?=$group1['link']?>/" class="nav-catalog-image">
                                         <img src="/uploads/groups/<?=$group1['id']?>/<?=$group1['image']?>" alt="">
                                     </a>
-                                    <a href="/catalog/<?=$group1['name']?>/" class="nav-catalog-title"><?=$group1['title']?></a>
+                                    <a href="/catalog/<?=$group1['link']?>/" class="nav-catalog-title"><?=$group1['name']?></a>
                                     <? if (!empty($this->groups[$group1['id']]) && is_array($this->groups[$group1['id']])): ?>
                                         <ul class="nav-catalog-submenu">
                                             <? foreach ($this->groups[$group1['id']] as $group2): ?>
                                                 <li>
-                                                    <a href="/catalog/<?=$group1['name']?>/<?=$group2['name']?>/"><?=$group2['title']?></a>
+                                                    <a href="/catalog/<?=$group1['link']?>/<?=$group2['link']?>/"><?=$group2['name']?></a>
                                                     <? if (!empty($this->groups[$group2['id']]) && is_array($this->groups[$group2['id']])): ?>
                                                         <ul class="nav-catalog-submenu">
                                                             <? foreach ($this->groups[$group2['id']] as $group3): ?>
-                                                                <li><a href="/catalog/<?=$group1['name']?>/<?=$group2['name']?>/<?=$group3['name']?>/"><?=$group3['title']?></a></li>
+                                                                <li><a href="/catalog/<?=$group1['link']?>/<?=$group2['link']?>/<?=$group3['link']?>/"><?=$group3['name']?></a></li>
                                                             <? endforeach; ?>
                                                         </ul>
                                                     <? endif; ?>

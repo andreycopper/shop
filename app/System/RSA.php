@@ -15,7 +15,7 @@ class RSA
     protected $public_key;
     protected $private_key;
 
-    public function __construct($private_key)
+    public function __construct(string $private_key)
     {
         $this->private_key = base64_decode($private_key);
         $this->public_key = base64_decode($_SESSION['public_key']);

@@ -39,13 +39,14 @@ class Tests extends Controller
         var_dump($name2);
         var_dump($name3);
 
-        $private_key = RSA::generateRandomBytes(0, true);
+        $private_key = RSA::generateRandomBytes(64, true);
         $public_key = RSA::generateRandomBytes(16, true);
-//        var_dump($private_key);
-//        var_dump($public_key);die;
+        var_dump($private_key);
+        var_dump($public_key);
+//        die;
 
-        $private_key = 'Xp1SqoKAsWB199IMslr/2w=='; // 24 - passphrase
-        $public_key = $_SESSION['public_key'] = 'jfmkXaSV/IZaVhYhg7Jz4g='; // 16 - iv
+//        $private_key = 'Xp1SqoKAsWB199IMslr/2w=='; // 24 - passphrase
+//        $public_key = $_SESSION['public_key'] = 'jfmkXaSV/IZaVhYhg7Jz4g='; // 16 - iv
 
         $rsa  = new RSA($private_key);
         $encode1 = $rsa->encrypt($name1);

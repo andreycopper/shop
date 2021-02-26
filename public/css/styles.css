@@ -495,17 +495,17 @@ body {
 header {
     position: relative;
     flex: 0 0 auto;
+    width: 100%;
     height: 160px;
     background-color: #ffffff;
     overflow: visible;
 }
-.header {
-    width: 100%;
-    background-color: #ffffff;
-}
 .header.fixed {
     position: fixed;
     top: 0;
+    width: 100%;
+    height: 100px;
+    background-color: #ffffff;
     box-shadow: 0 1px 5px rgba(0, 0, 0, .136);
     z-index: 5;
 }
@@ -6130,7 +6130,6 @@ label.radio:hover .order-item-name {
 footer {
     flex: 0 0 auto;
     background-color: #3a3b3d;
-    outline: 1px solid green;
 }
 /* FOOTER TOP */
 .footer-top {

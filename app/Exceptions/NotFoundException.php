@@ -2,6 +2,8 @@
 
 namespace Exceptions;
 
+use Throwable;
+
 /**
  * Class NotFoundException
  * @package App\Exceptions

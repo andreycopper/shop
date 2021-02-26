@@ -3,6 +3,7 @@
 namespace Models;
 
 use System\Db;
+use Exceptions\DbException;
 
 class Page extends Model
 {
@@ -14,15 +15,15 @@ class Page extends Model
      * @param bool $active
      * @param bool $object
      * @return false|mixed
-     * @throws \App\Exceptions\DbException
+     * @throws DbException
      */
     public static function getPageInfo(string $class, bool $active = true, $object = true)
     {
         $page = explode('\\', mb_strtolower($class));
         $page = array_pop($page);
 
-        $activity = !empty($active) ? 'AND active IS NOT NULL' : '';
-        $sql = "SELECT * FROM pages WHERE link = :page {$activity}";
+        $activity = !empty($active) ? 'AND p.active IS NOT NULL' : '';
+        $sql = "SELECT * FROM pages p WHERE p.link = :page {$activity}";
         $params = [
             ':page' => $page
         ];
@@ -35,23 +36,23 @@ class Page extends Model
 
     /**
      * Находит и возвращает активные записи из БД и формирует иерархическое меню
-     * @param $page
      * @param bool $active
+     * @param bool $object
      * @param string $orderBy
      * @param string $order
      * @return array|bool
-     * @throws \App\Exceptions\DbException
+     * @throws DbException
      */
-    public static function getMenuTree($active = false, $orderBy = 'sort', $order = 'ASC')
+    public static function getMenuTree($active = false, $object = false, $orderBy = 'sort', $order = 'ASC')
     {
-        $where = !empty($active) ? 'AND active IS NOT NULL' : '';
+        $activity = !empty($active) ? 'AND p.active IS NOT NULL' : '';
         $sql = "
-            SELECT id, menu, footer, parent_id, name, link, description, meta_d, meta_k, sort 
-            FROM `pages` 
-            WHERE menu IS NOT NULL {$where} 
+            SELECT p.id, p.menu, p.footer, p.parent_id, p.name, p.link, p.description, p.meta_d, p.meta_k, p.sort 
+            FROM pages p 
+            WHERE p.menu IS NOT NULL {$activity} 
             ORDER BY {$orderBy} {$order}";
         $db = new Db();
-        $data = $db->query($sql);
+        $data = $db->query($sql, [],$object ? static::class : null);
         $res = [];
 
         if (!empty($data)) {
@@ -63,6 +64,41 @@ class Page extends Model
         if (!empty($res)) $_SESSION['menu'] = $res;
         return $res ?? false;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public function filter_id($id)
     {
