@@ -16,28 +16,28 @@ $second_name = !empty($this->user->second_name) ? $rsa->decrypt($this->user->sec
     </div>
 
     <? if (!empty($this->cart['items']) && is_array($this->cart['items'])): ?>
-        <form action="/orders/finish/" method="post" class="catalog-container">
+        <form action="/orders/finish/" method="post" class="catalog-container" id="order">
             <div class="main-section">
                 <div class="order-item">
                     <a href="" class="order-item-title order-user">Покупатель</a>
 
                     <div class="order-item-container radio-container">
-                        <div class="order-user-type <?= empty($this->user->id) ? 'hidden' : '' ?>">
+                        <div class="order-user-type <?= $this->user->id === '2' ? 'hidden' : '' ?>">
                             <label class="radio checked">
-                                <input type="radio" name="type" value="1" data-target="order-user-physical" checked>
+                                <input type="radio" name="type" value="1" data-target="order-user-physical" class="required" checked>
                                 <span class="order-item-name">Физическое лицо</span>
                             </label>
 
                             <label class="radio">
-                                <input type="radio" name="type" value="2" data-target="order-user-juridical">
+                                <input type="radio" name="type" value="2" class="required" data-target="order-user-juridical">
                                 <span class="order-item-name">Юридическое лицо</span>
                             </label>
                         </div>
 
                         <div class="order-item-slider order-user-physical">
-                            <? if (!empty($this->user->id)): ?>
+                            <? if ($this->user->id !== '2'): ?>
                                 <label for="p_profile">Профиль доставки</label>
-                                <select name="p_profile" id="p_profile">
+                                <select name="p_profile" id="p_profile" class="required">
                                     <option value="0" selected>Новый профиль</option>
                                     <? if (!empty($this->profiles) && is_array($this->profiles)):
                                         foreach ($this->profiles as $profile):
@@ -62,23 +62,27 @@ $second_name = !empty($this->user->second_name) ? $rsa->decrypt($this->user->sec
                                         <? endforeach;
                                     endif; ?>
                                 </select>
+                                <div class="message_error"></div>
                             <? else: ?>
                                 <input type="hidden" name="p_profile" value="0">
                             <? endif; ?>
 
-                            <label for="p_name">Контактное лицо <span class="required">*</span></label>
-                            <input type="text" name="p_name" id="p_name" value="<?= ($last_name . ' ' . $name . ' ' . $second_name) ?>">
+                            <label for="p_name">Контактное лицо <span class="red">*</span></label>
+                            <input type="text" name="p_name" id="p_name" value="<?= ($last_name . ' ' . $name . ' ' . $second_name) ?>" class="required">
+                            <div class="message_error"></div>
 
-                            <label for="p_email">E-mail <span class="required">*</span></label>
-                            <input type="text" name="p_email" id="p_email" value="<?= $this->user->email ?? '' ?>">
+                            <label for="p_email">E-mail <span class="red">*</span></label>
+                            <input type="text" name="p_email" id="p_email" value="<?= $this->user->email ?? '' ?>" class="required">
+                            <div class="message_error"></div>
 
-                            <label for="p_phone">Телефон <span class="required">*</span></label>
-                            <input type="text" name="p_phone" id="p_phone" value="<?= $this->user->phone ?? '' ?>">
+                            <label for="p_phone">Телефон <span class="red">*</span></label>
+                            <input type="text" name="p_phone" id="p_phone" value="<?= $this->user->phone ?? '' ?>" class="required">
+                            <div class="message_error"></div>
                         </div>
 
                         <div class="order-item-slider order-user-juridical">
                             <label for="j_profile">Профиль доставки</label>
-                            <select name="j_profile" id="j_profile">
+                            <select name="j_profile" id="j_profile" class="required">
                                 <option value="0" selected>Новый профиль</option>
                                 <? if (!empty($this->profiles) && is_array($this->profiles)):
                                     foreach ($this->profiles as $profile):
@@ -107,27 +111,35 @@ $second_name = !empty($this->user->second_name) ? $rsa->decrypt($this->user->sec
                                     <? endforeach;
                                 endif; ?>
                             </select>
+                            <div class="message_error"></div>
 
-                            <label for="j_name">Контактное лицо <span class="required">*</span></label>
-                            <input type="text" name="j_name" id="j_name" value="<?= ($last_name . ' ' . $name . ' ' . $second_name) ?>">
+                            <label for="j_name">Контактное лицо <span class="red">*</span></label>
+                            <input type="text" name="j_name" id="j_name" value="<?= ($last_name . ' ' . $name . ' ' . $second_name) ?>" class="required">
+                            <div class="message_error"></div>
 
-                            <label for="j_email">E-mail <span class="required">*</span></label>
-                            <input type="text" name="j_email" id="j_email" value="<?= $this->user->email ?? '' ?>">
+                            <label for="j_email">E-mail <span class="red">*</span></label>
+                            <input type="text" name="j_email" id="j_email" value="<?= $this->user->email ?? '' ?>" class="required">
+                            <div class="message_error"></div>
 
-                            <label for="j_phone">Телефон <span class="required">*</span></label>
-                            <input type="text" name="j_phone" id="j_phone" value="<?= $this->user->phone ?? '' ?>">
+                            <label for="j_phone">Телефон <span class="red">*</span></label>
+                            <input type="text" name="j_phone" id="j_phone" value="<?= $this->user->phone ?? '' ?>" class="required">
+                            <div class="message_error"></div>
 
-                            <label for="company">Название компании <span class="required">*</span></label>
-                            <input type="text" name="company" id="company">
+                            <label for="company">Название компании <span class="red">*</span></label>
+                            <input type="text" name="company" id="company" class="required">
+                            <div class="message_error"></div>
 
-                            <label for="j_address">Юридический адрес <span class="required">*</span></label>
-                            <input type="text" name="j_address" id="j_address">
+                            <label for="j_address">Юридический адрес <span class="red">*</span></label>
+                            <input type="text" name="j_address" id="j_address" class="required">
+                            <div class="message_error"></div>
 
-                            <label for="inn">ИНН <span class="required">*</span></label>
-                            <input type="text" name="inn" id="inn">
+                            <label for="inn">ИНН <span class="red">*</span></label>
+                            <input type="text" name="inn" id="inn" class="required">
+                            <div class="message_error"></div>
 
                             <label for="kpp">КПП</label>
                             <input type="text" name="kpp" id="kpp">
+                            <div class="message_error"></div>
                         </div>
                     </div>
                 </div>
@@ -166,31 +178,32 @@ $second_name = !empty($this->user->second_name) ? $rsa->decrypt($this->user->sec
                     </div>
                 </div>
 
-                <div class="order-item hidden">
+                <div class="order-item order-item-delivery hidden">
                     <a href="" class="order-item-title order-region">Адрес доставки</a>
 
                     <div class="order-item-container">
                         <div class="relative visible">
-                            <label for="delivery_city">Населенный пункт <span class="required">*</span></label>
-                            <input type="hidden" name="city_id" value="<?= $this->location->id ?? '' ?>">
-                            <input type="text" name="city" id="delivery_city"
+                            <label for="delivery_city">Населенный пункт <span class="red">*</span></label>
+                            <input type="hidden" name="city_id" value="<?= $this->location->id ?? '' ?>" class="required">
+                            <input type="text" name="city" id="delivery_city" class="required"
                                    value="<?= $this->location->id ? ($this->location->region . ', ' . $this->location->city . ' ' . $this->location->shortname) : '' ?>">
                             <ul class="order-item-search-result"></ul>
                             <div class="message_error"></div>
                         </div>
 
                         <div class="relative visible">
-                            <label for="delivery_street">Улица <span class="required">*</span></label>
-                            <input type="hidden" name="street_id">
-                            <input type="text" name="street" id="delivery_street">
+                            <label for="delivery_street">Улица <span class="red">*</span></label>
+                            <input type="hidden" name="street_id" class="required">
+                            <input type="text" name="street" id="delivery_street" class="required">
                             <ul class="order-item-search-result"></ul>
                             <div class="message_error"></div>
                         </div>
 
                         <div class="order-delivery-address">
                             <div class="order-delivery-house">
-                                <label for="delivery_house">Дом <span class="required">*</span></label>
-                                <input type="text" name="house" id="delivery_house">
+                                <label for="delivery_house">Дом <span class="red">*</span></label>
+                                <input type="text" name="house" id="delivery_house" class="required">
+                                <div class="message_error"></div>
                             </div>
 
                             <div class="order-delivery-building">

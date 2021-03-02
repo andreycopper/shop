@@ -54,11 +54,9 @@ class Orders extends Controller
      */
     protected function actionSuccess($order_id)
     {
-        if (is_numeric($order_id)) {
-            $this->view->order = Order::getByIdAndUserId(intval($order_id), $this->view->user->id);
+        if (!is_numeric($order_id)) throw new UserException('Заказ не найден!');
 
-            var_dump($this->view->order);
-            die;
-        }
+        $this->view->order = Order::getByIdAndUserId(intval($order_id), $this->view->user->id);
+        $this->view->display('order/success');
     }
 }
