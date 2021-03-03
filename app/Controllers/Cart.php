@@ -20,7 +20,7 @@ class Cart extends Controller
                 $this->view->coupon_error = true;
         }
 
-        $this->view->cart = OrderItem::getCart(Request::get('coupon') ?: '');
+        $this->view->cart = OrderItem::getCart($this->view->user->id, Request::get('coupon') ?: '');
         $this->view->favorite = [1];
 
         $this->view->display('cart');

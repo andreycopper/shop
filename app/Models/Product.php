@@ -10,24 +10,214 @@ class Product extends Model
     protected static $table = 'products';
 
     /**
-     * Находит и возвращает одну запись из БД по id
+     * Возвращает все типы цен по id товара
+     * @param $id
+     * @param bool $object
+     * @return array|false
+     * @throws DbException
+     */
+    public static function getPrices($id, bool $object = true)
+    {
+        $params = [':id' => $id];
+        $sql = "
+            SELECT 
+                pp.price_type_id, 
+                pt.name price_type, 
+                ROUND(pp.price * cr.rate) price, 
+                c.iso, c.logo, c.sign 
+            FROM product_prices pp 
+            LEFT JOIN currency_rates cr ON pp.currency_id = cr.currency_id 
+            LEFT JOIN currencies c on c.id = 1 
+            LEFT JOIN price_types pt on pp.price_type_id = pt.id 
+            WHERE product_id = :id
+            ";
+
+        $db = new Db();
+        $res = $db->query($sql, $params, $object ? static::class : null);
+        return $res ?: false;
+    }
+
+    /**
+     * Возвращает цену определенного типа по id товара
+     * @param int $product_id
+     * @param int $price_type_id
+     * @param bool $object
+     * @return false|mixed
+     * @throws DbException
+     */
+    public static function getPrice(int $product_id, int $price_type_id, bool $object = true)
+    {
+        $params = [
+            ':product_id' => $product_id,
+            ':price_type_id' => $price_type_id
+        ];
+        $sql = "
+            SELECT 
+                pp.price_type_id, 
+                pt.name price_type, 
+                ROUND(pp.price * cr.rate) price, 
+                c.iso, c.logo, c.sign 
+            FROM product_prices pp 
+            LEFT JOIN currency_rates cr ON pp.currency_id = cr.currency_id 
+            LEFT JOIN currencies c on c.id = 1 
+            LEFT JOIN price_types pt on pp.price_type_id = pt.id 
+            WHERE product_id = :product_id AND pp.price_type_id = :price_type_id
+        ";
+        $db = new Db();
+        $res = $db->query($sql, $params, $object ? static::class : null);
+
+        return !empty($res) ? array_shift($res) : false;
+    }
+
+    /**
+     * Возвращает товар по id
      * @param int $id
      * @param bool $active
      * @param bool $object
      * @return bool|mixed
      * @throws DbException
      */
-    public static function getById(int $id, bool $active = false, $object = true)
+    public static function getById(int $id, bool $active = true, bool $object = true)
     {
-        $sql = "SELECT * FROM products WHERE id = :id";
-        $sql .= !empty($active) ? ' AND active IS NOT NULL' : '';
-        $params = [
-            ':id' => $id
-        ];
+        $params = [':id' => $id];
+        $activity = !empty($active) ? 'AND p.active IS NOT NULL AND g.active IS NOT NULL AND v.active IS NOT NULL' : '';
+        $sql = "
+            SELECT 
+                p.id, p.name, p.articul, p.quantity, p.quantity_from, p.quantity_to, p.discount,  p.views,
+                p.is_hit, p.is_new, p.is_action, p.is_recommend,
+                p.preview_image, p.preview_text, p.preview_text_type_id, ptt.name preview_text_type, 
+                p.detail_image, p.detail_text, p.detail_text_type_id, dtt.name detail_text_type, 
+                p.unit_id, u.name unit_name, u.sign unit_sign, 
+                p.warranty, p.warranty_period_id, wp.name warranty_name,
+                p.group_id, g.name group_name, g.link group_link,
+                p.vendor_id, v.name vendor, v.image vendor_image,
+                p.tax_id, p.tax_included, t.name tax_name, t.value tax_value 
+            FROM products p  
+            LEFT JOIN `groups` g 
+                ON p.group_id = g.id 
+            LEFT JOIN vendors v 
+                ON p.vendor_id = v.id 
+            LEFT JOIN taxes t 
+                ON p.tax_id = t.id 
+            LEFT JOIN units u 
+                ON p.unit_id = u.id 
+            LEFT JOIN warranty_periods wp 
+                ON p.warranty_period_id = wp.id 
+            LEFT JOIN text_types ptt 
+                ON p.preview_text_type_id = ptt.id 
+            LEFT JOIN text_types dtt 
+                ON p.detail_text_type_id = dtt.id 
+            WHERE p.id = :id {$activity}";
+
         $db = new Db();
-        $data = $db->query($sql, $params, $object ? static::class : null);
-        return !empty($data) ? array_shift($data) : false;
+        $res = $db->query($sql, $params, $object ? static::class : null);
+        return !empty($res) ? array_shift($res) : false;
     }
+
+    /**
+     * Возвращает список товаров по id группы
+     * @param int $group_id
+     * @param bool $active
+     * @param string $order
+     * @param string $sort
+     * @param bool $object
+     * @return array|bool
+     * @throws DbException
+     */
+    public static function getListByGroupId(int $group_id, string $order = 'sort', string $sort = 'ASC', bool $active = true, $object = true)
+    {
+        $activity = !empty($active) ? 'AND p.active IS NOT NULL AND g.active IS NOT NULL AND v.active IS NOT NULL' : '';
+        $params = [':group_id' => $group_id];
+        $sql = "
+            SELECT 
+                p.id, p.name, p.articul, p.quantity, p.quantity_from, p.quantity_to, p.discount,  p.views,
+                p.is_hit, p.is_new, p.is_action, p.is_recommend,
+                p.preview_image, p.preview_text, p.preview_text_type_id, ptt.name preview_text_type, 
+                p.detail_image, p.detail_text, p.detail_text_type_id, dtt.name detail_text_type, 
+                p.unit_id, u.name unit_name, u.sign unit_sign, 
+                p.warranty, p.warranty_period_id, wp.name warranty_name,
+                p.group_id, g.name group_name, g.link group_link,
+                p.vendor_id, v.name vendor, v.image vendor_image,
+                p.tax_id, p.tax_included, t.name tax_name, t.value tax_value 
+            FROM products p  
+            LEFT JOIN `groups` g 
+                ON p.group_id = g.id 
+            LEFT JOIN vendors v 
+                ON p.vendor_id = v.id 
+            LEFT JOIN taxes t 
+                ON p.tax_id = t.id 
+            LEFT JOIN units u 
+                ON p.unit_id = u.id 
+            LEFT JOIN warranty_periods wp 
+                ON p.warranty_period_id = wp.id 
+            LEFT JOIN text_types ptt 
+                ON p.preview_text_type_id = ptt.id 
+            LEFT JOIN text_types dtt 
+                ON p.detail_text_type_id = dtt.id 
+            WHERE group_id = :group_id {$activity} 
+            ORDER BY p.{$order}, p.created, p.id {$sort};
+        ";
+
+        $db = new Db();
+        $items = $db->query($sql, $params, $object ? static::class : null);
+        return $items ?: false;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /**
      * Находит и возвращает одну запись из БД по id
@@ -122,38 +312,7 @@ class Product extends Model
         return !empty($data) ? array_shift($data) : false;
     }
 
-    /**
-     * Находит и возвращает цену товара
-     * @param int $product_id
-     * @param int $price_type
-     * @param bool $object
-     * @return false|mixed
-     * @throws DbException
-     */
-    public static function getPrice(int $product_id, int $price_type, bool $object = true)
-    {
-        $activity = !empty($active) ? ' AND p.active IS NOT NULL' : '';
-        $params = [
-            ':product_id' => $product_id,
-            ':price_type_id' => $price_type
-        ];
-        $sql = "
-            SELECT pp.price, p.discount, c.sign AS currency, cr.rate, t.value tax 
-            FROM product_prices pp 
-            LEFT JOIN products p 
-                ON p.id = pp.product_id
-            LEFT JOIN currencies c 
-                ON pp.currency_id = c.id
-            LEFT JOIN currency_rates cr 
-                ON c.id = cr.currency_id
-            LEFT JOIN taxes t 
-                ON p.tax_id = t.id
-            WHERE pp.product_id = :product_id AND pp.price_type_id = :price_type_id {$activity}
-        ";
-        $db = new Db();
-        $data = $db->query($sql, $params, $object ? static::class : null);
-        return !empty($data) ? array_shift($data) : false;
-    }
+
 
     public static function getQuantity(int $id, bool $object = true)
     {
@@ -168,88 +327,6 @@ class Product extends Model
         $db = new Db();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
-    }
-
-    /**
-     * @param int $group_id
-     * @param int $price_type
-     * @param bool $active
-     * @param string $orderBy
-     * @param string $sort
-     * @param bool $object
-     * @return array|bool
-     * @throws DbException
-     */
-    public static function getListByGroup(int $group_id, int $price_type, bool $active = false, string $orderBy = 'sort', string $sort = 'ASC', $object = true)
-    {
-        $params = [
-            ':group_id'   => $group_id,
-            ':price_type'   => $price_type
-        ];
-        $where = !empty($active) ? ' AND p.active IS NOT NULL' : '';
-        $sql = "
-            SELECT 
-                p.id, p.active, p.name, p.articul, p.preview_image, p.preview_text, p.detail_text, 
-                p.tax_included, p.quantity, p.discount, p.warranty, 
-                p.is_hit as hit, p.is_new as new, p.is_action as action, p.is_recommend as recommend, 
-                pp.price,
-                pt.id AS price_type_id, pt.name AS price_type,
-                c.sign as currency, 
-                cr.rate, 
-                u.sign as unit, 
-                t.value as vat, 
-                v.name as vendor, 
-                pd.sign as warranty_period 
-            FROM products p 
-            LEFT JOIN product_prices pp 
-                ON p.id = pp.product_id AND pp.price_type_id = :price_type 
-            LEFT JOIN price_types pt 
-                ON pt.id = pp.price_type_id 
-            LEFT JOIN currencies c 
-                ON pp.currency_id = c.id 
-            LEFT JOIN currency_rates cr 
-                ON pp.currency_id = cr.currency_id 
-            LEFT JOIN units u 
-                ON p.unit_id = u.id 
-            LEFT JOIN taxes t 
-                ON p.tax_id = t.id 
-            LEFT JOIN vendors v 
-                ON p.vendor_id = v.id 
-            LEFT JOIN periods pd 
-                ON p.warranty_period_id = pd.id 
-            WHERE group_id = :group_id 
-            {$where} 
-            ORDER BY p.{$orderBy} {$sort}, p.created DESC;
-        ";
-
-//        $sql = "
-//            SELECT
-//                products.id, products.active, products.name, products.articul, products.preview_image, products.preview_text, products.detail_text,
-//                products.vat_included, products.quantity, products.discount, products.price, products.warranty,
-//                products.is_hit as hit, products.is_new as new, products.is_action as action, products.is_recommend as recommend,
-//                currencies.sign as currency,
-//                currency_rates.rate,
-//                units.sign as unit,
-//                taxes.value as vat,
-//                vendors.name as vendor,
-//                periods.sign as warranty_period
-//            FROM products
-//            LEFT JOIN currencies ON products.currency_id = currencies.id
-//            LEFT JOIN currency_rates ON products.currency_id = currency_rates.currency_id
-//            LEFT JOIN units ON products.unit_id = units.id
-//            LEFT JOIN taxes ON products.vat_id = taxes.id
-//            LEFT JOIN vendors ON products.vendor_id = vendors.id
-//            LEFT JOIN periods ON products.warranty_period_id = periods.id
-//            WHERE group_id IN
-//                (SELECT id FROM `groups` WHERE groups.name = :group)
-//            {$where}
-//            ORDER BY products.{$orderBy} {$sort}, products.created DESC;
-//        ";
-
-        $db = new Db();
-        $items = $db->query($sql, $params, $object ? static::class : null);
-
-        return $items ?? false;
     }
 
     /**
@@ -271,30 +348,6 @@ class Product extends Model
         $db = new Db();
         return $db->execute($sql, $params);
     }
-
-//    /**
-//     * @param $id
-//     * @param bool $active
-//     * @return false|float
-//     * @throws DbException
-//     */
-//    public static function getPrice($id, bool $active = false)
-//    {
-//        $sql = "SELECT price, discount FROM products WHERE id = :id";
-//        $sql .= !empty($active) ? ' AND active IS NOT NULL' : '';
-//        $params = [
-//            ':id' => $id
-//        ];
-//        $db = new Db();
-//        $data = $db->query($sql, $params);
-//
-//        if (!empty($data)) {
-//            $item = array_shift($data);
-//            return round($item['price'] * (100 - $item['discount']) / 100);
-//        }
-//
-//        return false;
-//    }
 
     public static function getCount($id, bool $active = false)
     {

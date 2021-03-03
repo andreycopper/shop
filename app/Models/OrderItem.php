@@ -39,30 +39,48 @@ class OrderItem extends Model
     public static function getCount()
     {
         $user = User::getCurrent();
-
-        if (!empty($user->id) && $user->id !== '2') {
-            $sql = "
-                SELECT count(*) AS count 
-                FROM order_items 
-                WHERE user_id = :user_id AND order_id IS NULL";
-            $params = [
-                ':user_id' => $user->id
-            ];
-        }
-        else {
-            $sql = "
-                SELECT count(*) AS count 
-                FROM order_items 
-                WHERE user_id = 2 AND user_hash = :user_hash AND order_id IS NULL";
-            $params = [
-                ':user_hash' => $_COOKIE['user']
-            ];
-        }
+        $where = $user->id === '2' ? 'AND user_hash = :user_hash' : '';
+        $params = [':user_id' => $user->id ];
+        if ($user->id === '2') $params = [':user_hash' => $_COOKIE['user']];
+        $sql = "
+            SELECT count(*) AS count 
+            FROM order_items 
+            WHERE user_id = :user_id {$where} AND order_id IS NULL";
 
         $db = new Db();
-        $data = $db->query($sql, $params);
+        $data = $db->query($sql, $params ?? []);
         return !empty($data) ? array_shift($data)['count'] : false;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /**
      * Получает актуальную корзину пользователя

@@ -125,7 +125,7 @@ class Route
 
         if (!empty($class) && !empty($action)) {
             $controller = new $class;
-            $controller->action($action, $param ?? null);
+            $controller->action($action, mb_strtolower($param) ?? null);
         } else {
             throw new NotFoundException();
         }

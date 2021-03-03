@@ -2,9 +2,8 @@
 
 namespace Controllers;
 
-use Models\Test;
-use Models\User;
 use System\RSA;
+use Models\Test;
 
 class Tests extends Controller
 {
@@ -12,7 +11,13 @@ class Tests extends Controller
     {
     }
 
-    protected function actionDefault()
+    protected function actionPrice()
+    {
+        Test::prices();
+        die;
+    }
+
+    protected function actionFias()
     {
         Test::fias();
         die;

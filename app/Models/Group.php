@@ -66,8 +66,6 @@ class Group extends Model
 
 
 
-
-
     /**
      * Находит и возвращает список подкатегорий
      * @param $group_id

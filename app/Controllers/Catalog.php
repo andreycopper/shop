@@ -29,39 +29,37 @@ class Catalog extends Controller
      */
     protected function actionShow($elem)
     {
-        $price_type = User::isAuthorized() ? $this->view->user->price_type_id : 2;
-
         if (is_numeric($elem)) {
-            $this->view->item = Product::getFullInfoById(intval($elem), $price_type);
+            $this->view->item = Product::getFullInfoById(intval($elem), $this->view->user->price_type_id);
 
             if (!empty($this->view->item)) {
                 Product::addProductView($this->view->item->id); // добавляем просмотр товару
-
                 $this->view->display('catalog/product');
-            } else {
-                $exc = new NotFoundException('Товар не найден');
-                Logger::getInstance()->error($exc);
-                throw $exc;
-            }
-
-        } else {
-            $this->view->group = Group::getByField('name', $elem, true); // категория товаров
+            } else throw new NotFoundException('Товар не найден');
+        }
+        else {
+            $this->view->group = Group::getByField('link', $elem, true); // категория товаров
 
             if (!empty($this->view->group)) {
-                $items = Product::getListByGroup(intval($this->view->group->id), $price_type, true); // список товаров данной категории
+                var_dump(Product::getListByGroupId(10));die;
+                var_dump(Product::getById(278));die;
+
+                $items = Product::getListByGroup(intval($this->view->group->id), $this->view->user->price_type_id, true); // список товаров данной категории
+
+
+
+
+
+
+
                 $items = Pagination::make($items, $this->perPage); // массив страниц
 
                 $this->view->subGroups  = Group::getSubGroups(intval($this->view->group->id), true); // подкатегории
                 $this->view->items      = $items[$this->view->current_page] ?? null; // список товаров данной страницы
                 $this->view->item_pages = $items['pages'] ?? null; // страницы данной категории
-
                 $this->view->display('catalog/catalog_view');
             }
-            else {
-                $exc = new NotFoundException('Категория не найдена');
-                Logger::getInstance()->error($exc);
-                throw $exc;
-            }
+            else throw new NotFoundException('Категория не найдена');
         }
     }
 
@@ -72,7 +70,7 @@ class Catalog extends Controller
     {
         if (Request::isPost()) {
             $product = Request::post();
-            OrderItem::add((int)$product['id'], (int)$product['count'], (int)$product['price_type'], Request::isAjax());
+            OrderItem::add(intval($product['id']), intval($product['count']), intval($product['price_type']), Request::isAjax());
         }
     }
 }
