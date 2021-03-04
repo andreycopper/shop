@@ -42,20 +42,32 @@
                 <?=(($item->quantity > 10) ? 'Много' : (($item->quantity > 0) ? 'Мало' : 'Отсутствует'))?>
                 <div class="product-item-articul">Артикул: <?=$item->articul?></div>
             </div>
-            <? if (!empty($item->discount)): ?>
-                <div class="product-item-oldprice">
-                    <span class="product-item-value"><?=number_format($item->price, 0, '.', ' ')?></span>
-                    <span class="product-item-currency"><?=$item->currency?></span><span class="product-item-measure">/<?=$item->unit?></span>
-                    <div class="product-item-priceline"></div>
-                </div>
+
+
+            <? if (!empty($item->prices) && is_array($item->prices)): ?>
+                <? foreach ($item->prices as $price): ?>
+
+                    <? if (!empty($item->discount)): ?>
+                        <div class="product-item-oldprice">
+                            <span class="product-item-value"><?=number_format($price->price, 0, '.', ' ')?></span>
+                            <span class="product-item-currency"><?=$price->sign?></span><span class="product-item-measure">/<?=$item->unit?></span>
+                            <div class="product-item-priceline"></div>
+                        </div>
+                    <? endif; ?>
+
+                    <div class="product-item-price">
+                        <span class="product-item-value">
+                            <?=number_format(($price->price * (100 - $item->discount) / 100), 0, '.', ' ')?>
+                        </span>
+                        <span class="product-item-currency"><?=$price->currency?></span>
+                        <span class="product-item-measure">/<?=$item->unit?></span>
+                    </div>
+
+                <? endforeach; ?>
             <? endif; ?>
-            <div class="product-item-price">
-                <span class="product-item-value">
-                    <?=number_format(($item->price * (100 - $item->discount) / 100), 0, '.', ' ')?>
-                </span>
-                <span class="product-item-currency"><?=$item->currency?></span>
-                <span class="product-item-measure">/<?=$item->unit?></span>
-            </div>
+
+
+
             <div class="product-item-buy">
                 <? if ($item->quantity > 0): ?>
                     <span class="product-item-counter">

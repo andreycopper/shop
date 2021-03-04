@@ -2,14 +2,8 @@
 
 namespace System;
 
-use Exceptions\DbException;
-use Exceptions\DeleteException;
-use Exceptions\EditException;
-use Exceptions\ForbiddenException;
-use Exceptions\MailException;
 use Exceptions\NotFoundException;
-use Exceptions\UploadException;
-use Exceptions\UserException;
+use Exceptions\ForbiddenException;
 
 /**
  * Class Route

@@ -38,17 +38,17 @@ abstract class Model
 
     /**
      * Находит и возвращает записи из БД
+     * @param string $order
+     * @param string $sort
      * @param bool $active
      * @param bool $object
-     * @param string $orderBy
-     * @param string $sort
      * @return array|bool
      * @throws DbException
      */
-    public static function getList(bool $active = true, $object = true, string $orderBy = 'created', string $sort = 'ASC')
+    public static function getList(string $order = 'created', string $sort = 'ASC', bool $active = true, bool $object = true)
     {
         $activity = !empty($active) ? 'WHERE active IS NOT NULL' : '';
-        $sql = "SELECT * FROM " . static::$table . " {$activity} ORDER BY " . $orderBy . " " . strtoupper($sort);
+        $sql = "SELECT * FROM " . static::$table . " {$activity} ORDER BY " . $order . " " . strtoupper($sort);
         $db = new Db();
         $data = $db->query($sql, [], $object ? static::class : null);
         return $data ?? false;

@@ -30,7 +30,8 @@ class Catalog extends Controller
     protected function actionShow($elem)
     {
         if (is_numeric($elem)) {
-            $this->view->item = Product::getFullInfoById(intval($elem), $this->view->user->price_type_id);
+            $this->view->item = Product::getItemPrice(intval($elem), [$this->view->user->price_type_id]);
+            //$this->view->item = Product::getFullInfoById(intval($elem), $this->view->user->price_type_id);var_dump($elem);die;
 
             if (!empty($this->view->item)) {
                 Product::addProductView($this->view->item->id); // добавляем просмотр товару
@@ -41,18 +42,11 @@ class Catalog extends Controller
             $this->view->group = Group::getByField('link', $elem, true); // категория товаров
 
             if (!empty($this->view->group)) {
-                var_dump(Product::getListByGroupId(10));die;
-                var_dump(Product::getById(278));die;
-
-                $items = Product::getListByGroup(intval($this->view->group->id), $this->view->user->price_type_id, true); // список товаров данной категории
-
-
-
-
-
-
-
+                $items = Product::getListPrice([intval($this->view->group->id)], [intval($this->view->user->price_type_id)]);
                 $items = Pagination::make($items, $this->perPage); // массив страниц
+
+
+
 
                 $this->view->subGroups  = Group::getSubGroups(intval($this->view->group->id), true); // подкатегории
                 $this->view->items      = $items[$this->view->current_page] ?? null; // список товаров данной страницы
