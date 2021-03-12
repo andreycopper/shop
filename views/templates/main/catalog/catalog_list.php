@@ -65,7 +65,7 @@
 <!--                    </span>-->
 <!--                    <span class="product-item-button">В корзину</span>-->
 <!--                --><?// else: ?>
-<!--                    <span class="product-item-notavialable">Отложить</span>-->
+<!--                    <span class="product-item-absent">Отложить</span>-->
 <!--                --><?// endif; ?>
 <!--            </div>-->
 <!--        </div>-->
@@ -166,7 +166,7 @@
                     </div>
                     <span class="product-itemlist-button buy" data-id="<?=$item->id?>" data-price-type-id="<?=$item->price_type_id?>>В корзину</span>
                 <? else: ?>
-                    <span class="product-item-notavialable">Отложить</span>
+                    <span class="product-item-absent">Отложить</span>
                 <? endif; ?>
             </div>
         </div>

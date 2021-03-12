@@ -30,7 +30,7 @@
                     <div class="basket-order-values">
                         <div class="basket-order-text">
                             <div class="basket-order-total">
-                                В корзине товаров: <span class="basket-order-total"><?= $this->cart['count_items'] ?></span>
+                                В корзине товаров: <span class="basket-order-total-count"><?= $this->cart['count_items'] ?></span>
                             </div>
                             <div class="basket-order-clear">
                                 <a href="" class="btn-gray">Очистить</a>
@@ -39,17 +39,30 @@
                         <div class="basket-order-prices">
                             <div class="basket-order-total">Итого:</div>
                             <div class="basket-order-price">
-                                <span><?= $this->cart['discount_sum'] ?? $this->cart['sum'] ?></span> <?= CURRENCY ?>
+                                <span>
+                                    <?= $this->cart['discount_sum'] ?
+                                        number_format($this->cart['discount_sum'], 0, '.', ' ') :
+                                        number_format($this->cart['sum'], 0, '.', ' ') ?>
+                                </span> <?= CURRENCY ?>
                             </div>
-                            <? if (!empty($this->cart['economy'])): ?>
+                            <? if (!empty($this->cart['discount_sum'])): ?>
                                 <div class="basket-order-oldprice">
-                                    <b><span><?= $this->cart['sum'] ?></span> <?= CURRENCY ?></b>
+                                    <b><span><?= number_format($this->cart['sum'], 0, '.', ' ') ?></span> <?= CURRENCY ?></b>
                                 </div>
                                 <div class="basket-order-economy">
-                                    Экономия <b><span><?= $this->cart['economy'] ?></span> <?= CURRENCY ?></b>
+                                    Экономия <b><span><?= number_format($this->cart['economy'], 0, '.', ' ') ?></span> <?= CURRENCY ?></b>
                                 </div>
                             <? endif; ?>
-                            <div class="basket-order-nds">В т.ч. НДС: 1 524 <?= CURRENCY ?></div>
+                            <? if ($this->cart['sum_nds'] || $this->cart['discount_sum_nds']): ?>
+                                <div class="basket-order-nds">
+                                    В т.ч. НДС:
+                                    <span>
+                                        <?= $this->cart['discount_sum_nds'] ?
+                                            number_format($this->cart['discount_sum_nds'], 2, '.', ' ') :
+                                            number_format($this->cart['sum_nds'], 2, '.', ' ') ?>
+                                    </span> <?= CURRENCY ?>
+                                </div>
+                            <? endif; ?>
                         </div>
                     </div>
                     <div class="basket-order-buttons">
@@ -70,10 +83,10 @@
                         <span class="cart-count"><?= $this->cart['count_items'] ?></span>
                     <? endif; ?>
                 </a>
-                <? if (intval($this->cart['count_notavialable']) > 0): ?>
-                    <a href="" data-target="notavialable">
+                <? if (intval($this->cart['count_absent']) > 0): ?>
+                    <a href="" data-target="absent">
                         Нет в наличии
-                        <span class="notavialable-count"><?= $this->cart['count_notavialable'] ?></span>
+                        <span class="absent-count"><?= $this->cart['count_absent'] ?></span>
                     </a>
                 <? endif; ?>
                 <a href="" data-target="favorite">
@@ -100,21 +113,21 @@
                                     <div class="basket-item-type">Тип цены: <span><?= $cart_item->price_type ?></span></div>
                                     <div class="basket-item-links">
                                         <a href="" class="basket-item-favorite">Отложить</a>
-                                        <a href="" class="basket-item-del"
-                                           data-id="<?= $cart_item->product_id ?>"
-                                           data-price-type-id="<?= $cart_item->price_type_id ?>">Удалить</a>
+                                        <a href="" class="basket-item-del" data-id="<?= $cart_item->product_id ?>">Удалить</a>
                                     </div>
                                 </div>
                                 <div class="basket-item-values">
                                     <div class="basket-item-prices">
                                         <div class="basket-item-price">
                                             <span>
-                                                <?= $cart_item->discount_price ?? $cart_item->price ?>
+                                                <?= $cart_item->discount_price ?
+                                                        number_format($cart_item->discount_price, 0, '.', ' ') :
+                                                        number_format($cart_item->price, 0, '.', ' ') ?>
                                             </span> <?= CURRENCY ?>
                                         </div>
                                         <? if (!empty($cart_item->discount_price)): ?>
                                             <div class="basket-item-oldprice">
-                                                <span><?= $cart_item->price ?></span> <?= CURRENCY ?>
+                                                <span><?= number_format($cart_item->price, 0, '.', ' ') ?></span> <?= CURRENCY ?>
                                             </div>
                                         <? endif; ?>
                                         <div class="basket-item-measure">цена за 1 <?= $cart_item->unit ?></div>
@@ -126,7 +139,6 @@
                                             <input type="text"
                                                    class="basket-item-quantity"
                                                    data-id="<?= $cart_item->product_id ?>"
-                                                   data-price-type-id="<?= $cart_item->price_type_id ?>"
                                                    value="<?= $cart_item->count ?>"
                                                    max="<?= $cart_item->quantity ?>">
                                             <div class="basket-item-plus"></div>
@@ -136,18 +148,20 @@
                                     <div class="basket-item-total">
                                         <div class="basket-item-totalprice">
                                             <span>
-                                                <?= $cart_item->discount_sum ?? $cart_item->sum ?>
+                                                <?= $cart_item->discount_sum ?
+                                                        number_format($cart_item->discount_sum, 0, '.', ' ') :
+                                                        number_format($cart_item->sum, 0, '.', ' ') ?>
                                             </span> <?= CURRENCY ?>
                                         </div>
                                         <? if (!empty($cart_item->discount_price)): ?>
                                             <div class="basket-item-oldtotalprice">
-                                                <span><?= $cart_item->sum ?></span> <?= CURRENCY ?>
+                                                <span><?= number_format($cart_item->sum, 0, '.', ' ') ?></span> <?= CURRENCY ?>
                                             </div>
                                             <div class="basket-item-economy">
                                                 Экономия<br>
                                                 <b>
                                                     <span>
-                                                        <?= $cart_item->economy ?>
+                                                        <?= number_format($cart_item->sum_economy, 0, '.', ' ') ?>
                                                     </span> <?= CURRENCY ?>
                                                 </b>
                                             </div>
@@ -165,17 +179,17 @@
                 <? endif; ?>
             </div>
 
-            <? if (!empty($this->cart['notavialable']) && is_array($this->cart['notavialable'])): ?>
-                <div id="notavialable" class="tab basket-items">
-                    <? foreach ($this->cart['notavialable'] as $notavialable_item): ?>
+            <? if (!empty($this->cart['absent']) && is_array($this->cart['absent'])): ?>
+                <div id="absent" class="tab basket-items">
+                    <? foreach ($this->cart['absent'] as $absent_item): ?>
                         <div class="basket-item">
                             <div class="basket-item-image">
-                                <a href=""><img src="/uploads/catalog/<?= $notavialable_item->product_id ?>/<?= $notavialable_item->preview_image ?>" alt=""></a>
+                                <a href=""><img src="/uploads/catalog/<?= $absent_item->product_id ?>/<?= $absent_item->preview_image ?>" alt=""></a>
                             </div>
                             <div class="basket-item-desc">
                                 <div class="basket-item-title">
-                                    <div class="basket-item-name"><a href=""><?= $notavialable_item->name ?></a></div>
-                                    <div class="basket-item-type">Тип цены: <span><?= $notavialable_item->price_type ?></span></div>
+                                    <div class="basket-item-name"><a href=""><?= $absent_item->name ?></a></div>
+                                    <div class="basket-item-type">Тип цены: <span><?= $absent_item->price_type ?></span></div>
                                     <div class="basket-item-links">
                                         <a href="" class="basket-item-favorite">Отложить</a>
                                         <a href="" class="basket-item-del">Удалить</a>
@@ -184,39 +198,39 @@
                                 <div class="basket-item-values">
                                     <div class="basket-item-prices">
                                         <div class="basket-item-price">
-                                            <?= $notavialable_item->discount_price ?
-                                                number_format($notavialable_item->discount_price, 0, '.', ' ')  :
-                                                number_format($notavialable_item->price, 0, '.', ' ') ?> <?= CURRENCY ?>
+                                            <?= $absent_item->discount_price ?
+                                                number_format($absent_item->discount_price, 0, '.', ' ')  :
+                                                number_format($absent_item->price, 0, '.', ' ') ?> <?= CURRENCY ?>
                                         </div>
-                                        <? if (!empty($notavialable_item->discount_price)): ?>
-                                            <div><span class="basket-item-oldprice"><?= number_format($notavialable_item->price, 0, '.', ' ') ?> <?= CURRENCY ?></span></div>
+                                        <? if (!empty($absent_item->discount_price)): ?>
+                                            <div><span class="basket-item-oldprice"><?= number_format($absent_item->price, 0, '.', ' ') ?> <?= CURRENCY ?></span></div>
                                         <? endif; ?>
-                                        <div class="basket-item-measure">цена за 1 <?= $notavialable_item->unit ?></div>
+                                        <div class="basket-item-measure">цена за 1 <?= $absent_item->unit ?></div>
                                     </div>
 
                                     <div class="basket-item-count">
                                         <div class="basket-item-countblock">
                                             <div class="basket-item-minus"></div>
                                             <div class="basket-item-input">
-                                                <input type="text" value="<?= $notavialable_item->count ?>">
+                                                <input type="text" value="<?= $absent_item->count ?>">
                                             </div>
                                             <div class="basket-item-plus"></div>
                                         </div>
-                                        <div class="basket-item-measure"><?= $notavialable_item->unit ?></div>
+                                        <div class="basket-item-measure"><?= $absent_item->unit ?></div>
                                     </div>
                                     <div class="basket-item-total">
                                         <div class="basket-item-totalprice">
-                                            <?= $notavialable_item->discount_sum ?
-                                                number_format($notavialable_item->discount_sum, 0, '.', ' ') :
-                                                number_format($notavialable_item->sum, 0, '.', ' ') ?> <?= CURRENCY ?>
+                                            <?= $absent_item->discount_sum ?
+                                                number_format($absent_item->discount_sum, 0, '.', ' ') :
+                                                number_format($absent_item->sum, 0, '.', ' ') ?> <?= CURRENCY ?>
                                         </div>
-                                        <? if (!empty($notavialable_item->discount_price)): ?>
+                                        <? if (!empty($absent_item->discount_price)): ?>
                                             <div>
-                                                <span class="basket-item-oldtotalprice"><?= number_format($notavialable_item->sum, 0, '.', ' ') ?> <?= CURRENCY ?></span>
+                                                <span class="basket-item-oldtotalprice"><?= number_format($absent_item->sum, 0, '.', ' ') ?> <?= CURRENCY ?></span>
                                             </div>
                                             <div class="basket-item-economy">
                                                 Экономия<br>
-                                                <span><?= number_format($notavialable_item->sum - $notavialable_item->discount_sum, 0, '.', ' ') ?> <?= CURRENCY ?></span>
+                                                <span><?= number_format($absent_item->sum - $absent_item->discount_sum, 0, '.', ' ') ?> <?= CURRENCY ?></span>
                                             </div>
                                         <? endif; ?>
                                     </div>
@@ -290,7 +304,7 @@
                     <div class="basket-order-values">
                         <div class="basket-order-text">
                             <div class="basket-order-total">
-                                В корзине товаров: <span class="basket-order-total"><?= $this->cart['count_items'] ?></span>
+                                В корзине товаров: <span class="basket-order-total-count"><?= $this->cart['count_items'] ?></span>
                             </div>
                             <div class="basket-order-clear">
                                 <a href="" class="btn-gray">Очистить</a>
@@ -299,17 +313,30 @@
                         <div class="basket-order-prices">
                             <div class="basket-order-total">Итого:</div>
                             <div class="basket-order-price">
-                                <span><?= $this->cart['discount_sum'] ?? $this->cart['sum'] ?></span> <?= CURRENCY ?>
+                                <span>
+                                    <?= $this->cart['discount_sum'] ?
+                                        number_format($this->cart['discount_sum'], 0, '.', ' ') :
+                                        number_format($this->cart['sum'], 0, '.', ' ') ?>
+                                </span> <?= CURRENCY ?>
                             </div>
-                            <? if (!empty($this->cart['economy'])): ?>
+                            <? if (!empty($this->cart['discount_sum'])): ?>
                                 <div class="basket-order-oldprice">
-                                    <b><span><?= $this->cart['sum'] ?></span> <?= CURRENCY ?></b>
+                                    <b><span><?= number_format($this->cart['sum'], 0, '.', ' ') ?></span> <?= CURRENCY ?></b>
                                 </div>
                                 <div class="basket-order-economy">
-                                    Экономия <b><span><?= $this->cart['economy'] ?></span> <?= CURRENCY ?></b>
+                                    Экономия <b><span><?= number_format($this->cart['economy'], 0, '.', ' ') ?></span> <?= CURRENCY ?></b>
                                 </div>
                             <? endif; ?>
-                            <div class="basket-order-nds">В т.ч. НДС: 1 524 <?= CURRENCY ?></div>
+                            <? if ($this->cart['sum_nds'] || $this->cart['discount_sum_nds']): ?>
+                                <div class="basket-order-nds">
+                                    В т.ч. НДС:
+                                    <span>
+                                        <?= $this->cart['discount_sum_nds'] ?
+                                            number_format($this->cart['discount_sum_nds'], 2, '.', ' ') :
+                                            number_format($this->cart['sum_nds'], 2, '.', ' ') ?>
+                                    </span> <?= CURRENCY ?>
+                                </div>
+                            <? endif; ?>
                         </div>
                     </div>
                     <div class="basket-order-buttons">

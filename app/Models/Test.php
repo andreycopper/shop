@@ -22,13 +22,10 @@ class Test extends Model
         $data = $db->query($sql, []);
 
         foreach ($data as $elem) {
-            $zakup = round($elem['price'] / 3 * 2);
-            $opt = round($elem['price'] / 10 * 9);
-
             $params = [
                 ':product_id'    => $elem['product_id'],
-                ':zakup'         => $zakup,
-                ':opt'           => $opt,
+                ':zakup'         => round($elem['price'] / 3 * 2),
+                ':opt'           => round($elem['price'] / 10 * 9),
                 ':currency_id'   => $elem['currency_id'],
             ];
             $sql = "
@@ -39,9 +36,61 @@ class Test extends Model
                            (:product_id, 3, :opt, :currency_id);";
 
             $db = new Db();
-            $res = $db->query($sql, $params);
+            $res = $db->iquery($sql, $params);
             var_dump($res);
 
+        }
+    }
+
+    public static function views()
+    {
+        $sql = "SELECT * FROM products";
+        $db = new Db();
+        $data = $db->query($sql, []);
+
+        foreach ($data as $elem) {
+            $params = [
+                ':id'  => $elem['id'],
+                ':num' => random_int(0, 1000),
+            ];
+            $sql = "UPDATE products SET views = :num WHERE id = :id";
+
+            $db = new Db();
+            $res = $db->iquery($sql, $params);
+            var_dump($res);
+        }
+    }
+
+    public static function quantity()
+    {
+        $sql = "SELECT * FROM products";
+        $db = new Db();
+        $data = $db->query($sql, []);
+
+        foreach ($data as $elem) {
+            $params = [
+                ':id'  => $elem['id'],
+                ':num' => random_int(0, 100),
+            ];
+            $sql = "UPDATE products SET quantity = :num WHERE id = :id";
+
+            $db = new Db();
+            $res = $db->iquery($sql, $params);
+            var_dump($res);
+        }
+    }
+
+    public static function actions()
+    {
+        for ($i = 1; $i <= 4; $i++) {
+            $params = [
+                ':id'  => random_int(1, 1985)
+            ];
+            $sql = "UPDATE products SET is_recommend = 1 WHERE id = :id";
+
+            $db = new Db();
+            $res = $db->iquery($sql, $params);
+            var_dump($res);
         }
     }
 }

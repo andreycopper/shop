@@ -32,7 +32,8 @@ class User extends Model
     public $personal_data;
     public $mailing = 1; // подписание на рассылку
     public $mailing_type_id = 2; // тип рассылки html
-    public string $private_key;
+    public $price_type_id; // тип цен
+    public $private_key;
     public $created;
     public $updated;
 
@@ -157,8 +158,8 @@ class User extends Model
         $sql = "
             SELECT 
                 u.id, u.active, u.blocked, u.group_id, u.last_name, u.name, u.second_name, u.email, u.phone, u.password, 
-                u.personal_data, u.mailing, u.mailing_type_id, u.private_key, u.created, u.updated, 
-                ug.name AS group_name, ug.price_type_id, 
+                u.personal_data, u.mailing, u.mailing_type_id, IFNULL(u.price_type_id , ug.price_type_id) price_type_id, u.private_key, u.created, u.updated, 
+                ug.name AS group_name, 
                 pt.name AS price_type,
                 tt.name AS mailing_type 
             FROM users u
@@ -551,11 +552,7 @@ class User extends Model
                     ]);
                     die;
                 }
-                else {
-                    $exc = new UserException($message);
-                    Logger::getInstance()->error($exc);
-                    throw $exc;
-                }
+                else throw new UserException($message);
             }
 
             if (!empty($user->id)) { // найден пользователь
@@ -609,11 +606,7 @@ class User extends Model
             ]);
             die;
         }
-        else {
-            $exc = new UserException($message);
-            Logger::getInstance()->error($exc);
-            throw $exc;
-        }
+        else throw new UserException($message);
     }
 
     /**

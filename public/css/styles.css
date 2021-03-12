@@ -2631,7 +2631,7 @@ section.main {
 }
 .subcategories-item {
     width: 25%;
-    padding: 30px 10px;
+    padding: 15px 10px 0;
     text-align: center;
     border: 1px solid #f2f2f2;
     transition: .2s;
@@ -2639,6 +2639,12 @@ section.main {
 .subcategories-item:hover {
     border-color: #fff;
     box-shadow: 0 0 20px 0 rgba(0,0,0,.15);
+}
+.subcategories-item a {
+    font: 14px/17px 'OpenSansBold';
+}
+.subcategories-item a:hover {
+    font: 14px/17px 'OpenSansBold';
 }
 .subcategories-image {
 }
@@ -2648,13 +2654,7 @@ section.main {
     margin: 0 auto;
 }
 .subcategories-title {
-    margin: 15px 0 0;
-}
-.subcategories-title a {
-    font: 14px/17px 'OpenSansBold';
-}
-.subcategories-item:hover .subcategories-title a {
-    color: #de002b;
+    padding: 15px 0 15px;
 }
 .category-description {
     margin: 20px 0;
@@ -2954,7 +2954,7 @@ section.main {
     border-radius: 0;
 }
 .product-item-button,
-.product-item-notavialable {
+.product-item-absent {
     display: inline-block;
     padding: 7px 18px 9px;
     color: #ffffff;
@@ -3635,7 +3635,7 @@ section.main {
     width: 100%;
 }
 .product-info-text {
-    margin: 10px 0 25px;
+    margin: 10px 0 5px;
     font: 14px/17px 'OpenSansRegular';
 }
 .product-info-more {
@@ -3659,6 +3659,11 @@ section.main {
 .product-info-price {
     margin-bottom: 5px;
 }
+.product-info-price-title {
+    margin-bottom: 5px;
+    color: #999999;
+    font: 13px/16px 'OpenSansRegular';
+}
 .product-oldprice {
     position: relative;
     display: inline-block;
@@ -3681,6 +3686,10 @@ section.main {
     cursor: default;
     color: #000000;
     font: 22px/22px 'OpenSansBold';
+}
+.product-nds {
+    color: #999999;
+    font: 12px/15px 'OpenSansRegular';
 }
 .product-more:hover {
     color: #222222;
@@ -3740,6 +3749,7 @@ section.main {
     font: 13px/13px 'OpenSansSemiBold';
     text-align: center;
     background: #f3f3f5;
+    outline: 0;
     border: 0;
     border-left: 1px solid #f3f3f5;
     border-right: 1px solid #f3f3f5;
@@ -5303,7 +5313,7 @@ section.main {
     background: transparent;
 }
 .cart-count,
-.notavialable-count,
+.absent-count,
 .delayed-count {
     display: inline-block;
     position: absolute;

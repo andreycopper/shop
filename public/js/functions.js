@@ -66,15 +66,14 @@ function checkUserData(value, type, count = 0) {
 }
 
 /* пересчитывает корзину при изменении количества товаров в ней */
-function recalcProduct(product_id, count, price_type, elem) {
+function recalcProduct(product_id, count, elem) {
     $.ajax({
         method: "POST",
         dataType: 'json',
-        url: "/cart/recalcProduct/",
+        url: "/cart/recalc/",
         data: {
             id: product_id,
-            count: count,
-            price_type: price_type
+            count: count
         },
         beforeSend: function() {
             $('#loader').show();
@@ -86,17 +85,26 @@ function recalcProduct(product_id, count, price_type, elem) {
                 $('#notification').html(data.message).addClass('active');
                 removeNotification();
             } else {
+                // цена за единицу
                 elem.find('.basket-item-price span').html(data.item_discount_price ? data.item_discount_price : data.item_price);
                 elem.find('.basket-item-oldprice span').html(data.item_discount_price ? data.item_price : '');
-
+                // сумма
                 elem.find('.basket-item-totalprice span').html(data.item_discount_sum ? data.item_discount_sum : data.item_sum);
                 elem.find('.basket-item-oldtotalprice span').html(data.item_discount_sum ? data.item_sum : '');
-                elem.find('.basket-item-economy span').html(data.item_economy ? data.item_economy : '');
+                // экономия
+                elem.find('.basket-item-economy span').html(data.item_sum_economy ? data.item_sum_economy : '');
 
+                // сумма корзины
                 $('.basket-order-price span').html(data.cart_discount_sum ? data.cart_discount_sum : data.cart_sum);
                 $('.basket-order-oldprice span').html(data.cart_discount_sum ? data.cart_sum : '');
+                // экономия корзины
                 $('.basket-order-economy span').html(data.cart_economy ? data.cart_economy : '');
+                // НДС корзины
+                $('.basket-order-nds span').html(data.cart_discount_sum_nds ? data.cart_discount_sum_nds : (data.cart_sum_nds ? data.cart_sum_nds : ''));
+                // количество в корзине
+                $('.basket-order-total-count').html(data.count);
 
+                // сообщение
                 data.message ? $('.basket-message').html(data.message).addClass('block') : $('.basket-message').html('').removeClass('block');
             }
         }

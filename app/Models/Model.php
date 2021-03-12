@@ -190,12 +190,26 @@ abstract class Model
     }
 
     /**
+     * Показ успеха
+     * @param bool $isAjax
+     * @return bool
+     */
+    protected static function returnSuccess(bool $isAjax = false)
+    {
+        if ($isAjax) {
+            echo json_encode(['result' => true]);
+            die;
+        }
+        else return true;
+    }
+
+    /**
      * Показ ошибки
-     * @param $message
-     * @param $isAjax
+     * @param string $message
+     * @param bool $isAjax
      * @throws UserException
      */
-    protected static function returnError($message, $isAjax = false)
+    protected static function returnError(string $message, bool $isAjax = false)
     {
         if ($isAjax) {
             Logger::getInstance()->error(new UserException($message));

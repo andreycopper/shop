@@ -11,16 +11,29 @@ class Tests extends Controller
     {
     }
 
+    protected function actionActions()
+    {
+        Test::actions();die;
+    }
+
+    protected function actionQuantity()
+    {
+        Test::quantity();die;
+    }
+
+    protected function actionViews()
+    {
+        Test::views();die;
+    }
+
     protected function actionPrice()
     {
-        Test::prices();
-        die;
+        Test::prices();die;
     }
 
     protected function actionFias()
     {
-        Test::fias();
-        die;
+        Test::fias();die;
     }
 
     protected function actionUser()

@@ -10,6 +10,70 @@ class Group extends Model
     protected static $table = 'groups';
 
     /**
+     * Возвращает список подкатегорий
+     * @param $group_id
+     * @param bool $active
+     * @param string $order
+     * @param string $sort
+     * @return array|bool
+     * @throws DbException
+     */
+    public static function getSubGroups($group_id, $active = true, $order = 'sort', $sort = 'ASC')
+    {
+        $activity = !empty($active) ? 'AND g.active IS NOT NULL' : '';
+        $params = [':group_id'   => $group_id];
+        $sql = "
+            SELECT g.id, g.name, g.link, g.image 
+            FROM `groups` g 
+            WHERE g.parent_id = :group_id 
+            {$activity} 
+            ORDER BY g.{$order}, g.created, g.id {$sort}";
+
+        $db = new Db();
+        $res = $db->query($sql, $params, static::class);
+        return $res ?? false;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
      * Находит и возвращает активные записи из БД и формирует иерархическое меню
      * @param bool $active
      * @param bool $object
@@ -46,53 +110,6 @@ class Group extends Model
         return $res ?? false;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /**
-     * Находит и возвращает список подкатегорий
-     * @param $group_id
-     * @param bool $active
-     * @param string $orderBy
-     * @param string $order
-     * @return array|bool
-     * @throws DbException
-     */
-    public static function getSubGroups($group_id, $active = false, $orderBy = 'sort', $order = 'ASC')
-    {
-        $where = !empty($active) ? 'AND groups.active IS NOT NULL' : '';
-        $params = [
-            ':group_id'   => $group_id
-        ];
-        $sql = "
-            SELECT groups.id, groups.name, groups.title, groups.image 
-            FROM `groups` 
-            WHERE groups.parent_id = :group_id 
-            {$where} 
-            ORDER BY {$orderBy} {$order}, created DESC
-            ";
-
-        $db = new Db();
-        $res = $db->query($sql, $params, static::class);
-        return $res ?? false;
-    }
 
     public function filter_id($id)
     {

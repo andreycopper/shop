@@ -8,7 +8,7 @@
 
     <title>Shop Modern</title>
 
-    <link rel="stylesheet" href="/css/styles.css" media="all">
+    <link rel="stylesheet" href="/css/styles.css?style=<?= microtime() ?>" media="all">
     <link rel="stylesheet" href="/css/media.css" media="all">
     <link rel="stylesheet" href="/css/loader.css" media="all">
     <link rel="stylesheet" href="/css/colors.css" media="all">

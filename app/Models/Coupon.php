@@ -2,6 +2,7 @@
 
 namespace Models;
 
+use Exceptions\DbException;
 use System\Db;
 use System\Logger;
 use Exceptions\UserException;
@@ -20,47 +21,75 @@ class Coupon extends Model
     public $discount;       // скидка
     public $created;        // дата создания
 
-    public static function getByCodeUserId(string $code, int $user_id, bool $active = false, bool $object = true)
+    /**
+     * @param string $code - код купона
+     * @param int $user_id - id пользователя
+     * @param string $user_hash - хэш пользователя
+     * @param bool $active - возвращать активные записи
+     * @param bool $object - возвращать объект/массив
+     * @return false|mixed
+     * @throws DbException
+     */
+    public static function getByCodeUser(string $code, int $user_id, string $user_hash, bool $active = true, bool $object = true)
     {
-        $where = !empty($active) ? 'AND c.active IS NOT NULL AND ct.active IS NOT NULL' : '';
+        $activity = !empty($active) ? 'AND c.active IS NOT NULL AND ct.active IS NOT NULL' : '';
+        $params = [
+            ':code' => $code,
+            ':user_id' => $user_id
+        ];
+        $userHash = ($user_id === 2) ? 'AND cu.user_hash = :user_hash ' : '';
+        if ($user_id === 2) $params[':user_hash'] = $user_hash;
         $sql = "
             SELECT c.*, ct.term, cu.created AS used  
             FROM coupons c 
             LEFT JOIN coupon_terms ct 
                 ON ct.id = c.coupon_term_id 
             LEFT JOIN coupon_usages cu 
-                ON cu.coupon_id = c.id AND cu.user_id = :user_id
-            WHERE c.code = :code {$where}
+                ON cu.coupon_id = c.id  AND cu.user_id = :user_id {$userHash} 
+            WHERE c.code = :code {$activity}
             ";
-        $params = [
-            ':code' => $code,
-            ':user_id' => $user_id
-        ];
         $db = new Db();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }
 
-    public static function getByCodeUserHash(string $code, string $user_hash, bool $active = false, bool $object = true)
-    {
-        $where = !empty($active) ? 'AND c.active IS NOT NULL AND ct.active IS NOT NULL' : '';
-        $sql = "
-            SELECT c.*, ct.term, cu.created AS used  
-            FROM coupons c 
-            LEFT JOIN coupon_terms ct 
-                ON ct.id = c.coupon_term_id 
-            LEFT JOIN coupon_usages cu 
-                ON cu.coupon_id = c.id AND cu.user_hash = :user_hash 
-            WHERE c.code = :code {$where}
-            ";
-        $params = [
-            ':code' => $code,
-            ':user_hash' => $user_hash
-        ];
-        $db = new Db();
-        $data = $db->query($sql, $params, $object ? static::class : null);
-        return !empty($data) ? array_shift($data) : false;
-    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public static function get(string $coupon)
     {

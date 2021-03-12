@@ -199,12 +199,12 @@ $(function () {
     $('.product-item-minus, .product-itemlist-minus, .product-minus, .basket-item-minus').on('click', function (e) {
         e.preventDefault();
         let val = Number($(this).next().val()),
-            id = Number($(this).next().data('id')),
-            price_type = Number($(this).next().data('price-type-id'));
+            id = Number($(this).next().data('id'));
 
-        if (val > 1) $(this).next().val(val - 1);
-
-        if ('basket-item-minus' === e.target.className && val > 1) recalcProduct(id, (val - 1), price_type, $(this).parents('.basket-item'));
+        if (val > 1) {
+            $(this).next().val(val - 1);
+            if ('basket-item-minus' === e.target.className && val > 1) recalcProduct(id, (val - 1), $(this).parents('.basket-item'));
+        }
     });
 
     /* кнопка плюс количества товаров */
@@ -212,25 +212,24 @@ $(function () {
         e.preventDefault();
         let val = Number($(this).prev().val()),
             id = Number($(this).prev().data('id')),
-            max = Number($(this).prev().attr('max')),
-            price_type = Number($(this).prev().data('price-type-id'));
+            max = Number($(this).prev().attr('max'));
 
-        if (val < max) $(this).prev().val(val + 1);
-
-        if ('basket-item-plus' === e.target.className && val < max) recalcProduct(id, (val + 1), price_type, $(this).parents('.basket-item'));
+        if (val < max) {
+            $(this).prev().val(val + 1);
+            if ('basket-item-plus' === e.target.className && val < max) recalcProduct(id, (val + 1), $(this).parents('.basket-item'));
+        }
     });
 
     /* счетчик количества товаров */
     $('.product-item-quantity, .product-quantity, .basket-item-quantity').on('blur', function (e) {
         let val = Number($(this).val()),
             id = Number($(this).data('id')),
-            max = Number($(this).attr('max')),
-            price_type = Number($(this).data('price-type-id'));
+            max = Number($(this).attr('max'));
 
         if (val > max) $(this).val(max);
         if (!/^[\d]+$/.test(val) || val < 1) $(this).val(1);
 
-        if ('basket-item-quantity' === e.target.className) recalcProduct(id, $(this).val(), price_type, $(this).parents('.basket-item'));
+        if ('basket-item-quantity' === e.target.className && val <= max && val >= 1) recalcProduct(id, val, $(this).parents('.basket-item'));
     });
 
     /* переключение табов на карточке товара */
@@ -254,8 +253,7 @@ $(function () {
         let count = $('.header-cart-count, .menu-mobile-basket .menu-mobile-count'),
             $data = {
                 id:    $(this).data('id'),
-                count: $(this).parent().find('input[name=quantity]').val(),
-                price_type: $(this).data('price-type-id')
+                count: $(this).parent().find('input[name=quantity]').val()
             };
 
         $.ajax({
@@ -290,11 +288,8 @@ $(function () {
         $.ajax({
             method: "POST",
             dataType: 'json',
-            url: "/cart/deleteProduct/",
-            data: {
-                id: product_id,
-                price_type: price_type
-            },
+            url: "/cart/delete/",
+            data: {id: product_id},
             beforeSend: function() {
                 loader.show();
             },
@@ -306,13 +301,7 @@ $(function () {
                     removeNotification();
                 } else {
                     elem.remove();
-
-                    $('.basket-order-total span').html(data.count);
-                    $('.basket-order-price span').html(data.cart_discount_sum ? data.cart_discount_sum : data.cart_sum);
-                    $('.basket-order-oldprice span').html(data.cart_discount_sum ? data.cart_sum : '');
-                    $('.basket-order-economy span').html(data.cart_economy ? data.cart_economy : '');
-
-                    data.message ? $('.basket-message').html(data.message).addClass('block') : $('.basket-message').html('').removeClass('block');
+                    document.location.reload(true);
                 }
             }
         });
@@ -330,11 +319,13 @@ $(function () {
                 loader.show();
             },
             success: function(data){console.log(data);
+                loader.hide();
+
                 if (!data.result) {
-                    loader.hide();
                     $('#notification').html(data.message).addClass('active');
                     removeNotification();
                 } else {
+                    $('#basket').html('');
                     document.location.reload(true);
                 }
             }

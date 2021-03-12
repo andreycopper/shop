@@ -181,25 +181,41 @@
                             <a href="" class="product-more">Подробнее</a>
                         </div>
                     </div>
-                    <div class="product-info-price">
-                        <? if (!empty($item->discount)): ?>
-                            <div class="product-oldprice">
-                                <span class="product-value">
-                                    <?=number_format($item->price, 0, '.', ' ')?>
-                                </span>
-                                <span class="product-currency"><?=$item->currency?></span>
-                                <span class="product-measure">/<?=$item->unit?></span>
-                                <div class="product-priceline"></div>
+                    <? if (!empty($item->prices) && is_array($item->prices)): ?>
+                        <? foreach ($item->prices as $price): ?>
+
+                            <div class="product-info-price">
+                                <? if (count($item->prices) > 1): ?>
+                                    <div class="product-info-price-title"><?= $price->price_type ?></div>
+                                <? endif; ?>
+                                <? if (!empty($item->discount)): ?>
+                                    <div class="product-oldprice">
+                                        <span class="product-value">
+                                            <?=number_format($price->price, 0, '.', ' ')?>
+                                        </span>
+                                        <span class="product-currency"><?=$price->currency?></span>
+                                        <span class="product-measure">/<?=$item->unit?></span>
+                                        <div class="product-priceline"></div>
+                                    </div>
+                                <? endif; ?>
+                                <div class="product-price">
+                                    <span class="product-value">
+                                        <?=number_format(($price->price * (100 - $item->discount) / 100), 0, '.', ' ')?>
+                                    </span>
+                                    <span class="product-currency"><?=$price->currency?></span>
+                                    <span class="product-measure">/<?=$item->unit?></span>
+                                    <? if (!empty($item->tax_value)): ?>
+                                        <span class="product-nds">
+                                            (в т.ч. <?= $item->tax_name ?>
+                                            <?= number_format(round($price->price * $item->tax_value / (100 + $item->tax_value), 2), 2, '.', ' ') ?>
+                                            <?=$price->currency?>)
+                                        </span>
+                                    <? endif; ?>
+                                </div>
                             </div>
-                        <? endif; ?>
-                        <div class="product-price">
-                            <span class="product-value">
-                                <?=number_format(($item->price * (100 - $item->discount) / 100), 0, '.', ' ')?>
-                            </span>
-                            <span class="product-currency"><?=$item->currency?></span>
-                            <span class="product-measure">/<?=$item->unit?></span>
-                        </div>
-                    </div>
+
+                        <? endforeach; ?>
+                    <? endif; ?>
                     <div class="product-info-count">
                         <span class="icon <?=(($item->quantity > 0) ? 'ok' : 'no')?>"></span>
                         <?=(($item->quantity > 10) ? 'Много' : (($item->quantity > 0) ? 'Мало' : 'Отсутствует'))?>
@@ -211,10 +227,10 @@
                                 <input type="text" name="quantity" value="1" max="<?=$item->quantity?>" class="product-quantity">
                                 <span class="product-plus"></span>
                             </span>
-                            <span class="product-button">В корзину</span>
-                            <span class="product-altbutton">Быстрый заказ</span>
+                            <span class="product-button buy" data-id="<?=$item->id?>">В корзину</span>
+                            <span class="product-altbutton" data-id="<?=$item->id?>">Быстрый заказ</span>
                         <? else: ?>
-                            <span class="product-altbutton">Отложить</span>
+                            <span class="product-altbutton" data-id="<?=$item->id?>">Отложить</span>
                         <? endif; ?>
                     </div>
                     <div class="product-info-message">
