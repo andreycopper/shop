@@ -33,7 +33,7 @@ class Cart extends Controller
     protected function actionDelete()
     {
         if (Request::isPost()) {
-            OrderItem::deleteItem(intval(Request::post('id')), $this->view->user->id, $_COOKIE['user'], Request::isAjax());
+            OrderItem::deleteItem(intval(Request::post('id')), $this->view->user->id, Request::isAjax());
         }
     }
 
@@ -45,7 +45,7 @@ class Cart extends Controller
     protected function actionClear()
     {
         if (Request::isPost()) {
-            OrderItem::clearCart($this->view->user->id, $_COOKIE['user'], Request::isAjax());
+            OrderItem::clearCart($this->view->user->id, Request::isAjax());
         }
     }
 

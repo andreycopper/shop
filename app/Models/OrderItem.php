@@ -14,6 +14,7 @@ class OrderItem extends Model
     protected static $table = 'order_items';
     public $id;                 // id записи
     public $order_id;           // id заказа
+    public $qorder_id;          // id быстрого заказа
     public $user_id;            // id пользователя
     public $user_hash;          // hash пользователя
     public $product_id;         // id товара
@@ -47,7 +48,7 @@ class OrderItem extends Model
         $sql = "
             SELECT count(*) AS count 
             FROM order_items 
-            WHERE user_id = :user_id {$where} AND order_id IS NULL";
+            WHERE user_id = :user_id {$where} AND order_id IS NULL AND qorder_id IS NULL";
 
         $db = new Db();
         $data = $db->query($sql, $params ?? []);
@@ -63,7 +64,7 @@ class OrderItem extends Model
      * @return false|mixed
      * @throws DbException
      */
-    public static function getByUser(int $product_id, int $user_id, string $user_hash, $object = true)
+    public static function getByUser(int $product_id, int $user_id, string $user_hash = '', $object = true)
     {
         $userHash = ($user_id === 2) ? 'AND oi.user_hash = :user_hash' : '';
         $params = [
@@ -86,13 +87,13 @@ class OrderItem extends Model
     /**
      * Получает список товаров в корзине по hash неавторизованного пользователя
      * @param int $user_id
-     * @param int $user_hash
+     * @param string $user_hash
      * @param bool $active
      * @param bool $object
      * @return array|false
      * @throws DbException
      */
-    public static function getListByUser(int $user_id, int $user_hash, bool $active = true, bool $object = true)
+    public static function getListByUser(int $user_id, string $user_hash = '', bool $active = true, bool $object = true)
     {
         $activity = !empty($active) ? 'AND p.active IS NOT NULL' : '';
         $params = [':user_id' => $user_id];
@@ -219,15 +220,14 @@ class OrderItem extends Model
      * Удаляет товар из корзины
      * @param int $product_id - id товара
      * @param int $user_id - id пользователя
-     * @param int $user_hash - хэш пользователя
-     * @param $isAjax - ajax запрос
+     * @param bool $isAjax - ajax запрос
      * @return bool
      * @throws DbException
      * @throws UserException
      */
-    public static function deleteItem(int $product_id, int $user_id, int $user_hash, $isAjax)
+    public static function deleteItem(int $product_id, int $user_id, bool $isAjax = true)
     {
-        $item = self::getByUser($product_id, $user_id, $user_hash);
+        $item = self::getByUser($product_id, $user_id, $_COOKIE['user']);
 
         if ($item) { // товар найден в корзине
             if ($item->delete()) { // удален товар из корзины
@@ -241,18 +241,17 @@ class OrderItem extends Model
     /**
      * Очищает корзину
      * @param int $user_id - id пользователя
-     * @param string $user_hash - хэш пользователя
-     * @param $isAjax - ajax запрос
+     * @param bool $isAjax - ajax запрос
      * @return bool
      * @throws DbException
      * @throws UserException
      */
-    public static function clearCart(int $user_id, string $user_hash, $isAjax)
+    public static function clearCart(int $user_id, bool $isAjax = true)
     {
         $userHash = ($user_id === 2) ? 'AND user_hash = :user_hash' : '';
         $params = [':user_id' => $user_id ];
-        if ($user_id === 2) $params[':user_hash'] = $user_hash;
-        $sql = "DELETE FROM order_items WHERE user_id = :user_id {$userHash} AND order_id IS NULL";
+        if ($user_id === 2) $params[':user_hash'] = $_COOKIE['user'];
+        $sql = "DELETE FROM order_items WHERE user_id = :user_id {$userHash} AND order_id IS NULL AND qorder_id IS NULL";
         $db = new Db();
         $data = $db->iquery($sql, $params ?? []);
 
@@ -478,7 +477,7 @@ class OrderItem extends Model
         $sql = "
             SELECT * 
             FROM order_items 
-            WHERE user_id = :user_id AND product_id = :product_id AND order_id IS NULL";
+            WHERE user_id = :user_id AND product_id = :product_id AND order_id IS NULL AND qorder_id IS NULL";
         $params = [
             ':user_id' => $user_id,
             ':product_id' => $product_id
@@ -500,7 +499,7 @@ class OrderItem extends Model
         $sql = "
             SELECT * 
             FROM order_items 
-            WHERE user_hash = :user_hash AND user_id = 2 AND order_id IS NULL";
+            WHERE user_hash = :user_hash AND user_id = 2 AND order_id IS NULL AND qorder_id IS NULL";
         $params = [
             ':user_hash' => $user_hash
         ];

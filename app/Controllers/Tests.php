@@ -40,11 +40,11 @@ class Tests extends Controller
     {
         var_dump($_SESSION['user']);
 
-        $rsa  = new RSA($_SESSION['user']['private_key']);
+        $rsa  = new RSA($_SESSION['user']->private_key);
 
-        var_dump($rsa->decrypt($_SESSION['user']['last_name']));
-        var_dump($rsa->decrypt($_SESSION['user']['name']));
-        var_dump($rsa->decrypt($_SESSION['user']['second_name']));
+        var_dump($rsa->decrypt($_SESSION['user']->last_name));
+        var_dump($rsa->decrypt($_SESSION['user']->name));
+        var_dump($rsa->decrypt($_SESSION['user']->second_name));
 
     }
 
