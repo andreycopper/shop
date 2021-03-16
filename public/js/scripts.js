@@ -161,6 +161,7 @@ $(function () {
         $('.overlay').hide();
     });
 
+    /* отправка модальных форм - быстрый заказ/обратный звонок */
     $('.modalform form').on('submit', function (e) {
         e.preventDefault();
         let form = $(this),
