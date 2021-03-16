@@ -123,7 +123,7 @@ class OrderItem extends Model
                 ON t.id = p.tax_id
             LEFT JOIN vendors v 
                 ON p.vendor_id = v.id
-            WHERE oi.user_id = :user_id {$userHash} AND oi.order_id IS NULL {$activity}";
+            WHERE oi.user_id = :user_id {$userHash} AND oi.order_id IS NULL AND oi.qorder_id IS NULL {$activity}";
         $db = new Db();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return $data ?? false;
@@ -201,6 +201,8 @@ class OrderItem extends Model
                     $item->discount_sum_nds = round($item->discount_sum * $item->tax / (100 + $item->tax), 4);
                 }
             }
+
+            return self::factory($item)->save();
 
             if (!self::factory($item)->save()) self::returnError('Не удалось сохранить в корзину ' . $product->name . ' в количестве ' . $count, $isAjax);
             else {

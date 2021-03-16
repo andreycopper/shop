@@ -34,7 +34,7 @@ function checkUserData(value, type, count = 0) {
             ('{0,' + count + '}')) +
         '$','i'), // цифры, произвольное количество или ограниченное от нуля до count
         numbers_strict = new RegExp('^\\d{' + count + '}$','i'),    // цифры, строгое количество
-        rus = new RegExp('^[а-яё\\- "]' +
+        rus = new RegExp('^[а-яё\\- ".,]' +
             ((0 === count) ?
                 '+' :
                 ('{0,' + count + '}')) +

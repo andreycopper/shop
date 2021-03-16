@@ -191,13 +191,17 @@ abstract class Model
 
     /**
      * Показ успеха
+     * @param string $message
      * @param bool $isAjax
      * @return bool
      */
-    protected static function returnSuccess(bool $isAjax = false)
+    protected static function returnSuccess(string $message = '', bool $isAjax = false)
     {
         if ($isAjax) {
-            echo json_encode(['result' => true]);
+            echo json_encode([
+                'result' => true,
+                'message' => $message
+            ]);
             die;
         }
         else return true;

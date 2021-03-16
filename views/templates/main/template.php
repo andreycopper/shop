@@ -463,26 +463,59 @@
     </form>
 </div>
 
-<div id="callback" class="modal">
+<div id="callback" class="modal modalform">
     <div class="close"></div>
     <div class="title">
         <h2>Заказать звонок</h2>
     </div>
     <form action="" method="get">
         <label>
-            Имя
-            <input type="text" name="">
+            Имя <span class="red">*</span>
+            <input type="text" name="name" class="required">
+            <span class="tooltip"></span>
         </label>
         <label>
-            Телефон
-            <input type="text">
+            Телефон <span class="red">*</span>
+            <input type="text" name="phone" class="required">
+            <span class="tooltip"></span>
         </label>
         <label class="checkbox">
-            <input type="checkbox">
-            Я согласен на <a href="">обработку персональных данных</a> *
+            <input type="checkbox" name="agreement" class="required">
+            Я согласен на <a href="">обработку персональных данных</a> <span class="red">*</span>
         </label>
         <input type="submit" value="Отправить">
+        <div class="message_error"></div>
     </form>
+</div>
+
+<div id="qorder" class="modal modalform">
+    <div class="close"></div>
+    <div class="title">
+        <h2>Быстрый заказ</h2>
+    </div>
+    <form action="/quickOrders/save/" method="get">
+        <? if (!empty($item->id) && $item instanceof Models\Product): ?>
+            <input type="hidden" name="id" value="<?= $item->id ?>">
+            <input type="hidden" name="count" value="1">
+        <? endif; ?>
+        <label>
+            Имя <span class="red">*</span>
+            <input type="text" name="name" class="required">
+            <span class="tooltip"></span>
+        </label>
+        <label>
+            Телефон <span class="red">*</span>
+            <input type="text" name="phone" class="required">
+            <span class="tooltip"></span>
+        </label>
+        <label class="checkbox">
+            <input type="checkbox" name="agreement" class="required">
+            Я согласен на <a href="">обработку персональных данных</a> <span class="red">*</span>
+        </label>
+        <input type="submit" value="Отправить">
+        <div class="message_error"></div>
+    </form>
+    <div class="message_success"></div>
 </div>
 
 <div id="compare" class="modal">

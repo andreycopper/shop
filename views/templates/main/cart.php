@@ -67,7 +67,7 @@
                     </div>
                     <div class="basket-order-buttons">
                         <a href="/orders/" class="btn-alt">Оформить заказ</a>
-                        <a href="" class="btn">Быстрый заказ</a>
+                        <a href="" class="btn order-action" data-target="qorder">Быстрый заказ</a>
                     </div>
                 </div>
             </div>
@@ -341,7 +341,7 @@
                     </div>
                     <div class="basket-order-buttons">
                         <a href="/orders/" class="btn-alt">Оформить заказ</a>
-                        <a href="" class="btn">Быстрый заказ</a>
+                        <a href="" class="btn order-action" data-target="qorder">Быстрый заказ</a>
                     </div>
                 </div>
             </div>

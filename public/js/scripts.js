@@ -132,7 +132,7 @@ $(function () {
     /**************************** !MENU ****************************/
     /**************************** MODAL ****************************/
     /* открытие модального окна по клике в шапке */
-    $('.header-action').on('click', function (e) {
+    $('.header-action, .order-action').on('click', function (e) {
         e.preventDefault();
         $('.menu-mobile').hide();
         $('#' + $(this).data('target')).show();
@@ -159,6 +159,42 @@ $(function () {
     $('.close').on('click', function () {
         $(this).parent('.modal').hide();
         $('.overlay').hide();
+    });
+
+    $('.modalform form').on('submit', function (e) {
+        e.preventDefault();
+        let form = $(this),
+            url = $(this).attr('action'),
+            error = [];
+
+        form.find('input.required').each(function () {
+            if ($(this).attr('name').indexOf('phone') === -1 && $(this).attr('type') === 'text' && !checkUserData($(this).val(), 'rus_eng')) error.push(true);
+            else if ($(this).attr('name').indexOf('phone') !== -1 && !checkUserData($(this).val(), 'phone')) error.push(true);
+            //else if ($(this).attr('type') === 'checkbox' && !$(this).prop('checked')) error.push(true);
+            else error.push(false);
+        });
+
+        if (error.indexOf(true) === -1) {
+            $.ajax({
+                method: "POST",
+                dataType: 'json',
+                url: url,
+                data: form.serialize(),
+                beforeSend: function() {
+                    loader.show();
+                },
+                success: function(data){console.log(data);
+                    loader.hide();
+
+                    if (!data.result) {
+                        form.find('.message_error').html(data.message).show();
+                    } else {
+                        form.html('').hide();
+                        form.next().html(data.message).show();
+                    }
+                }
+            });
+        }
     });
     /**************************** !MODAL ****************************/
     /**************************** CATALOG ****************************/
@@ -203,6 +239,7 @@ $(function () {
 
         if (val > 1) {
             $(this).next().val(val - 1);
+            $('#qorder input[name=count]').val(val - 1);
             if ('basket-item-minus' === e.target.className && val > 1) recalcProduct(id, (val - 1), $(this).parents('.basket-item'));
         }
     });
@@ -216,6 +253,7 @@ $(function () {
 
         if (val < max) {
             $(this).prev().val(val + 1);
+            $('#qorder input[name=count]').val(val + 1);
             if ('basket-item-plus' === e.target.className && val < max) recalcProduct(id, (val + 1), $(this).parents('.basket-item'));
         }
     });
@@ -226,10 +264,17 @@ $(function () {
             id = Number($(this).data('id')),
             max = Number($(this).attr('max'));
 
-        if (val > max) $(this).val(max);
-        if (!/^[\d]+$/.test(val) || val < 1) $(this).val(1);
-
-        if ('basket-item-quantity' === e.target.className && val <= max && val >= 1) recalcProduct(id, val, $(this).parents('.basket-item'));
+        if (val > max) {
+            $(this).val(max);
+            $('#qorder input[name=count]').val(max);
+            if ('basket-item-quantity' === e.target.className) recalcProduct(id, max, $(this).parents('.basket-item'));
+        }
+        else if (!/^[\d]+$/.test(val) || val < 1) {
+            $(this).val(1);
+            $('#qorder input[name=count]').val(1);
+            if ('basket-item-quantity' === e.target.className) recalcProduct(id, 1, $(this).parents('.basket-item'));
+        }
+        else $('#qorder input[name=count]').val(val);
     });
 
     /* переключение табов на карточке товара */

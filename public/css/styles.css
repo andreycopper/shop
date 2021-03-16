@@ -231,7 +231,7 @@
     padding: 20px 30px 30px;
 }
 .modal form {
-    padding: 20px 30px 30px;
+    padding: 20px 30px;
     text-align: center;
 }
 .modal input {
@@ -246,7 +246,7 @@
 .modal input[type=submit] {
     display: inline-block;
     width: auto;
-    margin: 10px 0 0;
+    margin: 10px 0;
     padding: 0 30px;
     color: #ffffff;
     background-color: #de002b;
@@ -1890,6 +1890,20 @@ section.main {
     top: 25%;
     left: 40%;
     width: 420px;
+}
+#callback .message_success {
+    padding: 20px 30px;
+    text-align: center;
+}
+/* QUICK ORDER */
+#qorder {
+    top: 25%;
+    left: 40%;
+    width: 420px;
+}
+#qorder .message_success {
+    padding: 20px 30px;
+    text-align: center;
 }
 /* SEARCH */
 #search {

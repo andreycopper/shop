@@ -3,9 +3,9 @@
 namespace Models;
 
 use System\Db;
+use System\Validation;
 use Exceptions\DbException;
 use Exceptions\UserException;
-use System\Validation;
 
 class Order extends Model
 {
@@ -89,6 +89,7 @@ class Order extends Model
      * @param array $form
      * @param bool $isAjax
      * @return bool
+     * @throws UserException
      */
     public static function checkPersonalData(array $form, bool $isAjax = false)
     {
@@ -206,7 +207,7 @@ class Order extends Model
         $sql = "
             UPDATE order_items oi
             SET oi.order_id = :order_id
-            WHERE oi.user_id = :user_id AND oi.order_id IS NULL {$user_hash}
+            WHERE oi.user_id = :user_id {$user_hash} AND oi.order_id IS NULL
         ";
 
         $db = new Db();

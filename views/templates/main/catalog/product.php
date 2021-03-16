@@ -228,7 +228,7 @@
                                 <span class="product-plus"></span>
                             </span>
                             <span class="product-button buy" data-id="<?=$item->id?>">В корзину</span>
-                            <span class="product-altbutton" data-id="<?=$item->id?>">Быстрый заказ</span>
+                            <a class="product-altbutton order-action" data-target="qorder">Быстрый заказ</a>
                         <? else: ?>
                             <span class="product-altbutton" data-id="<?=$item->id?>">Отложить</span>
                         <? endif; ?>
