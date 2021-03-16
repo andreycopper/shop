@@ -468,7 +468,7 @@
     <div class="title">
         <h2>Заказать звонок</h2>
     </div>
-    <form action="" method="get">
+    <form action="/callBacks/save/" method="post">
         <label>
             Имя <span class="red">*</span>
             <input type="text" name="name" class="required">
@@ -486,6 +486,7 @@
         <input type="submit" value="Отправить">
         <div class="message_error"></div>
     </form>
+    <div class="message_success"></div>
 </div>
 
 <div id="qorder" class="modal modalform">
@@ -493,7 +494,7 @@
     <div class="title">
         <h2>Быстрый заказ</h2>
     </div>
-    <form action="/quickOrders/save/" method="get">
+    <form action="/quickOrders/save/" method="post">
         <? if (!empty($item->id) && $item instanceof Models\Product): ?>
             <input type="hidden" name="id" value="<?= $item->id ?>">
             <input type="hidden" name="count" value="1">

@@ -47,32 +47,29 @@ class QuickOrder extends Model
 
     /**
      * Сохранение быстрого заказа
-     * @param $user
-     * @param $form
+     * @param $user - пользователь
+     * @param $form - форма с данными (имя и телефон)
      * @return bool
      * @throws DbException
      * @throws UserException
      */
     public static function saveOrder($user, $form)
     {
-       $qorder = new self();
-       $qorder->user_id = $user->id;
-       $qorder->user_hash = $_COOKIE['user'];
-       $qorder->name = $form['name'];
-       $qorder->phone = preg_replace('/[^0-9]/', '', $form['phone']);
-       $qorder->created = date('Y-m-d H:i:s');
+        $qorder = new self();
+        $qorder->user_id = $user->id;
+        $qorder->user_hash = $_COOKIE['user'];
+        $qorder->name = $form['name'];
+        $qorder->phone = preg_replace('/[^0-9]/', '', $form['phone']);
+        $qorder->created = date('Y-m-d H:i:s');
+        $q_id = $qorder->save();
 
-       $q_id = $qorder->save();
-
-       if ($q_id) {
+        if ($q_id) {
            if (!empty($form['id']) && !empty($form['count'])) {
                $item_id = OrderItem::add($user, $form['id'], $form['count']);
-               //$item_id = 51;
-
                if ($item_id) return self::moveCartToQuickOrder($user->id, $q_id, $item_id);
            }
            else return self::moveCartToQuickOrder($user->id, $q_id);
-       }
+        }
 
        return false;
     }
@@ -80,8 +77,8 @@ class QuickOrder extends Model
     /**
      * Присваиваем корзине id быстрого заказа
      * @param int $user_id - id пользователя
-     * @param int $order_id
-     * @param null $id
+     * @param int $order_id - id быстрого заказа
+     * @param null $id - id товара в корзине
      * @return bool
      * @throws DbException
      */
