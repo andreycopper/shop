@@ -77,14 +77,16 @@ abstract class Controller
     /**
      * Показ успеха
      * @param string $message
+     * @param array $data
      * @param bool $isAjax
      * @return bool
      */
-    protected static function returnSuccess(string $message = '', bool $isAjax = false)
+    protected static function returnSuccess(string $message = '', array $data = [], bool $isAjax = false)
     {
         if ($isAjax) {
             echo json_encode([
                 'result' => true,
+                'data' => $data,
                 'message' => $message
             ]);
             die;

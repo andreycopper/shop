@@ -29,7 +29,7 @@ class QuickOrders extends Controller
                 self::returnError('Не найдены товары для быстрого заказа', Request::isAjax());
 
 
-            if (QuickOrder::saveOrder($this->view->user, $form)) self::returnSuccess('Быстрый заказ отправлен', Request::isAjax());
+            if (QuickOrder::saveOrder($this->view->user, $form)) self::returnSuccess('Быстрый заказ отправлен', [], Request::isAjax());
             else self::returnError('Ошибка при отправке заказа', Request::isAjax());
         }
     }

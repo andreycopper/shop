@@ -35,7 +35,97 @@ class OrderItem extends Model
     public $updated;            // дата создания записи
 
     /**
-     * Получает количество товаров в корзине
+     * Получает актуальную корзину пользователя
+     * @param int $user_id - id пользователя
+     * @param string|null $coupon_code - код купона (этот функционал пока отложен на будущее...)
+     * @return array|false
+     * @throws DbException
+     */
+    public static function getCart(int $user_id, string $coupon_code = null)
+    {
+        $items = self::getListByUser($user_id, $_COOKIE['user']);
+        //$coupon = $coupon_code ? Coupon::getByCodeUser($coupon_code, $user_id, $_COOKIE['user'], true) : null;
+
+        if (!empty($items) && is_array($items)) {
+            $count_items = 0;
+            $sum = 0;
+            $sum_nds = 0;
+            $discount_sum = 0;
+            $discount_sum_nds = 0;
+            $absent = [];
+
+            foreach ($items as $key => $item) {
+                if ($item->count > $item->quantity) { // на складах недостаточно товара
+                    $absent[] = $item;
+                    unset($items[$key]);
+                    continue;
+                }
+
+                $outdated = str_replace('-', '', explode(' ', $item->updated ?: $item->created)[0]) < date('Ymd');
+                if ($outdated) { // товар в корзине больше суток
+                    $message = 'Цены товаров, добавленных в корзину более суток назад обновлены';
+                    $product = Product::getPriceItem($item->product_id, $item->price_type_id); // актуальные цены товара
+
+                    $item->price = $product->price->price;
+                    $item->price_nds = null;
+                    $item->sum = $item->price * $item->count;
+                    $item->sum_nds = null;
+                    $item->updated = date('Y-m-d');
+                    $item->discount = null;
+                    $item->discount_price = null;
+                    $item->discount_price_nds = null;
+                    $item->discount_sum = null;
+                    $item->discount_sum_nds = null;
+                    $item->economy = null;
+
+                    if (!empty($product->tax_value)) { // НДС
+                        $item->tax = $product->tax_value;
+                        $item->price_nds = round($item->price * $item->tax / (100 + $item->tax), 4);
+                        $item->sum_nds = round($item->sum * $item->tax / (100 + $item->tax), 4);
+                    }
+
+                    if (!empty($product->discount)) { // скидка
+                        $item->discount = $product->discount;
+                        $item->discount_price = round($item->price * (100 - $item->discount) / 100);
+                        $item->discount_sum = $item->discount_price * $item->count;
+                        $item->economy = $item->price - $item->discount_price;
+                        $item->sum_economy = $item->sum - $item->discount_sum;
+
+                        if (!empty($item->tax)) { // НДС
+                            $item->discount_price_nds = round($item->discount_price * $item->tax / (100 + $item->tax), 4);
+                            $item->discount_sum_nds = round($item->discount_sum * $item->tax / (100 + $item->tax), 4);
+                        }
+                    }
+
+                    if (!self::factory($item)->save()) Logger::getInstance()->error(new EditException('Не удалось обновить в корзине товар id=' . $item->id));
+                }
+
+                $count_items += $item->count;
+                $sum += $item->sum;
+                $sum_nds += $item->sum_nds ?: 0;
+                $discount_sum += $item->discount_sum ?: 0;
+                $discount_sum_nds += $item->discount_sum_nds ?: 0;
+            }
+
+            $result = [
+                'items'            => $items,
+                'absent'           => $absent,
+                'count_items'      => $count_items,
+                'count_absent'     => count($absent),
+                'sum'              => $sum,
+                'sum_nds'          => $sum_nds,
+                'discount_sum'     => $discount_sum,
+                'discount_sum_nds' => $discount_sum_nds,
+                'economy'          => $sum - $discount_sum,
+                'coupon'           => $coupon ?? null,
+                'message'          => $message ?? ''
+            ];
+        }
+        return $result ?? false;
+    }
+
+    /**
+     * Получает количество наименований товаров в корзине
      * @return false|mixed
      * @throws DbException
      */
@@ -131,113 +221,79 @@ class OrderItem extends Model
 
     /**
      * Проверяет добавленный товар в корзину
-     * @param $product
-     * @param int $product_id
-     * @param int $count
-     * @param $isAjax
+     * @param Product $product - товар
+     * @param int $product_id - id товара
+     * @param int $count - количество товара
      * @return bool
-     * @throws UserException
      */
-    public static function checkCartProduct($product, int $product_id, int $count, $isAjax)
+    public static function checkCartProduct(Product $product, int $product_id, int $count)
     {
-        if (!empty($product_id)) {
-            if (!empty($count)) {
-                if (!empty($product->id)) {
-                    if (intval($product->quantity) >= $count) {
-                        return true;
-                    } else $message = 'На складе товаров меньше указанного количества';
-                } else $message = 'Товар не найден';
-            } else $message = 'Указано неверное количество товара';
-        } else $message = 'Не указан товар';
+        if (!empty($product_id) && !empty($count) && intval($product->quantity) >= $count)
+            return true;
 
-        self::returnError($message, $isAjax);
         return false;
     }
 
     /**
      * Добавляет товар в корзину
-     * @param User $user
-     * @param int $product_id
-     * @param int $count
-     * @param bool $isAjax
+     * @param User $user - пользователь
+     * @param int $product_id - id товара
+     * @param int $count - количество товара
      * @return false|mixed
      * @throws DbException
-     * @throws UserException
      */
-    public static function add(User $user, int $product_id, int $count, bool $isAjax = false)
+    public static function add(User $user, int $product_id, int $count)
     {
-        $product = Product::getPriceItem($product_id, $user->price_type_id);
+        $product = Product::getPriceItem($product_id, $user->price_type_id); // товар из каталога
+        $item = self::getByUser($product_id, $user->id, $_COOKIE['user']); // попытка найти этот товар в корзине пользователя
 
-        if (self::checkCartProduct($product, $product_id, $count, $isAjax)) { // проверка товара, количества и его наличия на складе
-            $item = self::getByUser($product_id, $user->id, $_COOKIE['user']);
+        if (empty($item->id)) { // товар в корзине не найден
+            $item = new self();
+            $item->user_id = $user->id;
+            $item->user_hash = $_COOKIE['user'];
+            $item->product_id = $product_id;
+        }
 
-            if (empty($item->id)) { // товар в корзине не найден
-                $item = new self();
-                $item->user_id = $user->id;
-                $item->user_hash = $_COOKIE['user'];
-                $item->product_id = $product_id;
-            }
+        $item->price_type_id = intval($user->price_type_id);
+        $item->count = $count;
+        $item->price = intval($product->price->price);
+        $item->sum = $item->price * $count;
+        $item->created = date('Y-m-d');
 
-            $item->price_type_id = intval($user->price_type_id);
-            $item->count = $count;
-            $item->price = intval($product->price->price);
-            $item->sum = $item->price * $count;
-            $item->created = date('Y-m-d');
+        if (!empty($product->tax_value)) { // НДС
+            $item->tax = floatval($product->tax_value);
+            $item->price_nds = round($item->price * $item->tax / (100 + $item->tax), 4);
+            $item->sum_nds = round($item->sum * $item->tax / (100 + $item->tax), 4);
+        }
 
-            if (!empty($product->tax_value)) { // НДС
-                $item->tax = floatval($product->tax_value);
-                $item->price_nds = round($item->price * $item->tax / (100 + $item->tax), 4);
-                $item->sum_nds = round($item->sum * $item->tax / (100 + $item->tax), 4);
-            }
+        if (!empty($product->discount)) { // скидка
+            $item->discount = floatval($product->discount);
 
-            if (!empty($product->discount)) { // скидка
-                $item->discount = floatval($product->discount);
+            $item->discount_price = round($item->price * (100 - $product->discount) / 100);
+            $item->discount_sum = $item->discount_price * $count;
 
-                $item->discount_price = round($item->price * (100 - $product->discount) / 100);
-                $item->discount_sum = $item->discount_price * $count;
-
-                if (!empty($item->tax)) { // НДС
-                    $item->discount_price_nds = round($item->discount_price * $item->tax / (100 + $item->tax), 4);
-                    $item->discount_sum_nds = round($item->discount_sum * $item->tax / (100 + $item->tax), 4);
-                }
-            }
-
-            return self::factory($item)->save();
-
-            if (!self::factory($item)->save()) self::returnError('Не удалось сохранить в корзину ' . $product->name . ' в количестве ' . $count, $isAjax);
-            else {
-                if ($isAjax) {
-                    echo json_encode([
-                        'result' => true,
-                        'count' => self::getCount()
-                    ]);
-                    die;
-                } else return true;
+            if (!empty($item->tax)) { // НДС
+                $item->discount_price_nds = round($item->discount_price * $item->tax / (100 + $item->tax), 4);
+                $item->discount_sum_nds = round($item->discount_sum * $item->tax / (100 + $item->tax), 4);
             }
         }
-        return false;
+
+        return self::factory($item)->save();
     }
 
     /**
      * Удаляет товар из корзины
      * @param int $product_id - id товара
      * @param int $user_id - id пользователя
-     * @param bool $isAjax - ajax запрос
      * @return bool
      * @throws DbException
-     * @throws UserException
      */
-    public static function deleteItem(int $product_id, int $user_id, bool $isAjax = true)
+    public static function deleteItem(int $product_id, int $user_id)
     {
         $item = self::getByUser($product_id, $user_id, $_COOKIE['user']);
+        if ($item) return $item->delete();
 
-        if ($item) { // товар найден в корзине
-            if ($item->delete()) { // удален товар из корзины
-                return self::returnSuccess($isAjax);
-            } else $message = 'Не удалось удалить товар из корзины';
-        } else $message = 'Не удалось найти товар в корзине';
-
-        self::returnError($message, $isAjax);
+        return false;
     }
 
     /**
@@ -246,7 +302,6 @@ class OrderItem extends Model
      * @param bool $isAjax - ajax запрос
      * @return bool
      * @throws DbException
-     * @throws UserException
      */
     public static function clearCart(int $user_id, bool $isAjax = true)
     {
@@ -255,11 +310,62 @@ class OrderItem extends Model
         if ($user_id === 2) $params[':user_hash'] = $_COOKIE['user'];
         $sql = "DELETE FROM order_items WHERE user_id = :user_id {$userHash} AND order_id IS NULL AND qorder_id IS NULL";
         $db = new Db();
-        $data = $db->iquery($sql, $params ?? []);
-
-        if ($data) self::returnSuccess($isAjax);
-        else self::returnError('Не удалось очистить корзину пользователя id=' . $user_id, $isAjax);
+        return $db->iquery($sql, $params ?? []);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /**
      * Пересчитывает корзину при изменении количества товара
@@ -273,142 +379,53 @@ class OrderItem extends Model
      */
     public static function recalc(User $user, int $product_id, int $count, bool $isAjax = false)
     {
-        if (self::add($user, $product_id, $count)) { // товар сохранен в корзине
-            $item = self::getByUser($product_id, $user->id, $_COOKIE['cookie_hash']);
-            $cart = OrderItem::getCart($user->id);
+        $item = self::getByUser($product_id, $user->id, $_COOKIE['cookie_hash']); // товар в корзине пользователя
+        $cart = OrderItem::getCart($user->id); // корзина пользователя
 
-            if ($cart) { // получена актуальная корзина
-                $result = [
-                    'result'              => true,
-                    // цена товара и НДС
-                    'item_price'              => number_format($item->price, 0, '.', ' '),
-                    'item_price_nds'          => $item->price_nds ? number_format($item->price_nds, 2, '.', ' ') : null,
-                    // сумма товара и НДС
-                    'item_sum'                => number_format($item->sum, 0, '.', ' '),
-                    'item_sum_nds'            => $item->sum_nds ? number_format($item->sum_nds, 2, '.', ' ') : null,
-                    // цена товара со скидкой и НДС
-                    'item_discount_price'     => $item->discount_price ? number_format($item->discount_price, 0, '.', ' ') : null,
-                    'item_discount_price_nds' => $item->discount_price_nds ? number_format($item->discount_price_nds, 2, '.', ' ') : null,
-                    // сумма товара со скидкой и НДС
-                    'item_discount_sum'       => $item->discount_sum ? number_format($item->discount_sum, 0, '.', ' ') : null,
-                    'item_discount_sum_nds'   => $item->discount_sum_nds ? number_format($item->discount_sum_nds, 2, '.', ' ') : null,
-                    // экономия с цены и суммы
-                    'item_economy'            => $item->discount_sum ? number_format($item->economy, 0, '.', ' ') : null,
-                    'item_sum_economy'        => $item->sum_economy ? number_format($item->sum_economy, 0, '.', ' ') : null,
-                    // сумма корзины и НДС
-                    'cart_sum'                => $cart['sum'] ? number_format($cart['sum'], 0, '.', ' ') : null,
-                    'cart_sum_nds'            => $cart['sum_nds'] ? number_format($cart['sum_nds'], 0, '.', ' ') : null,
-                    // сумма корзина со скидкой и НДС
-                    'cart_discount_sum'       => $cart['discount_sum'] ? number_format($cart['discount_sum'], 0, '.', ' ') : null,
-                    'cart_discount_sum_nds'   => $cart['discount_sum_nds'] ? number_format($cart['discount_sum_nds'], 2, '.', ' ') : null,
-                    // экономия с корзины
-                    'cart_economy'            => $cart['economy'] ? number_format($cart['economy'], 0, '.', ' ') : null,
-                    // количество товаров в корзине
-                    'count'                   => $cart['count_items'],
-                    // сообщение
-                    'message'                 => $cart['message'],
-                ];
-
-                if ($isAjax) {
-                    echo json_encode($result);
-                    die;
-                } else return true;
-            } else $message = 'Не удалось обновить корзину';
-        } else $message = 'Не удалось сохранить корзину';
-
-        self::returnError($message, $isAjax);
-        return false;
-    }
-
-    /**
-     * Получает актуальную корзину пользователя
-     * @param int $user_id
-     * @param string|null $coupon_code
-     * @return array|false
-     * @throws DbException
-     */
-    public static function getCart(int $user_id, string $coupon_code = null)
-    {
-        $items = self::getListByUser($user_id, $_COOKIE['user']);
-        //$coupon = $coupon_code ? Coupon::getByCodeUser($coupon_code, $user_id, $_COOKIE['user'], true) : null;
-
-        if (!empty($items) && is_array($items)) {
-            $count_items = 0;
-            $sum = 0;
-            $sum_nds = 0;
-            $discount_sum = 0;
-            $discount_sum_nds = 0;
-            $absent = [];
-
-            foreach ($items as $key => $item) {
-                if ($item->count > $item->quantity) { // на складах недостаточно товара
-                    $absent[] = $item;
-                    unset($items[$key]);
-                    continue;
-                }
-
-                $outdated = str_replace('-', '', explode(' ', $item->updated ?: $item->created)[0]) < date('Ymd');
-                if ($outdated) { // товар в корзине больше суток
-                    $message = 'Цены товаров, добавленных в корзину более суток назад обновлены';
-                    $product = Product::getPriceItem($item->product_id, $item->price_type_id); // актуальные цены товара
-
-                    $item->price = $product->price->price;
-                    $item->price_nds = null;
-                    $item->sum = $item->price * $item->count;
-                    $item->sum_nds = null;
-                    $item->updated = date('Y-m-d');
-                    $item->discount = null;
-                    $item->discount_price = null;
-                    $item->discount_price_nds = null;
-                    $item->discount_sum = null;
-                    $item->discount_sum_nds = null;
-                    $item->economy = null;
-
-                    if (!empty($product->tax_value)) { // НДС
-                        $item->tax = $product->tax_value;
-                        $item->price_nds = round($item->price * $item->tax / (100 + $item->tax), 4);
-                        $item->sum_nds = round($item->sum * $item->tax / (100 + $item->tax), 4);
-                    }
-
-                    if (!empty($product->discount)) { // скидка
-                        $item->discount = $product->discount;
-                        $item->discount_price = round($item->price * (100 - $item->discount) / 100);
-                        $item->discount_sum = $item->discount_price * $item->count;
-                        $item->economy = $item->price - $item->discount_price;
-                        $item->sum_economy = $item->sum - $item->discount_sum;
-
-                        if (!empty($item->tax)) { // НДС
-                            $item->discount_price_nds = round($item->discount_price * $item->tax / (100 + $item->tax), 4);
-                            $item->discount_sum_nds = round($item->discount_sum * $item->tax / (100 + $item->tax), 4);
-                        }
-                    }
-
-                    if (!self::factory($item)->save()) Logger::getInstance()->error(new EditException('Не удалось обновить в корзине товар id=' . $item->id));
-                }
-
-                $count_items += $item->count;
-                $sum += $item->sum;
-                $sum_nds += $item->sum_nds ?: 0;
-                $discount_sum += $item->discount_sum ?: $item->sum;
-                $discount_sum_nds += $item->discount_sum_nds ?: $item->sum_nds;
-            }
-
+        if ($cart && $item) { // получена актуальная корзина и добавленный товар
             $result = [
-                'items'            => $items,
-                'absent'           => $absent,
-                'count_items'      => $count_items,
-                'count_absent'     => count($absent),
-                'sum'              => $sum,
-                'sum_nds'          => $sum_nds,
-                'discount_sum'     => $discount_sum,
-                'discount_sum_nds' => $discount_sum_nds,
-                'economy'          => $sum - $discount_sum,
-                'coupon'           => $coupon ?? null,
-                'message'          => $message ?? ''
+                'result'              => true,
+                // цена товара и НДС
+                'item_price'              => number_format($item->price, 0, '.', ' '),
+                'item_price_nds'          => $item->price_nds ? number_format($item->price_nds, 2, '.', ' ') : null,
+                // сумма товара и НДС
+                'item_sum'                => number_format($item->sum, 0, '.', ' '),
+                'item_sum_nds'            => $item->sum_nds ? number_format($item->sum_nds, 2, '.', ' ') : null,
+                // цена товара со скидкой и НДС
+                'item_discount_price'     => $item->discount_price ? number_format($item->discount_price, 0, '.', ' ') : null,
+                'item_discount_price_nds' => $item->discount_price_nds ? number_format($item->discount_price_nds, 2, '.', ' ') : null,
+                // сумма товара со скидкой и НДС
+                'item_discount_sum'       => $item->discount_sum ? number_format($item->discount_sum, 0, '.', ' ') : null,
+                'item_discount_sum_nds'   => $item->discount_sum_nds ? number_format($item->discount_sum_nds, 2, '.', ' ') : null,
+                // экономия с цены и суммы
+                'item_economy'            => $item->discount_sum ? number_format($item->economy, 0, '.', ' ') : null,
+                'item_sum_economy'        => $item->sum_economy ? number_format($item->sum_economy, 0, '.', ' ') : null,
+                // сумма корзины и НДС
+                'cart_sum'                => $cart['sum'] ? number_format($cart['sum'], 0, '.', ' ') : null,
+                'cart_sum_nds'            => $cart['sum_nds'] ? number_format($cart['sum_nds'], 0, '.', ' ') : null,
+                // сумма корзина со скидкой и НДС
+                'cart_discount_sum'       => $cart['discount_sum'] ? number_format($cart['discount_sum'], 0, '.', ' ') : null,
+                'cart_discount_sum_nds'   => $cart['discount_sum_nds'] ? number_format($cart['discount_sum_nds'], 2, '.', ' ') : null,
+                // экономия с корзины
+                'cart_economy'            => $cart['economy'] ? number_format($cart['economy'], 0, '.', ' ') : null,
+                // количество товаров в корзине
+                'count'                   => $cart['count_items'],
+                // сообщение
+                'message'                 => $cart['message'],
             ];
-        }
+
+
+
+//            if ($isAjax) {
+//                echo json_encode($result);
+//                die;
+//            } else return true;
+        } //else $message = 'Не удалось обновить корзину';
+
         return $result ?? false;
     }
+
+
 
 
 

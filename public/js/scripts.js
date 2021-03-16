@@ -317,8 +317,8 @@ $(function () {
                     $('#notification').html(data.message).addClass('active');
                     removeNotification();
                 } else {
-                    if (Number(data.count) > 0) count.removeClass('empty').html(data.count);
-                    else count.addClass('empty').html(data.count);
+                    if (Number(data.message) > 0) count.removeClass('empty').html(data.message);
+                    else count.addClass('empty').html(data.message);
                 }
             }
         });

@@ -2,11 +2,11 @@
 
 namespace Controllers;
 
-use Exceptions\UserException;
 use Models\Coupon;
 use System\Request;
 use Models\OrderItem;
 use Exceptions\DbException;
+use Exceptions\UserException;
 
 class Cart extends Controller
 {
@@ -33,7 +33,9 @@ class Cart extends Controller
     protected function actionDelete()
     {
         if (Request::isPost()) {
-            OrderItem::deleteItem(intval(Request::post('id')), $this->view->user->id, Request::isAjax());
+            if (OrderItem::deleteItem(intval(Request::post('id')), $this->view->user->id))
+                self::returnSuccess('Товар удален из корзины', [], Request::isAjax());
+            else self::returnError('Не удалось удалить товар из корзины', Request::isAjax());
         }
     }
 
@@ -45,7 +47,9 @@ class Cart extends Controller
     protected function actionClear()
     {
         if (Request::isPost()) {
-            OrderItem::clearCart($this->view->user->id, Request::isAjax());
+
+            if (OrderItem::clearCart($this->view->user->id)) self::returnSuccess('Корзина очищена', [], Request::isAjax());
+            else self::returnError('Не удалось очистить корзину', Request::isAjax());
         }
     }
 
@@ -56,7 +60,15 @@ class Cart extends Controller
     {
         if (Request::isPost()) {
             $product = Request::post();
-            OrderItem::recalc($this->view->user, intval($product['id']), intval($product['count']), Request::isAjax());
+
+            if (!OrderItem::add($this->view->user, intval($product['id']), intval($product['count'])))
+                self::returnError('Не удалось добавить товар в корзину', Request::isAjax());
+
+            $result = OrderItem::recalc($this->view->user, intval($product['id']), intval($product['count']));
+
+            if ($result) {
+                self::returnSuccess('Товар пересчитан', $result, Request::isAjax());
+            }
         }
     }
 

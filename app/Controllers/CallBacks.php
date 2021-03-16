@@ -23,7 +23,7 @@ class CallBacks extends Controller
                 self::returnError('Заполнены не все обязательные поля', Request::isAjax());
 
 
-            if (CallBack::saveCallback($this->view->user, $form)) self::returnSuccess('Заказ обратного звонка отправлен', Request::isAjax());
+            if (CallBack::saveCallback($this->view->user, $form)) self::returnSuccess('Заказ обратного звонка отправлен', [], Request::isAjax());
             else self::returnError('Ошибка при отправке заказа обратного звонка', Request::isAjax());
         }
     }

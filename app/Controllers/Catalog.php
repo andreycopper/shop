@@ -55,8 +55,15 @@ class Catalog extends Controller
     protected function actionAddToCart()
     {
         if (Request::isPost()) {
-            $product = Request::post();
-            OrderItem::add($this->view->user, intval($product['id']), intval($product['count']), Request::isAjax());
+            $item = Request::post(); // добавляемый товар
+            $product = Product::getPriceItem(intval($item['id']), $this->view->user->price_type_id); // товар в каталоге
+
+            if ($product && OrderItem::checkCartProduct($product, intval($item['id']), intval($item['count']))) {
+                if (OrderItem::add($this->view->user, intval($item['id']), intval($item['count'])))
+                    self::returnSuccess(OrderItem::getCount(), [], Request::isAjax());
+                else self::returnError('Не удалось добавить товар в корзину', Request::isAjax());
+            }
+            else self::returnError('На складе отсутствует товар', Request::isAjax());
         }
     }
 }
