@@ -83,14 +83,13 @@ class UserProfile extends Model
      * Сохранение профиля пользователя
      * @param array $form - форма с данными
      * @param User $user - пользователь
-     * @param int $user_type
      * @return bool|int
      * @throws DbException
      */
-    public function saveProfile(array $form, User $user, int $user_type)
+    public function saveProfile(array $form, User $user)
     {
-        if ($user_type === 1) return $this->savePhisicalProfile($form, $user);
-        elseif ($user_type === 2) return $this->saveJuridicalProfile($form, $user);
+        if ($form['type'] === '1') return $this->savePhisicalProfile($form, $user);
+        elseif ($form['type'] === '2') return $this->saveJuridicalProfile($form, $user);
         return false;
     }
 

@@ -38,7 +38,7 @@ class Orders extends Controller
         $cart = OrderItem::getCart($this->view->user->id);
 
         if (Order::checkData(Request::post(), $cart)) {
-            $profile_id = (new UserProfile())->saveProfile(Request::post(), $this->view->user, intval(trim(Request::post('type'))), Request::isAjax());
+            $profile_id = (new UserProfile())->saveProfile(Request::post(), $this->view->user);
 
             if ($profile_id) {
                 $order_id = (new Order())->saveOrder(Request::post(), $cart, $profile_id);
