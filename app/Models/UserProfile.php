@@ -40,31 +40,18 @@ class UserProfile extends Model
     /**
      * Получает список профилей пользователя
      * @param int $user_id
-     * @param bool $active
-     * @param bool $object
-     * @return array|false
-     */
-    public static function getListByUser(int $user_id, bool $active = true, $object = true)
-    {
-        return ($user_id !== '2') ?
-            self::getListByUserId($user_id, $active, $object) :
-            self::getListByUserHash($_COOKIE['user'], $active, $object);
-    }
-
-    /**
-     * Получает список профилей по id пользователя
-     * @param int $user_id
+     * @param string $user_hash
      * @param bool $active
      * @param bool $object
      * @return array|false
      * @throws DbException
      */
-    public static function getListByUserId(int $user_id, bool $active = true, $object = true)
+    public static function getListByUser(int $user_id, string $user_hash, bool $active = true, $object = true)
     {
         $activity = !empty($active) ? 'AND up.active IS NOT NULL AND u.active IS NOT NULL AND u.blocked IS NULL' : '';
-        $params = [
-            ':user_id' => $user_id
-        ];
+        $params = [':user_id' => $user_id];
+        $userHash = $user_id === 2 ? 'AND up.user_hash = :user_hash' : '';
+        if ($user_id === 2) $params[':user_hash'] = $user_hash;
         $sql = "
             SELECT up.id, up.user_id, up.user_hash, up.user_type_id, 
                    up.city_id, c.name city, sn1.shortname city_shortname, 
@@ -86,50 +73,7 @@ class UserProfile extends Model
                 ON sn1.id = c.shortname_id 
             LEFT JOIN fias_shortnames sn2 
                 ON sn2.id = s.shortname_id 
-            WHERE up.user_id = :user_id {$activity}
-            ";
-        $db = new Db();
-        $data = $db->query($sql, $params, $object ? static::class : null);
-        return $data ?? false;
-    }
-
-    /**
-     * Получает список профилей по hash пользователя
-     * @param $user_hash
-     * @param bool $active
-     * @param bool $object
-     * @return array|false
-     * @throws DbException
-     */
-    public static function getListByUserHash($user_hash, bool $active = true, $object = true)
-    {
-        $activity = !empty($active) ? ' AND up.active IS NOT NULL AND u.active IS NOT NULL AND u.blocked IS NULL' : '';
-        $params = [
-            ':user_hash' => $user_hash
-        ];
-        $sql = "
-            SELECT up.id, up.user_id, up.user_hash, up.user_type_id, 
-                   up.city_id, c.name city, sn1.shortname city_shortname, 
-                   up.street_id, s.name street, sn2.shortname street_shortname, 
-                   up.house, up.building, up.flat, 
-                   up.phone, up.email, up.name, up.comment, 
-                   up.company, up.address_legal, up.inn, up.kpp, 
-                   up.created, up.updated,                   
-                   u.last_name AS user_last_name, u.name AS user_name, u.second_name AS user_second_name, 
-                   u.email AS user_email, u.phone AS user_phone 
-            FROM user_profiles up 
-            LEFT JOIN users u 
-                ON up.user_id = u.id 
-            LEFT JOIN fias_cities c 
-                ON c.id = up.city_id 
-            LEFT JOIN fias_streets s 
-                ON s.id = up.street_id 
-            LEFT JOIN fias_shortnames sn1 
-                ON sn1.id = c.shortname_id 
-            LEFT JOIN fias_shortnames sn2 
-                ON sn2.id = s.shortname_id
-            WHERE u.id = 2 AND up.user_hash = :user_hash {$activity}
-            ";
+            WHERE up.user_id = :user_id {$userHash} {$activity}";
         $db = new Db();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return $data ?? false;
@@ -166,7 +110,7 @@ class UserProfile extends Model
         $user_profile =
             (Request::post('p_profile') === '0') ?
                 (new UserProfile()) :
-                self::getByIdAndUserId(Request::post('p_profile'), $user->id);
+                self::getByIdUserId(Request::post('p_profile'), $user->id);
 
         $user_profile->active       = 1;
         $user_profile->user_id      = $user->id;
@@ -198,7 +142,7 @@ class UserProfile extends Model
         $user_profile =
             (Request::post('j_profile') === '0') ?
                 (new UserProfile()) :
-                self::getByIdAndUserId(Request::post('j_profile'), $user->id);
+                self::getByIdUserId(Request::post('j_profile'), $user->id);
 
         $user_profile->active = 1;
         $user_profile->user_id = $user->id;
@@ -229,35 +173,16 @@ class UserProfile extends Model
         return $profile_id;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    public static function getByIdAndUserId(int $id, int $user_id, bool $active = true, bool $object = true)
+    /**
+     * Возвращает профиль пользователя по его id
+     * @param int $id - id профиля
+     * @param int $user_id - id пользователя (используется для проверки привязки профиля данному пользователя)
+     * @param bool $active - активность
+     * @param bool $object - возвращать объект/массив
+     * @return false|mixed
+     * @throws DbException
+     */
+    public static function getByIdUserId(int $id, int $user_id, bool $active = true, bool $object = true)
     {
         $where = !empty($active) ? ' AND active IS NOT NULL' : '';
         $sql = "SELECT * FROM " . static::$table . " WHERE id = :id AND user_id = :user_id {$where}";

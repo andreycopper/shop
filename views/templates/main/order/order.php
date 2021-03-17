@@ -22,17 +22,19 @@ $second_name = !empty($this->user->second_name) ? $rsa->decrypt($this->user->sec
                     <a href="" class="order-item-title order-user">Покупатель</a>
 
                     <div class="order-item-container radio-container">
-                        <div class="order-user-type <?= $this->user->id === '2' ? 'hidden' : '' ?>">
-                            <label class="radio checked">
-                                <input type="radio" name="type" value="1" data-target="order-user-physical" class="required" checked>
-                                <span class="order-item-name">Физическое лицо</span>
-                            </label>
+                        <? if ($this->user->id !== '2'): ?>
+                            <div class="order-user-type">
+                                <label class="radio checked">
+                                    <input type="radio" name="type" value="1" data-target="order-user-physical" class="required" checked>
+                                    <span class="order-item-name">Физическое лицо</span>
+                                </label>
 
-                            <label class="radio">
-                                <input type="radio" name="type" value="2" class="required" data-target="order-user-juridical">
-                                <span class="order-item-name">Юридическое лицо</span>
-                            </label>
-                        </div>
+                                <label class="radio">
+                                    <input type="radio" name="type" value="2" class="required" data-target="order-user-juridical">
+                                    <span class="order-item-name">Юридическое лицо</span>
+                                </label>
+                            </div>
+                        <? endif; ?>
 
                         <div class="order-item-slider order-user-physical">
                             <? if ($this->user->id !== '2'): ?>
@@ -80,67 +82,69 @@ $second_name = !empty($this->user->second_name) ? $rsa->decrypt($this->user->sec
                             <div class="message_error"></div>
                         </div>
 
-                        <div class="order-item-slider order-user-juridical">
-                            <label for="j_profile">Профиль доставки</label>
-                            <select name="j_profile" id="j_profile" class="required">
-                                <option value="0" selected>Новый профиль</option>
-                                <? if (!empty($this->profiles) && is_array($this->profiles)):
-                                    foreach ($this->profiles as $profile):
-                                        if ($profile->user_type_id !== '2') continue; ?>
-                                        <option value="<?= $profile->id ?>"
-                                                data-user_type_id="<?= $profile->user_type_id ?>"
-                                                data-j_name="<?= ($rsa)->decrypt($profile->name) ?>"
-                                                data-j_email="<?= $profile->email ?>"
-                                                data-j_phone="<?= $profile->phone ?>"
-                                                data-index=""
-                                                data-city_id="<?= $profile->city_id ?>"
-                                                data-city="<?= $profile->city ?>"
-                                                data-street_id="<?= $profile->street_id ?>"
-                                                data-street="<?= $profile->street ?>"
-                                                data-house="<?= $profile->house ?>"
-                                                data-building="<?= $profile->building ?>"
-                                                data-flat="<?= $profile->flat ?>"
-                                                data-comment="<?= $profile->comment ?>"
-                                                data-company='<?= $profile->company ?>'
-                                                data-j_address="<?= $profile->address_legal ?>"
-                                                data-inn="<?= $profile->inn ?>"
-                                                data-kpp="<?= $profile->kpp ?>"
-                                        >
-                                            <?= $profile->company . ', ' . $profile->city . ', ' . $profile->street . ', ' . $profile->house ?>
-                                        </option>
-                                    <? endforeach;
-                                endif; ?>
-                            </select>
-                            <div class="message_error"></div>
+                        <? if ($this->user->id !== '2'): ?>
+                            <div class="order-item-slider order-user-juridical">
+                                <label for="j_profile">Профиль доставки</label>
+                                <select name="j_profile" id="j_profile" class="required">
+                                    <option value="0" selected>Новый профиль</option>
+                                    <? if (!empty($this->profiles) && is_array($this->profiles)):
+                                        foreach ($this->profiles as $profile):
+                                            if ($profile->user_type_id !== '2') continue; ?>
+                                            <option value="<?= $profile->id ?>"
+                                                    data-user_type_id="<?= $profile->user_type_id ?>"
+                                                    data-j_name="<?= ($rsa)->decrypt($profile->name) ?>"
+                                                    data-j_email="<?= $profile->email ?>"
+                                                    data-j_phone="<?= $profile->phone ?>"
+                                                    data-index=""
+                                                    data-city_id="<?= $profile->city_id ?>"
+                                                    data-city="<?= $profile->city ?>"
+                                                    data-street_id="<?= $profile->street_id ?>"
+                                                    data-street="<?= $profile->street ?>"
+                                                    data-house="<?= $profile->house ?>"
+                                                    data-building="<?= $profile->building ?>"
+                                                    data-flat="<?= $profile->flat ?>"
+                                                    data-comment="<?= $profile->comment ?>"
+                                                    data-company='<?= $profile->company ?>'
+                                                    data-j_address="<?= $profile->address_legal ?>"
+                                                    data-inn="<?= $profile->inn ?>"
+                                                    data-kpp="<?= $profile->kpp ?>"
+                                            >
+                                                <?= $profile->company . ', ' . $profile->city . ', ' . $profile->street . ', ' . $profile->house ?>
+                                            </option>
+                                        <? endforeach;
+                                    endif; ?>
+                                </select>
+                                <div class="message_error"></div>
 
-                            <label for="j_name">Контактное лицо <span class="red">*</span></label>
-                            <input type="text" name="j_name" id="j_name" value="<?= ($last_name . ' ' . $name . ' ' . $second_name) ?>" class="required">
-                            <div class="message_error"></div>
+                                <label for="j_name">Контактное лицо <span class="red">*</span></label>
+                                <input type="text" name="j_name" id="j_name" value="<?= ($last_name . ' ' . $name . ' ' . $second_name) ?>" class="required">
+                                <div class="message_error"></div>
 
-                            <label for="j_email">E-mail <span class="red">*</span></label>
-                            <input type="text" name="j_email" id="j_email" value="<?= $this->user->email ?? '' ?>" class="required">
-                            <div class="message_error"></div>
+                                <label for="j_email">E-mail <span class="red">*</span></label>
+                                <input type="text" name="j_email" id="j_email" value="<?= $this->user->email ?? '' ?>" class="required">
+                                <div class="message_error"></div>
 
-                            <label for="j_phone">Телефон <span class="red">*</span></label>
-                            <input type="text" name="j_phone" id="j_phone" value="<?= $this->user->phone ?? '' ?>" class="required">
-                            <div class="message_error"></div>
+                                <label for="j_phone">Телефон <span class="red">*</span></label>
+                                <input type="text" name="j_phone" id="j_phone" value="<?= $this->user->phone ?? '' ?>" class="required">
+                                <div class="message_error"></div>
 
-                            <label for="company">Название компании <span class="red">*</span></label>
-                            <input type="text" name="company" id="company" class="required">
-                            <div class="message_error"></div>
+                                <label for="company">Название компании <span class="red">*</span></label>
+                                <input type="text" name="company" id="company" class="required">
+                                <div class="message_error"></div>
 
-                            <label for="j_address">Юридический адрес <span class="red">*</span></label>
-                            <input type="text" name="j_address" id="j_address" class="required">
-                            <div class="message_error"></div>
+                                <label for="j_address">Юридический адрес <span class="red">*</span></label>
+                                <input type="text" name="j_address" id="j_address" class="required">
+                                <div class="message_error"></div>
 
-                            <label for="inn">ИНН <span class="red">*</span></label>
-                            <input type="text" name="inn" id="inn" class="required">
-                            <div class="message_error"></div>
+                                <label for="inn">ИНН <span class="red">*</span></label>
+                                <input type="text" name="inn" id="inn" class="required">
+                                <div class="message_error"></div>
 
-                            <label for="kpp">КПП</label>
-                            <input type="text" name="kpp" id="kpp">
-                            <div class="message_error"></div>
-                        </div>
+                                <label for="kpp">КПП</label>
+                                <input type="text" name="kpp" id="kpp">
+                                <div class="message_error"></div>
+                            </div>
+                        <? endif; ?>
                     </div>
                 </div>
 

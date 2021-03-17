@@ -66,9 +66,8 @@ class Cart extends Controller
 
             $result = OrderItem::recalc($this->view->user, intval($product['id']), intval($product['count']));
 
-            if ($result) {
-                self::returnSuccess('Товар пересчитан', $result, Request::isAjax());
-            }
+            if ($result) self::returnSuccess('Товар пересчитан', $result, Request::isAjax());
+            else self::returnError('Не удалось сделать пересчет корзины', Request::isAjax());
         }
     }
 

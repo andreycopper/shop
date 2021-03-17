@@ -40,12 +40,12 @@
                             <div class="basket-order-total">Итого:</div>
                             <div class="basket-order-price">
                                 <span>
-                                    <?= $this->cart['discount_sum'] ?
-                                        number_format($this->cart['discount_sum'], 0, '.', ' ') :
+                                    <?= $this->cart['economy'] > 0 ?
+                                        number_format($this->cart['sum_discount'], 0, '.', ' ') :
                                         number_format($this->cart['sum'], 0, '.', ' ') ?>
                                 </span> <?= CURRENCY ?>
                             </div>
-                            <? if (!empty($this->cart['discount_sum'])): ?>
+                            <? if ($this->cart['economy'] > 0): ?>
                                 <div class="basket-order-oldprice">
                                     <b><span><?= number_format($this->cart['sum'], 0, '.', ' ') ?></span> <?= CURRENCY ?></b>
                                 </div>
@@ -53,12 +53,12 @@
                                     Экономия <b><span><?= number_format($this->cart['economy'], 0, '.', ' ') ?></span> <?= CURRENCY ?></b>
                                 </div>
                             <? endif; ?>
-                            <? if ($this->cart['sum_nds'] || $this->cart['discount_sum_nds']): ?>
+                            <? if ($this->cart['sum_nds'] || $this->cart['sum_discount_nds']): ?>
                                 <div class="basket-order-nds">
                                     В т.ч. НДС:
                                     <span>
-                                        <?= $this->cart['discount_sum_nds'] ?
-                                            number_format($this->cart['discount_sum_nds'], 2, '.', ' ') :
+                                        <?= $this->cart['sum_discount_nds'] ?
+                                            number_format($this->cart['sum_discount_nds'], 2, '.', ' ') :
                                             number_format($this->cart['sum_nds'], 2, '.', ' ') ?>
                                     </span> <?= CURRENCY ?>
                                 </div>
@@ -120,12 +120,12 @@
                                     <div class="basket-item-prices">
                                         <div class="basket-item-price">
                                             <span>
-                                                <?= $cart_item->discount_price ?
-                                                        number_format($cart_item->discount_price, 0, '.', ' ') :
+                                                <?= $cart_item->price_discount ?
+                                                        number_format($cart_item->price_discount, 0, '.', ' ') :
                                                         number_format($cart_item->price, 0, '.', ' ') ?>
                                             </span> <?= CURRENCY ?>
                                         </div>
-                                        <? if (!empty($cart_item->discount_price)): ?>
+                                        <? if (!empty($cart_item->price_discount)): ?>
                                             <div class="basket-item-oldprice">
                                                 <span><?= number_format($cart_item->price, 0, '.', ' ') ?></span> <?= CURRENCY ?>
                                             </div>
@@ -148,12 +148,12 @@
                                     <div class="basket-item-total">
                                         <div class="basket-item-totalprice">
                                             <span>
-                                                <?= $cart_item->discount_sum ?
-                                                        number_format($cart_item->discount_sum, 0, '.', ' ') :
+                                                <?= $cart_item->sum_discount ?
+                                                        number_format($cart_item->sum_discount, 0, '.', ' ') :
                                                         number_format($cart_item->sum, 0, '.', ' ') ?>
                                             </span> <?= CURRENCY ?>
                                         </div>
-                                        <? if (!empty($cart_item->discount_price)): ?>
+                                        <? if (!empty($cart_item->price_discount)): ?>
                                             <div class="basket-item-oldtotalprice">
                                                 <span><?= number_format($cart_item->sum, 0, '.', ' ') ?></span> <?= CURRENCY ?>
                                             </div>
@@ -198,11 +198,11 @@
                                 <div class="basket-item-values">
                                     <div class="basket-item-prices">
                                         <div class="basket-item-price">
-                                            <?= $absent_item->discount_price ?
-                                                number_format($absent_item->discount_price, 0, '.', ' ')  :
+                                            <?= $absent_item->price_discount ?
+                                                number_format($absent_item->price_discount, 0, '.', ' ')  :
                                                 number_format($absent_item->price, 0, '.', ' ') ?> <?= CURRENCY ?>
                                         </div>
-                                        <? if (!empty($absent_item->discount_price)): ?>
+                                        <? if (!empty($absent_item->price_discount)): ?>
                                             <div><span class="basket-item-oldprice"><?= number_format($absent_item->price, 0, '.', ' ') ?> <?= CURRENCY ?></span></div>
                                         <? endif; ?>
                                         <div class="basket-item-measure">цена за 1 <?= $absent_item->unit ?></div>
@@ -220,17 +220,17 @@
                                     </div>
                                     <div class="basket-item-total">
                                         <div class="basket-item-totalprice">
-                                            <?= $absent_item->discount_sum ?
-                                                number_format($absent_item->discount_sum, 0, '.', ' ') :
+                                            <?= $absent_item->sum_discount ?
+                                                number_format($absent_item->sum_discount, 0, '.', ' ') :
                                                 number_format($absent_item->sum, 0, '.', ' ') ?> <?= CURRENCY ?>
                                         </div>
-                                        <? if (!empty($absent_item->discount_price)): ?>
+                                        <? if (!empty($absent_item->price_discount)): ?>
                                             <div>
                                                 <span class="basket-item-oldtotalprice"><?= number_format($absent_item->sum, 0, '.', ' ') ?> <?= CURRENCY ?></span>
                                             </div>
                                             <div class="basket-item-economy">
                                                 Экономия<br>
-                                                <span><?= number_format($absent_item->sum - $absent_item->discount_sum, 0, '.', ' ') ?> <?= CURRENCY ?></span>
+                                                <span><?= number_format($absent_item->sum - $absent_item->sum_discount, 0, '.', ' ') ?> <?= CURRENCY ?></span>
                                             </div>
                                         <? endif; ?>
                                     </div>
@@ -314,12 +314,12 @@
                             <div class="basket-order-total">Итого:</div>
                             <div class="basket-order-price">
                                 <span>
-                                    <?= $this->cart['discount_sum'] ?
-                                        number_format($this->cart['discount_sum'], 0, '.', ' ') :
+                                    <?= $this->cart['economy'] > 0 ?
+                                        number_format($this->cart['sum_discount'], 0, '.', ' ') :
                                         number_format($this->cart['sum'], 0, '.', ' ') ?>
                                 </span> <?= CURRENCY ?>
                             </div>
-                            <? if (!empty($this->cart['discount_sum'])): ?>
+                            <? if ($this->cart['economy'] > 0): ?>
                                 <div class="basket-order-oldprice">
                                     <b><span><?= number_format($this->cart['sum'], 0, '.', ' ') ?></span> <?= CURRENCY ?></b>
                                 </div>
@@ -327,12 +327,12 @@
                                     Экономия <b><span><?= number_format($this->cart['economy'], 0, '.', ' ') ?></span> <?= CURRENCY ?></b>
                                 </div>
                             <? endif; ?>
-                            <? if ($this->cart['sum_nds'] || $this->cart['discount_sum_nds']): ?>
+                            <? if ($this->cart['sum_nds'] || $this->cart['sum_discount_nds']): ?>
                                 <div class="basket-order-nds">
                                     В т.ч. НДС:
                                     <span>
-                                        <?= $this->cart['discount_sum_nds'] ?
-                                            number_format($this->cart['discount_sum_nds'], 2, '.', ' ') :
+                                        <?= $this->cart['sum_discount_nds'] ?
+                                            number_format($this->cart['sum_discount_nds'], 2, '.', ' ') :
                                             number_format($this->cart['sum_nds'], 2, '.', ' ') ?>
                                     </span> <?= CURRENCY ?>
                                 </div>

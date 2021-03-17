@@ -25,12 +25,12 @@ class OrderItem extends Model
     public $tax;                // размер налога
     public $price;              // цена
     public $price_nds;          // НДС цены
+    public $price_discount;     // цена со скидкой
+    public $price_discount_nds; // НДС цены со скидкой
     public $sum;                // сумма
     public $sum_nds;            // НДС суммы
-    public $discount_price;     // цена со скидкой
-    public $discount_price_nds; // НДС цены со скидкой
-    public $discount_sum;       // сумма со скидкой
-    public $discount_sum_nds;   // НДС суммы со скидкой
+    public $sum_discount;       // сумма со скидкой
+    public $sum_discount_nds;   // НДС суммы со скидкой
     public $created;            // дата создания записи
     public $updated;            // дата создания записи
 
@@ -50,8 +50,8 @@ class OrderItem extends Model
             $count_items = 0;
             $sum = 0;
             $sum_nds = 0;
-            $discount_sum = 0;
-            $discount_sum_nds = 0;
+            $sum_discount = 0;
+            $sum_discount_nds = 0;
             $absent = [];
 
             foreach ($items as $key => $item) {
@@ -72,10 +72,10 @@ class OrderItem extends Model
                     $item->sum_nds = null;
                     $item->updated = date('Y-m-d');
                     $item->discount = null;
-                    $item->discount_price = null;
-                    $item->discount_price_nds = null;
-                    $item->discount_sum = null;
-                    $item->discount_sum_nds = null;
+                    $item->price_discount = null;
+                    $item->price_discount_nds = null;
+                    $item->sum_discount = null;
+                    $item->sum_discount_nds = null;
                     $item->economy = null;
 
                     if (!empty($product->tax_value)) { // НДС
@@ -86,14 +86,14 @@ class OrderItem extends Model
 
                     if (!empty($product->discount)) { // скидка
                         $item->discount = $product->discount;
-                        $item->discount_price = round($item->price * (100 - $item->discount) / 100);
-                        $item->discount_sum = $item->discount_price * $item->count;
-                        $item->economy = $item->price - $item->discount_price;
-                        $item->sum_economy = $item->sum - $item->discount_sum;
+                        $item->price_discount = round($item->price * (100 - $item->discount) / 100);
+                        $item->sum_discount = $item->price_discount * $item->count;
+                        $item->economy = $item->price - $item->price_discount;
+                        $item->sum_economy = $item->sum - $item->sum_discount;
 
                         if (!empty($item->tax)) { // НДС
-                            $item->discount_price_nds = round($item->discount_price * $item->tax / (100 + $item->tax), 4);
-                            $item->discount_sum_nds = round($item->discount_sum * $item->tax / (100 + $item->tax), 4);
+                            $item->price_discount_nds = round($item->price_discount * $item->tax / (100 + $item->tax), 4);
+                            $item->sum_discount_nds = round($item->sum_discount * $item->tax / (100 + $item->tax), 4);
                         }
                     }
 
@@ -103,8 +103,8 @@ class OrderItem extends Model
                 $count_items += $item->count;
                 $sum += $item->sum;
                 $sum_nds += $item->sum_nds ?: 0;
-                $discount_sum += $item->discount_sum ?: 0;
-                $discount_sum_nds += $item->discount_sum_nds ?: 0;
+                $sum_discount += $item->sum_discount ?: $item->sum;
+                $sum_discount_nds += $item->sum_discount_nds ?: $item->sum_nds;
             }
 
             $result = [
@@ -114,13 +114,14 @@ class OrderItem extends Model
                 'count_absent'     => count($absent),
                 'sum'              => $sum,
                 'sum_nds'          => $sum_nds,
-                'discount_sum'     => $discount_sum,
-                'discount_sum_nds' => $discount_sum_nds,
-                'economy'          => $sum - $discount_sum,
+                'sum_discount'     => $sum_discount,
+                'sum_discount_nds' => $sum_discount_nds,
+                'economy'          => $sum - $sum_discount,
                 'coupon'           => $coupon ?? null,
                 'message'          => $message ?? ''
             ];
         }
+
         return $result ?? false;
     }
 
@@ -164,9 +165,9 @@ class OrderItem extends Model
         if ($user_id === 2) $params['user_hash'] = $user_hash;
         $sql = "
             SELECT oi.id, oi.order_id, oi.user_id, oi.user_hash, oi.product_id, oi.price_type_id, oi.count, oi.coupon_id, 
-                   oi.discount, oi.price, oi.price_nds, oi.sum, oi.sum_nds, oi.discount_price, oi.discount_price_nds, 
-                   oi.discount_sum_nds, oi.discount_sum, (oi.price - oi.discount_price) economy, 
-                   (oi.sum - oi.discount_sum) sum_economy, oi.created, oi.updated 
+                   oi.discount, oi.price, oi.price_nds, oi.sum, oi.sum_nds, oi.price_discount, oi.price_discount_nds, 
+                   oi.sum_discount_nds, oi.sum_discount, (oi.price - oi.price_discount) economy, 
+                   (oi.sum - oi.sum_discount) sum_economy, oi.created, oi.updated 
             FROM order_items oi 
             WHERE oi.user_id = :user_id AND oi.product_id = :product_id {$userHash} AND oi.order_id IS NULL";
         $db = new Db();
@@ -191,9 +192,9 @@ class OrderItem extends Model
         if ($user_id === 2) $params[':user_hash'] = $user_hash;
         $sql = "
             SELECT oi.id, oi.order_id, oi.user_id, oi.user_hash, oi.product_id, oi.price_type_id, oi.count, oi.coupon_id, 
-                   oi.discount, oi.price, oi.price_nds, oi.sum, oi.sum_nds, oi.discount_price, oi.discount_price_nds, 
-                   oi.discount_sum_nds, oi.discount_sum, (oi.price - oi.discount_price) economy, 
-                   (oi.sum - oi.discount_sum) sum_economy, oi.created, oi.updated, 
+                   oi.discount, oi.price, oi.price_nds, oi.sum, oi.sum_nds, oi.price_discount, oi.price_discount_nds, 
+                   oi.sum_discount_nds, oi.sum_discount, (oi.price - oi.price_discount) economy, 
+                   (oi.sum - oi.sum_discount) sum_economy, oi.created, oi.updated, 
                    pt.name AS price_type, 
                    t.value AS tax,
                    p.name, p.preview_image, p.quantity,
@@ -269,12 +270,12 @@ class OrderItem extends Model
         if (!empty($product->discount)) { // скидка
             $item->discount = floatval($product->discount);
 
-            $item->discount_price = round($item->price * (100 - $product->discount) / 100);
-            $item->discount_sum = $item->discount_price * $count;
+            $item->price_discount = round($item->price * (100 - $product->discount) / 100);
+            $item->sum_discount = $item->price_discount * $count;
 
             if (!empty($item->tax)) { // НДС
-                $item->discount_price_nds = round($item->discount_price * $item->tax / (100 + $item->tax), 4);
-                $item->discount_sum_nds = round($item->discount_sum * $item->tax / (100 + $item->tax), 4);
+                $item->price_discount_nds = round($item->price_discount * $item->tax / (100 + $item->tax), 4);
+                $item->sum_discount_nds = round($item->sum_discount * $item->tax / (100 + $item->tax), 4);
             }
         }
 
@@ -392,20 +393,20 @@ class OrderItem extends Model
                 'item_sum'                => number_format($item->sum, 0, '.', ' '),
                 'item_sum_nds'            => $item->sum_nds ? number_format($item->sum_nds, 2, '.', ' ') : null,
                 // цена товара со скидкой и НДС
-                'item_discount_price'     => $item->discount_price ? number_format($item->discount_price, 0, '.', ' ') : null,
-                'item_discount_price_nds' => $item->discount_price_nds ? number_format($item->discount_price_nds, 2, '.', ' ') : null,
+                'item_price_discount'     => $item->price_discount ? number_format($item->price_discount, 0, '.', ' ') : null,
+                'item_price_discount_nds' => $item->price_discount_nds ? number_format($item->price_discount_nds, 2, '.', ' ') : null,
                 // сумма товара со скидкой и НДС
-                'item_discount_sum'       => $item->discount_sum ? number_format($item->discount_sum, 0, '.', ' ') : null,
-                'item_discount_sum_nds'   => $item->discount_sum_nds ? number_format($item->discount_sum_nds, 2, '.', ' ') : null,
+                'item_sum_discount'       => $item->sum_discount ? number_format($item->sum_discount, 0, '.', ' ') : null,
+                'item_sum_discount_nds'   => $item->sum_discount_nds ? number_format($item->sum_discount_nds, 2, '.', ' ') : null,
                 // экономия с цены и суммы
-                'item_economy'            => $item->discount_sum ? number_format($item->economy, 0, '.', ' ') : null,
+                'item_economy'            => $item->sum_discount ? number_format($item->economy, 0, '.', ' ') : null,
                 'item_sum_economy'        => $item->sum_economy ? number_format($item->sum_economy, 0, '.', ' ') : null,
                 // сумма корзины и НДС
                 'cart_sum'                => $cart['sum'] ? number_format($cart['sum'], 0, '.', ' ') : null,
                 'cart_sum_nds'            => $cart['sum_nds'] ? number_format($cart['sum_nds'], 0, '.', ' ') : null,
                 // сумма корзина со скидкой и НДС
-                'cart_discount_sum'       => $cart['discount_sum'] ? number_format($cart['discount_sum'], 0, '.', ' ') : null,
-                'cart_discount_sum_nds'   => $cart['discount_sum_nds'] ? number_format($cart['discount_sum_nds'], 2, '.', ' ') : null,
+                'cart_sum_discount'       => $cart['sum_discount'] ? number_format($cart['sum_discount'], 0, '.', ' ') : null,
+                'cart_sum_discount_nds'   => $cart['sum_discount_nds'] ? number_format($cart['sum_discount_nds'], 2, '.', ' ') : null,
                 // экономия с корзины
                 'cart_economy'            => $cart['economy'] ? number_format($cart['economy'], 0, '.', ' ') : null,
                 // количество товаров в корзине
@@ -413,14 +414,7 @@ class OrderItem extends Model
                 // сообщение
                 'message'                 => $cart['message'],
             ];
-
-
-
-//            if ($isAjax) {
-//                echo json_encode($result);
-//                die;
-//            } else return true;
-        } //else $message = 'Не удалось обновить корзину';
+        }
 
         return $result ?? false;
     }

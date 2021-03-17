@@ -86,21 +86,21 @@ function recalcProduct(product_id, count, elem) {
                 removeNotification();
             } else {
                 // цена за единицу
-                elem.find('.basket-item-price span').html(data.data.item_discount_price ? data.data.item_discount_price : data.data.item_price);
-                elem.find('.basket-item-oldprice span').html(data.data.item_discount_price ? data.data.item_price : '');
+                elem.find('.basket-item-price span').html(data.data.item_price_discount ? data.data.item_price_discount : data.data.item_price);
+                elem.find('.basket-item-oldprice span').html(data.data.item_price_discount ? data.data.item_price : '');
                 // сумма
-                elem.find('.basket-item-totalprice span').html(data.data.item_discount_sum ? data.data.item_discount_sum : data.data.item_sum);
-                elem.find('.basket-item-oldtotalprice span').html(data.data.item_discount_sum ? data.data.item_sum : '');
+                elem.find('.basket-item-totalprice span').html(data.data.item_sum_discount ? data.data.item_sum_discount : data.data.item_sum);
+                elem.find('.basket-item-oldtotalprice span').html(data.data.item_sum_discount ? data.data.item_sum : '');
                 // экономия
                 elem.find('.basket-item-economy span').html(data.data.item_sum_economy ? data.data.item_sum_economy : '');
 
                 // сумма корзины
-                $('.basket-order-price span').html(data.data.cart_discount_sum ? data.data.cart_discount_sum : data.data.cart_sum);
-                $('.basket-order-oldprice span').html(data.data.cart_discount_sum ? data.data.cart_sum : '');
+                $('.basket-order-price span').html(data.data.cart_sum_discount ? data.data.cart_sum_discount : data.data.cart_sum);
+                $('.basket-order-oldprice span').html(data.data.cart_sum_discount ? data.data.cart_sum : '');
                 // экономия корзины
                 $('.basket-order-economy span').html(data.data.cart_economy ? data.data.cart_economy : '');
                 // НДС корзины
-                $('.basket-order-nds span').html(data.data.cart_discount_sum_nds ? data.data.cart_discount_sum_nds : (data.data.cart_sum_nds ? data.data.cart_sum_nds : ''));
+                $('.basket-order-nds span').html(data.data.cart_sum_discount_nds ? data.data.cart_sum_discount_nds : (data.data.cart_sum_nds ? data.data.cart_sum_nds : ''));
                 // количество в корзине
                 $('.basket-order-total-count').html(data.data.count);
 
