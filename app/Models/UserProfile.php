@@ -81,31 +81,27 @@ class UserProfile extends Model
 
     /**
      * Сохранение профиля пользователя
-     * @param array $form
-     * @param User $user
+     * @param array $form - форма с данными
+     * @param User $user - пользователь
      * @param int $user_type
-     * @param bool $isAjax
      * @return bool|int
      * @throws DbException
-     * @throws UserException
      */
-    public function saveProfile(array $form, User $user, int $user_type, bool $isAjax)
+    public function saveProfile(array $form, User $user, int $user_type)
     {
-        if ($user_type === 1) return $this->savePhisicalProfile($form, $user, $isAjax);
-        elseif ($user_type === 2) return $this->saveJuridicalProfile($form, $user, $isAjax);
+        if ($user_type === 1) return $this->savePhisicalProfile($form, $user);
+        elseif ($user_type === 2) return $this->saveJuridicalProfile($form, $user);
         return false;
     }
 
     /**
      * Сохранение профиля физического лица
-     * @param array $form
-     * @param User $user
-     * @param bool $isAjax
+     * @param array $form - форма с данными
+     * @param User $user - пользователь
      * @return bool|int
      * @throws DbException
-     * @throws UserException
      */
-    protected function savePhisicalProfile(array $form, User $user, bool $isAjax)
+    protected function savePhisicalProfile(array $form, User $user)
     {
         $user_profile =
             (Request::post('p_profile') === '0') ?
@@ -132,12 +128,17 @@ class UserProfile extends Model
         }
 
         $profile_id = $user_profile->save();
-
-        if (!$profile_id) self::returnError('Не удалось сохранить профиль пользователя', $isAjax);
-        return $profile_id;
+        return $profile_id ?? false;
     }
 
-    protected function saveJuridicalProfile($form, $user, $isAjax)
+    /**
+     * Сохранение профиля юридического лица
+     * @param $form - форма с данными
+     * @param $user - пользователь
+     * @return bool|int
+     * @throws DbException
+     */
+    protected function saveJuridicalProfile($form, $user)
     {
         $user_profile =
             (Request::post('j_profile') === '0') ?
@@ -168,9 +169,7 @@ class UserProfile extends Model
         }
 
         $profile_id = $user_profile->save();
-
-        if (!$profile_id) self::returnError('Не удалось сохранить профиль пользователя', $isAjax);
-        return $profile_id;
+        return $profile_id ?? false;
     }
 
     /**
