@@ -113,7 +113,9 @@
             <div class="product-main">
                 <div class="product-photo">
                     <div class="product-photo-main">
-                        <a href=""><img src="/uploads/catalog/<?=$item->id?>/<?=$item->detail_image?>" alt=""></a>
+                        <a href="/uploads/catalog/<?= $item->id ?>/<?= $item->detail_image ?>" data-lightbox="<?= $item->name ?>" data-title="<?= $item->name ?>">
+                            <img src="/uploads/catalog/<?= $item->id ?>/<?= $item->detail_image ?>" alt="">
+                        </a>
                         <div class="product-item-stickers">
                             <? if (!empty($item->hit)): ?>
                                 <span class="stickers sticker-hit">Хит</span>
@@ -129,28 +131,25 @@
                             <? endif; ?>
                             <? if (!empty($item->discount)): ?>
                                 <span class="stickers sticker-sale">Sale</span>
-                                <span class="stickers sticker-discount"><?=$item->discount?>%</span>
+                                <span class="stickers sticker-discount"><?= $item->discount ?>%</span>
                             <? endif; ?>
                         </div>
                         <div class="product-item-like">
-                            <div class="like product-item-wish" data-id="<?=$item->id?>" title="В избранное"></div>
-                            <div class="like product-item-compare" data-id="<?=$item->id?>" title="Сравнить"></div>
+                            <div class="like product-item-wish" data-id="<?= $item->id ?>" title="В избранное"></div>
+                            <div class="like product-item-compare" data-id="<?= $item->id ?>" title="Сравнить"></div>
                         </div>
                         <div class="product-view"></div>
                     </div>
                     <div class="product-slide">
-                        <div class="product-slide-item">
-                            <a href=""><img src="/uploads/catalog/1/1.jpeg" alt=""></a>
-                        </div>
-                        <div class="product-slide-item">
-                            <a href=""><img src="/uploads/catalog/1/a4f71e62d730945d560214bdb722107c.jpeg" alt=""></a>
-                        </div>
-                        <div class="product-slide-item">
-                            <a href=""><img src="/uploads/catalog/1/b3a635fbcd74979a65f32a050e082815.jpg" alt=""></a>
-                        </div>
-                        <div class="product-slide-item">
-                            <a href=""><img src="/uploads/catalog/1/1.jpeg" alt=""></a>
-                        </div>
+                        <? if (!empty($item->images) && is_array($item->images)):
+                            foreach ($item->images as $image): ?>
+                                <div class="product-slide-item left">
+                                    <a href="/uploads/catalog/<?= $item->id ?>/<?= $image->image ?>" data-lightbox="<?= $item->name ?>" data-title="<?= $item->name ?>">
+                                        <img src="/uploads/catalog/<?= $item->id ?>/<?= $image->image ?>" alt="">
+                                    </a>
+                                </div>
+                            <? endforeach;
+                        endif; ?>
                     </div>
                 </div>
                 <div class="product-info">
@@ -162,11 +161,11 @@
                             <span class="star star-inactive"></span>
                             <span class="star star-inactive"></span>
                         </div>
-                        <div class="product-articul">Артикул: <?=$item->articul?></div>
+                        <div class="product-articul">Артикул: <?= $item->articul ?></div>
                         <? if (!empty($item->vendor_image)): ?>
                             <div class="product-vendor">
                                 <a href="/vendors/<?=mb_strtolower($item->vendor)?>">
-                                    <img src="/uploads/vendor/<?=$item->vendor_image?>" alt="">
+                                    <img src="/uploads/vendor/<?= $item->vendor_image ?>" alt="">
                                 </a>
                             </div>
                         <? endif; ?>

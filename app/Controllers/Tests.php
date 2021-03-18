@@ -81,4 +81,9 @@ class Tests extends Controller
         var_dump($decode2);
         var_dump($decode3);
     }
+
+    protected function actionImages()
+    {
+        Test::images();
+    }
 }

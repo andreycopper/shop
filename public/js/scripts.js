@@ -12,6 +12,21 @@ $(function () {
     /* Маска для ввода телефона */
     $('input[name=phone]').inputmask({'mask': '+7 (999) 999-99-99'});
 
+    $('.product-slide').slick({
+        arrows: true,
+        infinite: false,
+        slidesToShow: 4,
+        slidesToScroll: 1,
+        // centerMode: true,
+        // centerPadding: '2px',
+    });
+
+    lightbox.option({
+        'albumLabel': '%1 / %2',
+        'showImageNumberLabel': false,
+        'alwaysShowNavOnTouchDevices': true
+    })
+
     /* открытие таба по хэшу в адресной строке */
     if (window.location.hash) {
         let target = '#' + window.location.hash.slice(1),

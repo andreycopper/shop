@@ -8,6 +8,41 @@ use Exceptions\DbException;
 class Product extends Model
 {
     protected static $table = 'products';
+    public $id;
+    public $xml_id;
+    public $ie_id;
+    public $name;
+    public $active;
+    public $active_from;
+    public $active_to;
+    public $articul;
+    public $group_id;
+    public $vendor_id;
+    public $preview_image;
+    public $preview_text;
+    public $preview_text_type_id;
+    public $detail_image;
+    public $detail_text;
+    public $detail_text_type_id;
+    public $is_hit;
+    public $is_new;
+    public $is_action;
+    public $is_recommend;
+    public $tax_id;
+    public $tax_included;
+    public $quantity;
+    public $quantity_from;
+    public $quantity_to;
+    public $discount;
+    public $price;
+    public $currency_id;
+    public $unit_id;
+    public $warranty;
+    public $warranty_period_id;
+    public $views;
+    public $sort;
+    public $created;
+    public $updated;
 
     /**
      * Возвращает список товаров определенной группы с ценой
@@ -25,7 +60,7 @@ class Product extends Model
         $items = self::getListByGroup($group, $order, $sort, $active, $object);
         if (!empty($items) && is_array($items)) {
             foreach ($items as $key => $item) {
-                $item->price = self::getPrice($item->id, $price_type, $active);
+                $item->price = ProductPrice::getPrice($item->id, $price_type, $active);
             }
         }
         return $items ?: false;
@@ -47,7 +82,7 @@ class Product extends Model
         $items = self::getListByGroup($group, $order, $sort, $active, $object);
         if (!empty($items) && is_array($items)) {
             foreach ($items as $key => $item) {
-                $item->prices = self::getPrices($item->id, $price_type, $active);
+                $item->prices = ProductPrice::getPrices($item->id, $price_type, $active);
             }
         }
         return $items ?: false;
@@ -65,7 +100,7 @@ class Product extends Model
     public static function getPriceItem(int $id, int $price_type = 2, bool $active = true, bool $object = true)
     {
         $item = self::getById($id, $active, $object);
-        if (!empty($item)) $item->price = self::getPrice($id, $price_type, $active);
+        if (!empty($item)) $item->price = ProductPrice::getPrice($id, $price_type, $active);
         return $item ?: false;
     }
 
@@ -81,72 +116,14 @@ class Product extends Model
     public static function getPricesItem(int $id, array $price_type = [], bool $active = true, bool $object = true)
     {
         $item = self::getById($id, $active, $object);
-        if (!empty($item)) $item->prices = self::getPrices($id, $price_type, $active);
+        if (!empty($item)) {
+            $item->prices = ProductPrice::getPrices($id, $price_type, $active);
+            $item->images = ProductImage::getByProductId($id);
+        }
         return $item ?: false;
     }
 
-    /**
-     * Возвращает цену определенного типа по id товара
-     * @param int $product_id - id товара
-     * @param int $price_type_id - тип цены
-     * @param bool $object - возвращать объект/массив
-     * @return false|mixed
-     * @throws DbException
-     */
-    public static function getPrice(int $product_id, int $price_type_id, bool $object = true)
-    {
-        $params = [
-            ':product_id' => $product_id,
-            ':price_type_id' => $price_type_id
-        ];
-        $sql = "
-            SELECT 
-                pp.price_type_id, 
-                pt.name price_type, 
-                ROUND(pp.price * cr.rate) price, 
-                cr.rate, 
-                c.iso, c.logo, c.sign currency 
-            FROM product_prices pp 
-            LEFT JOIN currency_rates cr ON pp.currency_id = cr.currency_id 
-            LEFT JOIN currencies c ON c.id = 1 
-            LEFT JOIN price_types pt ON pp.price_type_id = pt.id 
-            WHERE product_id = :product_id AND pp.price_type_id = :price_type_id";
 
-        $db = new Db();
-        $res = $db->query($sql, $params, $object ? static::class : null);
-        return $res ? array_shift($res) : false;
-    }
-
-    /**
-     * Возвращает цены определенного типа по id товара
-     * @param int $product_id - id товара
-     * @param array $price_type - массив типов цен (пустой массив - все типы цен)
-     * @param bool $object - возвращать объект/массив
-     * @return false|mixed
-     * @throws DbException
-     */
-    public static function getPrices(int $product_id, array $price_type = [], bool $object = true)
-    {
-        $price_types = !empty($price_type) ? ('AND pp.price_type_id IN (' . implode(',', $price_type) . ')') : '';
-
-        $params = [':product_id' => $product_id];
-        $sql = "
-            SELECT 
-                pp.price_type_id, 
-                pt.name price_type, 
-                ROUND(pp.price * cr.rate) price, 
-                cr.rate, 
-                c.iso, c.logo, c.sign currency 
-            FROM product_prices pp 
-            LEFT JOIN currency_rates cr ON pp.currency_id = cr.currency_id 
-            LEFT JOIN currencies c on c.id = 1 
-            LEFT JOIN price_types pt on pp.price_type_id = pt.id 
-            WHERE product_id = :product_id {$price_types}";
-
-        $db = new Db();
-        $res = $db->query($sql, $params, $object ? static::class : null);
-        return $res ?: false;
-    }
 
     /**
      * Возвращает товар по id

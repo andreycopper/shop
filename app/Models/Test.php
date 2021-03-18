@@ -93,4 +93,65 @@ class Test extends Model
             var_dump($res);
         }
     }
+
+    public static function images()
+    {
+        $row = 1;
+
+        if (($handle = fopen(__DIR__ . "/../../public/files/catalog.csv", "r")) !== FALSE) {
+            $success = 0;
+            $error = 0;
+            $db = new Db();
+
+            while (($data = fgetcsv($handle, 5000, ";")) !== false) {
+                if($row >= 2) {
+                    if (!empty($data[16])) {
+                        $image = __DIR__ . "/../../public/files/" . $data[16];
+                        $filename = explode('/', $data[16]);
+                        $filename = array_pop($filename);
+
+                        if (is_file($image)) {
+                            $params = [
+                                ':xml_id' => trim($data[1]),
+                            ];
+                            $sql = "select id, name from shop.products where xml_id = :xml_id";
+
+                            $res = $db->query($sql, $params);
+
+                            if ($res) {
+                                $product_id = array_shift($res)['id'];
+
+                                $dir = __DIR__ . '/../../public/uploads/catalog/' . $product_id;
+                                if(!is_dir($dir)) mkdir($dir, 0777, true);
+
+                                copy($image, $dir . '/' . $filename);
+
+                                $_params = [
+                                    ':product_id' => $product_id,
+                                    ':image' => $filename,
+                                ];
+                                $sql = "insert into shop.product_images (product_id, image) values (:product_id, :image)";
+
+                                $result = $db->iquery($sql, $_params);
+
+                                if ($result) $success++;
+                                else $error++;
+
+                                var_dump($result);
+                            }
+
+                        }
+                    }
+                }
+
+                $row++;
+            }
+
+            var_dump('Всего: ' . $row);
+            var_dump('Успешно: ' . $success);
+            var_dump('Ошибок: ' . $error);
+
+            fclose($handle);
+        }
+    }
 }

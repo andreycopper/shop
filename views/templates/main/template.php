@@ -13,6 +13,9 @@
     <link rel="stylesheet" href="/css/loader.css" media="all">
     <link rel="stylesheet" href="/css/colors.css" media="all">
     <link rel="stylesheet" href="/css/fontawesome.min.css" media="all">
+    <link rel="stylesheet" href="/css/lightbox.css" media="all">
+    <link rel="stylesheet" href="/css/slick-theme.css" media="all">
+    <link rel="stylesheet" href="/css/slick.css" media="all">
     <link rel="stylesheet" href="/css/jquery.mCustomScrollbar.css" media="all">
 
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
@@ -641,6 +644,8 @@
 </body>
 
 <script src="/js/jquery-3.4.1.min.js"></script>
+<script src="/js/lightbox.min.js"></script>
+<script src="/js/slick.min.js"></script>
 <script src="/js/jquery.cookie.js"></script>
 <script src="/js/ondelay.jquery.js"></script>
 <script src="/js/jquery.autocomplete.min.js"></script>
