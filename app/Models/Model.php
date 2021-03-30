@@ -74,7 +74,7 @@ abstract class Model
         return !empty($data) ? array_shift($data) : false;
     }
 
-    public static function getByField(string $field, string $value, bool $active = false, bool $object = true)
+    public static function getByField(string $field, string $value, bool $active = true, bool $object = true)
     {
         $activity = !empty($active) ? ' AND active IS NOT NULL' : '';
         $sql = "SELECT * FROM `" . static::$table . "` WHERE {$field} = :value {$activity}";

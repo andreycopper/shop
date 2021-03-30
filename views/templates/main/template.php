@@ -174,7 +174,27 @@
 </header>
 
 <section class="main">
+    <div class="container">
+        <? if (!empty($breadcrumbs) && is_array($breadcrumbs)): ?>
+            <div class="main-header">
+                <div class="breadcrumbs">
+                    <a href="/">Главная</a>
+                    <? foreach ($breadcrumbs as $breadcrumb): ?>
+                        <? if (!empty($breadcrumb['link'])): ?>
+                            <a href="<?= $breadcrumb['link'] ?>" class="breadcrumbs-link"><?= $breadcrumb['name'] ?></a>
+                        <? else: ?>
+                            <span class="breadcrumbs-span"><?= $breadcrumb['name'] ?></span>
+                        <? endif; ?>
+                    <? endforeach; ?>
+                </div>
+
+                <h1><?= $item->name ?? $page->name ?? '' ?></h1>
+            </div>
+        <? endif; ?>
+
     <?php echo $view ?? null; ?>
+
+    </div>
 </section>
 
 <footer>

@@ -21,17 +21,26 @@ class View implements \Iterator, \Countable, \ArrayAccess
     /**
      * Возвращает строку - HTML-код шаблона
      * @param string $template
+     * @param string $ext
      * @return false|string|null
      */
-    public function render(string $template)
+    public function render(string $template, string $ext = 'php')
     {
-        if (empty($template)) return null;
+        $tmpl = defined('TEMPLATE') ? TEMPLATE : 'main';
+        $file =
+            TEMPLATES . DIRECTORY_SEPARATOR .
+            $tmpl .
+            (mb_substr($template, 0, 1) === '/' || mb_substr($template, 0, 1) === '\\' ? '' : DIRECTORY_SEPARATOR) .
+            $template . '.' .
+            $ext;
+
+        if (empty($template) || !is_file($file)) return false;
 
         ob_start();
         foreach ($this as $name => $value) {
             $$name = $value;
         }
-        include $template;
+        include $file;
         $content = ob_get_contents();
         ob_end_clean();
 
@@ -45,17 +54,7 @@ class View implements \Iterator, \Countable, \ArrayAccess
      */
     public function display(string $file, string $ext = 'php')
     {
-        $body =
-            TEMPLATES . DIRECTORY_SEPARATOR .
-            TEMPLATE .
-            (mb_substr($file, 0, 1) === '/' || mb_substr($file, 0, 1) === '\\' ? '' : DIRECTORY_SEPARATOR) .
-            $file . '.' .
-            $ext;
-
-        $template = TEMPLATES . '/' . TEMPLATE . '/template.php';
-
-        if (is_file($body)) $this->view = $this->render($body);
-
-        echo $this->render(is_file($template) ? $template : null);
+        $this->view = $this->render($file);
+        echo $this->render('template');
     }
 }

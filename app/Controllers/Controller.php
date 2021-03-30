@@ -32,7 +32,7 @@ abstract class Controller
     {
         $this->view = new View();
         $this->view->current_page = intval(Request::get('page') ?? 1);
-        $this->view->page         = Page::getPageInfo(get_class($this)); // информация о странице
+        $this->view->page         = Page::getPageInfo(ROUTE); // информация о странице
         $this->view->public_key   = $_SESSION['public_key'] ?? User::generatePublicKey(); // публичный ключ шифрования
         $this->view->location     = $_SESSION['location'] ?? User::getLocation(); // текущее местоположение
         $this->view->user         = $_SESSION['user'] ?? User::getCurrent(); // текущий пользователь
@@ -40,6 +40,7 @@ abstract class Controller
         $this->view->menu         = $_SESSION['menu'] ?? Page::getMenuTree(true); // меню
         $this->view->cart_count   = OrderItem::getCount(); // количество товаров в корзине
         $this->view->districts    = District::getList(); // список федеральных округов
+        $this->view->breadcrumbs  = Page::getBreadCrumbs(); // breadcrumbs
     }
 
     /**

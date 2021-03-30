@@ -11,27 +11,20 @@ class Page extends Model
 
     /**
      * Получает информацию по текущей странице
-     * @param string $class
-     * @param bool $active
-     * @param bool $object
+     * @param array $routes
      * @return false|mixed
-     * @throws DbException
      */
-    public static function getPageInfo(string $class, bool $active = true, $object = true)
+    public static function getPageInfo(array $routes)
     {
-        $page = explode('\\', mb_strtolower($class));
-        $page = array_pop($page);
+        if (!empty($routes) && is_array($routes)) {
+            $url = array_pop($routes);
+            $page =
+                in_array('Catalog', $routes) && !is_numeric($url) ?
+                    Group::getByField('link', mb_strtolower($url)) :
+                    Page::getByField('link', $url);
+        }
 
-        $activity = !empty($active) ? 'AND p.active IS NOT NULL' : '';
-        $sql = "SELECT * FROM pages p WHERE p.link = :page {$activity}";
-        $params = [
-            ':page' => $page
-        ];
-        $db = new Db();
-        $data = $db->query($sql, $params,$object ? static::class : null);
-
-        if (!empty($data)) $res = $_SESSION['page'] = array_shift($data);
-        return $res ?? false;
+        return $page ?? false;
     }
 
     /**
@@ -65,7 +58,37 @@ class Page extends Model
         return $res ?? false;
     }
 
+    /**
+     * Возвращает "хлебные крошки"
+     * @return array|false
+     */
+    public static function getBreadCrumbs()
+    {
+        if (!empty(ROUTE) && is_array(ROUTE)) {
+            $result = [];
+            $link = '/';
 
+            for ($i = 0; $i < count(ROUTE); $i++) {
+                $page =
+                    in_array('Catalog', ROUTE) && $i > 0 ?
+
+                        (is_numeric(ROUTE[$i]) ?
+                            Product::getById(ROUTE[$i], true, false) :
+                            Group::getByField('link', mb_strtolower(ROUTE[$i]), true, false)) :
+
+                        Page::getByField('link', ROUTE[$i], true, false);
+
+                if (!empty($page)) {
+                    $link .= ($page['link'] . '/');
+
+                    $result[$i]['name'] = $page['name'];
+                    if (isset(ROUTE[$i+1]) && !is_numeric(ROUTE[$i])) $result[$i]['link'] = $link;
+                }
+            }
+        }
+
+        return $result ?? false;
+    }
 
 
 
