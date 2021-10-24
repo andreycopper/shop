@@ -19,10 +19,10 @@ class CallBacks extends Controller
         if (Request::isPost()) {
             $form = Request::post();
 
-            if (!CallBack::checkData($form)) self::result(false,'Заполнены не все обязательные поля', [], Request::isAjax());
+            if (!CallBack::checkData($form)) self::result(false,'Заполнены не все обязательные поля');
 
             $res = CallBack::saveCallback($this->user, $form);
-            self::result($res, $res ? 'Заказ обратного звонка отправлен' : 'Ошибка при отправке заказа обратного звонка', [], Request::isAjax());
+            self::result($res, $res ? 'Заказ обратного звонка отправлен' : 'Ошибка при отправке заказа обратного звонка');
         }
     }
 }
