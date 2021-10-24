@@ -158,7 +158,8 @@ class User extends Model
         $sql = "
             SELECT 
                 u.id, u.active, u.blocked, u.group_id, u.last_name, u.name, u.second_name, u.email, u.phone, u.password, 
-                u.personal_data, u.mailing, u.mailing_type_id, IFNULL(u.price_type_id , ug.price_type_id) price_type_id, u.private_key, u.created, u.updated, 
+                u.personal_data, u.mailing, u.mailing_type_id, IFNULL(u.price_type_id , ug.price_type_id) price_type_id, 
+                u.private_key, u.created, u.updated, 
                 ug.name AS group_name, 
                 pt.name AS price_type,
                 tt.name AS mailing_type 

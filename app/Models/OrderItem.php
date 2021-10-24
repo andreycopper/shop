@@ -37,7 +37,6 @@ class OrderItem extends Model
     /**
      * Проверяет добавляется новый элемент или редактируется существующий
      * @return bool
-     * @throws DbException
      */
     public function isNew(): bool
     {

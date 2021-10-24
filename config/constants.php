@@ -31,3 +31,12 @@ catch (DbException $e) {
 
 setcookie('page', $_SERVER['REQUEST_URI'] ?? '/', time() + 60 * 60 * 24 * 365, '/', SITE, 0);
 setcookie('user', $_COOKIE['user'] ?? hash('sha256', microtime(true) . uniqid()), time() + 60 * 60 * 24 * 365, '/', SITE, 0); // кука анонимного юзера
+
+/*
+Cookies:
+page - запоминает последнюю посещенную страницу
+user - хэш анонимного пользователя. служит для идентификации анонимных корзин
+cookie_hash - кука пользователя. служит для запоминания авторизации
+Session:
+session_hash - сессия пользователя. служит для авторизации
+ */
