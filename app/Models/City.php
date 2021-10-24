@@ -59,7 +59,7 @@ class City extends Model
         $params = [
             ':city' => $city
         ];
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }
@@ -99,7 +99,7 @@ class City extends Model
         $params = [
             ':id' => $id
         ];
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }
@@ -113,7 +113,7 @@ class City extends Model
         $params = [
             ':region_id' => $region_id
         ];
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return $data ?? false;
     }
@@ -140,7 +140,7 @@ class City extends Model
         $params = [
             ':city' => $city
         ];
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return $data ?? false;
     }

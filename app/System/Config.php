@@ -16,6 +16,6 @@ class Config
 
     private function __construct()
     {
-        $this->data = require CONFIG . '/config.php';
+        $this->data = require _CONFIG . '/config.php';
     }
 }

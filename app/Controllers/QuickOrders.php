@@ -23,14 +23,13 @@ class QuickOrders extends Controller
             if (empty($form['id']) && empty($form['count'])) $cart = OrderItem::getCart($this->view->user->id);
 
             if (!QuickOrder::checkData($form))
-                self::returnError('Заполнены не все обязательные поля', Request::isAjax());
+                self::result(false, 'Заполнены не все обязательные поля', [], Request::isAjax());
 
             if (!QuickOrder::checkProducts($form, $cart ?? null))
-                self::returnError('Не найдены товары для быстрого заказа', Request::isAjax());
+                self::result(false, 'Не найдены товары для быстрого заказа', [], Request::isAjax());
 
-
-            if (QuickOrder::saveOrder($this->view->user, $form)) self::returnSuccess('Быстрый заказ отправлен', [], Request::isAjax());
-            else self::returnError('Ошибка при отправке заказа', Request::isAjax());
+            $res = QuickOrder::saveOrder($this->view->user, $form);
+            self::result($res, $res ? 'Быстрый заказ отправлен' : 'Ошибка при отправке заказа', [], Request::isAjax());
         }
     }
 }

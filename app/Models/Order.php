@@ -47,7 +47,7 @@ class Order extends Model
             LEFT JOIN user_profiles up ON up.id = o.profile_id 
             WHERE o.id = :id AND up.user_id = :user_id {$userHash}
         ";
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }
@@ -192,7 +192,7 @@ class Order extends Model
             WHERE oi.user_id = :user_id {$userHash} AND oi.order_id IS NULL AND oi.qorder_id IS NULL
         ";
 
-        $db = new Db();
-        return $db->iquery($sql, $params);
+        $db = Db::getInstance();
+        return $db->execute($sql, $params);
     }
 }

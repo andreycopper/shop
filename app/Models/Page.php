@@ -10,24 +10,6 @@ class Page extends Model
     protected static $table = 'pages';
 
     /**
-     * Получает информацию по текущей странице
-     * @param array $routes
-     * @return false|mixed
-     */
-    public static function getPageInfo(array $routes)
-    {
-        if (!empty($routes) && is_array($routes)) {
-            $url = array_pop($routes);
-            $page =
-                in_array('Catalog', $routes) && !is_numeric($url) ?
-                    Group::getByField('link', mb_strtolower($url)) :
-                    Page::getByField('link', $url);
-        }
-
-        return $page ?? false;
-    }
-
-    /**
      * Находит и возвращает активные записи из БД и формирует иерархическое меню
      * @param bool $active
      * @param bool $object
@@ -44,7 +26,7 @@ class Page extends Model
             FROM pages p 
             WHERE p.menu IS NOT NULL {$activity} 
             ORDER BY {$orderBy} {$order}";
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, [],$object ? static::class : null);
         $res = [];
 
@@ -59,8 +41,37 @@ class Page extends Model
     }
 
     /**
+     * Получает информацию по текущей странице
+     * @param array $routes
+     * @return false|mixed
+     * @throws DbException
+     */
+    public static function getPageInfo(array $routes)
+    {
+        if (!empty($routes) && is_array($routes)) {
+            $last = array_pop($routes);
+
+            if (is_numeric($last)) {
+                $page =
+                    in_array('Catalog', $routes) ?
+                        Product::getById($last) :
+                        '';
+            }
+            else {
+                $page =
+                    in_array('Catalog', $routes) ?
+                        Group::getByField('link', mb_strtolower($last)) :
+                        Page::getByField('link', $last);
+            }
+        }
+
+        return $page ?? false;
+    }
+
+    /**
      * Возвращает "хлебные крошки"
      * @return array|false
+     * @throws DbException
      */
     public static function getBreadCrumbs()
     {
@@ -76,10 +87,13 @@ class Page extends Model
                             Product::getById(ROUTE[$i], true, false) :
                             Group::getByField('link', mb_strtolower(ROUTE[$i]), true, false)) :
 
-                        Page::getByField('link', ROUTE[$i], true, false);
+                        (is_numeric(ROUTE[$i]) ?
+                            '' :
+                            Page::getByField('link', ROUTE[$i], true, false)
+                            );
 
                 if (!empty($page)) {
-                    $link .= ($page['link'] . '/');
+                    if (!empty($page['link'])) $link .= ($page['link'] . '/');
 
                     $result[$i]['name'] = $page['name'];
                     if (isset(ROUTE[$i+1]) && !is_numeric(ROUTE[$i])) $result[$i]['link'] = $link;

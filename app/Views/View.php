@@ -13,6 +13,8 @@ use Traits\ArrayAccess;
  */
 class View implements \Iterator, \Countable, \ArrayAccess
 {
+    public $view; // содержимое страницы для вывода в шаблоне
+
     use Magic;
     use Iterator;
     use Count;
@@ -28,7 +30,7 @@ class View implements \Iterator, \Countable, \ArrayAccess
     {
         $tmpl = defined('TEMPLATE') ? TEMPLATE : 'main';
         $file =
-            TEMPLATES . DIRECTORY_SEPARATOR .
+            _TEMPLATES . DIRECTORY_SEPARATOR .
             $tmpl .
             (mb_substr($template, 0, 1) === '/' || mb_substr($template, 0, 1) === '\\' ? '' : DIRECTORY_SEPARATOR) .
             $template . '.' .
@@ -56,5 +58,15 @@ class View implements \Iterator, \Countable, \ArrayAccess
     {
         $this->view = $this->render($file);
         echo $this->render('template');
+    }
+
+    /**
+     * Отображает HTML-код шаблона
+     * @param string $file
+     * @param string $ext
+     */
+    public function display_element(string $file, string $ext = 'php')
+    {
+        echo $this->render($file);
     }
 }

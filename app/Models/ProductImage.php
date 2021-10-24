@@ -24,7 +24,7 @@ class ProductImage extends Model
             FROM product_images pi 
             WHERE pi.product_id = :product_id";
 
-        $db = new Db();
+        $db = Db::getInstance();
         $res = $db->query($sql, $params, $object ? static::class : null);
         return $res ?: false;
     }

@@ -2,16 +2,16 @@
 
 namespace Controllers;
 
-use Exceptions\UserException;
-use System\Logger;
 use Views\View;
 use Models\Page;
 use Models\User;
 use Models\Group;
+use System\Logger;
 use System\Request;
 use Models\District;
 use Models\OrderItem;
 use Exceptions\DbException;
+use Exceptions\UserException;
 use Exceptions\NotFoundException;
 use Exceptions\ForbiddenException;
 
@@ -21,8 +21,11 @@ use Exceptions\ForbiddenException;
  */
 abstract class Controller
 {
+    protected $user;           // текущий пользователь
+    protected $publicKey;      // публичный ключ шифрования
+    protected $pageCurrent;    // текущая страница
+    protected $pageCount = 10; // элементов на странице
     protected $view;
-    protected $perPage = 10;
 
     /**
      * Controller constructor.
@@ -31,16 +34,23 @@ abstract class Controller
     public function __construct()
     {
         $this->view = new View();
-        $this->view->current_page = intval(Request::get('page') ?? 1);
-        $this->view->page         = Page::getPageInfo(ROUTE); // информация о странице
-        $this->view->public_key   = $_SESSION['public_key'] ?? User::generatePublicKey(); // публичный ключ шифрования
-        $this->view->location     = $_SESSION['location'] ?? User::getLocation(); // текущее местоположение
-        $this->view->user         = $_SESSION['user'] ?? User::getCurrent(); // текущий пользователь
-        $this->view->groups       = $_SESSION['groups'] ?? Group::getCatalog(); // каталог товаров
-        $this->view->menu         = $_SESSION['menu'] ?? Page::getMenuTree(true); // меню
-        $this->view->cart_count   = OrderItem::getCount(); // количество товаров в корзине
-        $this->view->districts    = District::getList(); // список федеральных округов
-        $this->view->breadcrumbs  = Page::getBreadCrumbs(); // breadcrumbs
+
+        $this->user        = $_SESSION['user'] ?? User::getCurrent();
+        $this->publicKey   = $_SESSION['public_key'] ?? User::generatePublicKey();
+        $this->pageCurrent = intval(Request::get('page') ?? 1);
+
+        $this->set('user', $this->user);
+        $this->set('publicKey', $this->publicKey);
+        $this->set('location', $_SESSION['location'] ?? User::getLocation()); // текущее местоположение
+        $this->set('districts', District::getList()); // список федеральных округов
+
+        $this->set('page', Page::getPageInfo(ROUTE)); // информация о странице
+        $this->set('breadcrumbs', Page::getBreadCrumbs()); // breadcrumbs
+        $this->set('pageCurrent', $this->pageCurrent);
+
+        $this->set('menu', $_SESSION['menu'] ?? Page::getMenuTree(true)); // меню
+        $this->set('groups', $_SESSION['groups'] ?? Group::getCatalog()); // каталог товаров
+        $this->set('cartCount', OrderItem::getCount()); // количество товаров в корзине
     }
 
     /**
@@ -56,13 +66,18 @@ abstract class Controller
                 if (method_exists($this, 'before')) $this->before();
                 $this->$action($param ?? null);
                 die;
-            } else {
-                throw new ForbiddenException();
-            }
-        }
-        else {
-            throw new NotFoundException();
-        }
+            } else throw new ForbiddenException();
+        } else throw new NotFoundException();
+    }
+
+    /**
+     * Объявляет переменную для View
+     * @param $var
+     * @param $value
+     */
+    protected function set($var, $value = null)
+    {
+        $this->view->$var = $value;
     }
 
     /**
@@ -76,41 +91,27 @@ abstract class Controller
     }
 
     /**
-     * Показ успеха
-     * @param string $message
-     * @param array $data
-     * @param bool $isAjax
-     * @return bool
-     */
-    protected static function returnSuccess(string $message = '', array $data = [], bool $isAjax = false)
-    {
-        if ($isAjax) {
-            echo json_encode([
-                'result' => true,
-                'data' => $data,
-                'message' => $message
-            ]);
-            die;
-        }
-        else return true;
-    }
-
-    /**
-     * Показ ошибки
-     * @param string $message
-     * @param bool $isAjax
+     * Возвращает результат в зависимости от запроса
+     * @param bool $result - результат запроса
+     * @param string $message - сообщение
+     * @param array $data - данные
+     * @return bool|void
      * @throws UserException
      */
-    protected static function returnError(string $message, bool $isAjax = false)
+    protected static function result(bool $result, string $message, array $data = [])
     {
-        if ($isAjax) {
+        if (Request::isAjax()) {
             Logger::getInstance()->error(new UserException($message));
             echo json_encode([
-                'result' => false,
-                'message' => $message
+                'result' => $result,
+                'message' => $message,
+                'data' => $data,
             ]);
             die;
         }
-        else throw new UserException($message);
+        else {
+            if (!$result) throw new UserException($message);
+            return $result;
+        }
     }
 }

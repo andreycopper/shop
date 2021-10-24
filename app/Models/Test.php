@@ -8,17 +8,29 @@ class Test extends Model
 {
     protected static $table = 'test';
 
+    public static function db($object = null)
+    {
+        $sql = "SELECT count(id) FROM shop.products WHERE discount IS NOT NULL";
+        $db = Db::getInstance();
+        $data = $db->query($sql, []);
+
+        var_dump($data);
+        die;
+
+
+    }
+
     public static function fias($object = null)
     {
         $sql = "SELECT id, shortname FROM fias_shortnames";
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, []);
     }
 
     public static function prices()
     {
         $sql = "SELECT * FROM product_prices";
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, []);
 
         foreach ($data as $elem) {
@@ -35,8 +47,8 @@ class Test extends Model
                            (:product_id, 1, :zakup, :currency_id),
                            (:product_id, 3, :opt, :currency_id);";
 
-            $db = new Db();
-            $res = $db->iquery($sql, $params);
+            $db = Db::getInstance();
+            $res = $db->execute($sql, $params);
             var_dump($res);
 
         }
@@ -45,7 +57,7 @@ class Test extends Model
     public static function views()
     {
         $sql = "SELECT * FROM products";
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, []);
 
         foreach ($data as $elem) {
@@ -55,8 +67,8 @@ class Test extends Model
             ];
             $sql = "UPDATE products SET views = :num WHERE id = :id";
 
-            $db = new Db();
-            $res = $db->iquery($sql, $params);
+            $db = Db::getInstance();
+            $res = $db->execute($sql, $params);
             var_dump($res);
         }
     }
@@ -64,7 +76,7 @@ class Test extends Model
     public static function quantity()
     {
         $sql = "SELECT * FROM products";
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, []);
 
         foreach ($data as $elem) {
@@ -74,8 +86,8 @@ class Test extends Model
             ];
             $sql = "UPDATE products SET quantity = :num WHERE id = :id";
 
-            $db = new Db();
-            $res = $db->iquery($sql, $params);
+            $db = Db::getInstance();
+            $res = $db->execute($sql, $params);
             var_dump($res);
         }
     }
@@ -88,8 +100,8 @@ class Test extends Model
             ];
             $sql = "UPDATE products SET is_recommend = 1 WHERE id = :id";
 
-            $db = new Db();
-            $res = $db->iquery($sql, $params);
+            $db = Db::getInstance();
+            $res = $db->execute($sql, $params);
             var_dump($res);
         }
     }
@@ -101,7 +113,7 @@ class Test extends Model
         if (($handle = fopen(__DIR__ . "/../../public/files/catalog.csv", "r")) !== FALSE) {
             $success = 0;
             $error = 0;
-            $db = new Db();
+            $db = Db::getInstance();
 
             while (($data = fgetcsv($handle, 5000, ";")) !== false) {
                 if($row >= 2) {
@@ -132,7 +144,7 @@ class Test extends Model
                                 ];
                                 $sql = "insert into shop.product_images (product_id, image) values (:product_id, :image)";
 
-                                $result = $db->iquery($sql, $_params);
+                                $result = $db->execute($sql, $_params);
 
                                 if ($result) $success++;
                                 else $error++;

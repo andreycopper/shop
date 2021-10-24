@@ -74,7 +74,7 @@ class UserProfile extends Model
             LEFT JOIN fias_shortnames sn2 
                 ON sn2.id = s.shortname_id 
             WHERE up.user_id = :user_id {$userHash} {$activity}";
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return $data ?? false;
     }
@@ -188,7 +188,7 @@ class UserProfile extends Model
             ':id' => $id,
             ':user_id' => $user_id
         ];
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }

@@ -128,8 +128,7 @@
     }
 }
 @media only screen and (max-width : 1024px) {
-    .basket-header,
-    .basket-footer {
+    .basket-summary {
         flex-direction: column;
     }
     .basket-coupon {

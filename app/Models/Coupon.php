@@ -48,7 +48,7 @@ class Coupon extends Model
                 ON cu.coupon_id = c.id  AND cu.user_id = :user_id {$userHash} 
             WHERE c.code = :code {$activity}
             ";
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }

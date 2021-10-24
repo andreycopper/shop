@@ -5,7 +5,6 @@ namespace Traits;
 /*
  * trait Singleton
  * Реализует паттерн Singleton
- *
  * @package App\Traits
  */
 trait Singleton
@@ -20,15 +19,14 @@ trait Singleton
     {
     }
 
-    private function __wakeup()
+    public function __wakeup()
     {
     }
 
     public static function getInstance()
     {
-        if (static::$instance === null) {
-            static::$instance = new static();
-        }
+        if (static::$instance === null) static::$instance = new static();
+
         return static::$instance;
     }
 }

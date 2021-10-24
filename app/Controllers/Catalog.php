@@ -41,7 +41,7 @@ class Catalog extends Controller
             if (!empty($this->view->group)) {
                 $items = Product::getPricesList([intval($this->view->group->id)], [intval($this->view->user->price_type_id)]);
                 $items = Pagination::make($items, $this->perPage); // массив страниц
-                $this->view->items = $items[$this->view->current_page] ?? null; // список товаров данной страницы
+                $this->view->items = $items[$this->view->pageCurrent] ?? null; // список товаров данной страницы
                 $this->view->item_pages = $items['pages'] ?? null; // страницы данной категории
                 $this->view->subGroups  = Group::getSubGroups(intval($this->view->group->id)); // подкатегории
                 $this->view->display('catalog/catalog_view');
@@ -56,14 +56,13 @@ class Catalog extends Controller
     {
         if (Request::isPost()) {
             $item = Request::post(); // добавляемый товар
-            $product = Product::getPriceItem(intval($item['id']), $this->view->user->price_type_id); // товар в каталоге
+            $product = Product::getPriceItem(intval($item['id']), $this->user->price_type_id); // товар в каталоге
 
-            if ($product && OrderItem::checkCartProduct($product, intval($item['id']), intval($item['count']))) {
-                if (OrderItem::add($this->view->user, intval($item['id']), intval($item['count'])))
-                    self::returnSuccess(OrderItem::getCount(), [], Request::isAjax());
-                else self::returnError('Не удалось добавить товар в корзину', Request::isAjax());
-            }
-            else self::returnError('На складе отсутствует товар', Request::isAjax());
+            if (empty($product) || !OrderItem::checkCartProduct($product, intval($item['id']), intval($item['count'])))
+                self::result(false, 'Товар отсутствует на складе');
+
+            $res = OrderItem::add($this->user, intval($item['id']), intval($item['count']));
+            self::result($res, $res ? OrderItem::getCount() : 'Не удалось добавить товар в корзину');
         }
     }
 }

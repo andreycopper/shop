@@ -165,7 +165,7 @@ class Product extends Model
                 ON p.detail_text_type_id = dtt.id 
             WHERE p.id = :id {$activity}";
 
-        $db = new Db();
+        $db = Db::getInstance();
         $res = $db->query($sql, $params, $object ? static::class : null);
         return !empty($res) ? array_shift($res) : false;
     }
@@ -214,7 +214,7 @@ class Product extends Model
             WHERE {$groups} {$activity} 
             ORDER BY p.{$order}, p.created, p.id {$sort}";
 
-        $db = new Db();
+        $db = Db::getInstance();
         $items = $db->query($sql, [], $object ? static::class : null);
         return $items ?: false;
     }
@@ -260,7 +260,7 @@ class Product extends Model
             {$activity} 
             ORDER BY p.{$order}, p.created, p.id {$sort}";
 
-        $db = new Db();
+        $db = Db::getInstance();
         $items = $db->query($sql, [], $object ? static::class : null);
         return $items ?: false;
     }
@@ -275,7 +275,7 @@ class Product extends Model
     {
         $params = [':id' => $id];
         $sql = "UPDATE products SET views = views + 1 WHERE products.id = :id";
-        $db = new Db();
+        $db = Db::getInstance();
         return $db->execute($sql, $params);
     }
 
@@ -292,7 +292,7 @@ class Product extends Model
         $params = [':id' => $id];
         $activity = !empty($active) ? 'AND p.active IS NOT NULL' : '';
         $sql = "SELECT p.quantity FROM products p WHERE p.id = :id {$activity}";
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data)['quantity'] : false;
     }
@@ -382,7 +382,7 @@ class Product extends Model
             ':id' => $id,
             ':price_type' => $price_type
         ];
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }
@@ -440,7 +440,7 @@ class Product extends Model
             ':id' => $id,
             ':price_type' => $price_type
         ];
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }

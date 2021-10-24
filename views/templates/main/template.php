@@ -18,6 +18,18 @@
     <link rel="stylesheet" href="/css/slick.css" media="all">
     <link rel="stylesheet" href="/css/jquery.mCustomScrollbar.css" media="all">
 
+    <script src="/js/jquery-3.4.1.min.js"></script>
+    <script src="/js/lightbox.min.js"></script>
+    <script src="/js/slick.min.js"></script>
+    <script src="/js/jquery.cookie.js"></script>
+    <script src="/js/ondelay.jquery.js"></script>
+    <script src="/js/jquery.autocomplete.min.js"></script>
+    <script src="/js/jquery.inputmask.js"></script>
+    <script src="/js/cities.js"></script>
+    <script src="/js/functions.js"></script>
+    <script src="/js/scripts.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js"></script>
+
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
 </head>
 <body>
@@ -92,7 +104,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="21" viewBox="0 0 22 21">
                         <path class="header-cart-pic" d="M1507,122l-0.99,1.009L1492,123l-1-1-1-9h-3a0.88,0.88,0,0,1-1-1,1.059,1.059,0,0,1,1.22-1h2.45c0.31,0,.63.006,0.63,0.006a1.272,1.272,0,0,1,1.4.917l0.41,3.077H1507l1,1v1ZM1492.24,117l0.43,3.995h12.69l0.82-4Zm2.27,7.989a3.5,3.5,0,1,1-3.5,3.5A3.495,3.495,0,0,1,1494.51,124.993Zm8.99,0a3.5,3.5,0,1,1-3.49,3.5A3.5,3.5,0,0,1,1503.5,124.993Zm-9,2.006a1.5,1.5,0,1,1-1.5,1.5A1.5,1.5,0,0,1,1494.5,127Zm9,0a1.5,1.5,0,1,1-1.5,1.5A1.5,1.5,0,0,1,1503.5,127Z" transform="translate(-1486 -111)"></path>
                     </svg>
-                    <span class="header-cart-count <?= intval($this->cart_count) > 0 ? '' : 'empty' ?>"><?= $this->cart_count ?></span>
+                    <span class="header-cart-count <?= intval($this->cartCount) > 0 ? '' : 'empty' ?>"><?= $this->cartCount ?></span>
                 </a>
             </div>
             <div class="header-user">
@@ -361,7 +373,7 @@
                     <a href="/basket/" class="menu-mobile-link menu-mobile-basket" rel="nofollow">
                         <span>
                             Корзина
-                            <span class="menu-mobile-count <?= intval($this->cart_count) > 0 ? '' : 'empty' ?>"><?= $this->cart_count ?></span>
+                            <span class="menu-mobile-count <?= intval($this->cartCount) > 0 ? '' : 'empty' ?>"><?= $this->cartCount ?></span>
                         </span>
                     </a>
                     <i class="svg-basket"></i>
@@ -662,16 +674,4 @@
 
 <div id="notification" class=""></div>
 </body>
-
-<script src="/js/jquery-3.4.1.min.js"></script>
-<script src="/js/lightbox.min.js"></script>
-<script src="/js/slick.min.js"></script>
-<script src="/js/jquery.cookie.js"></script>
-<script src="/js/ondelay.jquery.js"></script>
-<script src="/js/jquery.autocomplete.min.js"></script>
-<script src="/js/jquery.inputmask.js"></script>
-<script src="/js/cities.js"></script>
-<script src="/js/functions.js"></script>
-<script src="/js/scripts.js"></script>
-<script src="https://www.google.com/recaptcha/api.js"></script>
 </html>

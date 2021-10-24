@@ -42,29 +42,31 @@ class Geo
      */
     public static function GetLocationFromIP($ip)
     {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "http://ipgeobase.ru:7020/geo?ip=$ip");
-        curl_setopt($ch, CURLOPT_HEADER, false);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
-        curl_setopt($ch, CURLOPT_USERAGENT, md5(rand()));
+        $curl = curl_init();
 
-        $xml = curl_exec($ch);
-        if (empty($xml)) return false;
+        curl_setopt_array($curl, [
+            CURLOPT_URL => "https://suggestions.dadata.ru/suggestions/api/4_1/rs/iplocate/address?ip={$ip}",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_CUSTOMREQUEST => "GET",
+            CURLOPT_HTTPHEADER => [
+                "Accept: application/json",
+                "Authorization: Token 9e781439fcd68346b5d6b58abe37810e654ad54e"
+            ],
+        ]);
 
-        preg_match('/encoding="(.*)"/', $xml, $coding);
-        if (!preg_match('/<country>(.*)<\/country>/', $xml, $country)) return false;
-        if (!preg_match('/<region>(.*)<\/region>/', $xml, $region)) return false;
-        if (!preg_match('/<city>(.*)<\/city>/', $xml, $city)) return false;
-        if (!preg_match('/<lat>(.*)<\/lat>/', $xml, $lat)) return false;
-        if (!preg_match('/<lng>(.*)<\/lng>/', $xml, $lng)) return false;
+        $response = json_decode(curl_exec($curl), true);
+        $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+
+        if ($status !== 200 || empty($response['location']) || empty($response['location']['data'])) return false;
 
         return [
-            'country' => $country[1],
-            'region' => iconv($coding ? $coding[1] : 'windows-1251', "utf-8", $region[1]),
-            'city' => iconv($coding ? $coding[1] : 'windows-1251', "utf-8", $city[1]),
-            'lat' => round($lat[1], 4),
-            'lng' => round($lng[1], 4)
+            'country' => $response['location']['data']['country'],
+            'region' => $response['location']['data']['region_with_type'],
+            'city' => $response['location']['data']['city'],
+            'lat' => $response['location']['data']['geo_lat'],
+            'lng' => $response['location']['data']['geo_lon']
         ];
     }
 }

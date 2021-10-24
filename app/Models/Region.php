@@ -18,7 +18,7 @@ class Region extends Model
             ':district_id' => $district_id
         ];
 
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return $data ?? false;
     }

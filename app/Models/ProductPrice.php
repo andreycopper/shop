@@ -42,7 +42,7 @@ class ProductPrice extends Model
             LEFT JOIN price_types pt ON pp.price_type_id = pt.id 
             WHERE product_id = :product_id AND pp.price_type_id = :price_type_id";
 
-        $db = new Db();
+        $db = Db::getInstance();
         $res = $db->query($sql, $params, $object ? static::class : null);
         return $res ? array_shift($res) : false;
     }
@@ -73,7 +73,7 @@ class ProductPrice extends Model
             LEFT JOIN price_types pt on pp.price_type_id = pt.id 
             WHERE product_id = :product_id {$price_types}";
 
-        $db = new Db();
+        $db = Db::getInstance();
         $res = $db->query($sql, $params, $object ? static::class : null);
         return $res ?: false;
     }

@@ -98,7 +98,7 @@ class QuickOrder extends Model
             WHERE oi.user_id = :user_id {$user_hash} AND oi.order_id IS NULL AND oi.qorder_id IS NULL {$item}
         ";
 
-        $db = new Db();
-        return $db->iquery($sql, $params);
+        $db = Db::getInstance();
+        return $db->execute($sql, $params);
     }
 }

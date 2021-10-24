@@ -29,7 +29,7 @@ class Group extends Model
             {$activity} 
             ORDER BY g.{$order}, g.created, g.id {$sort}";
 
-        $db = new Db();
+        $db = Db::getInstance();
         $res = $db->query($sql, $params, static::class);
         return $res ?? false;
     }
@@ -96,12 +96,13 @@ class Group extends Model
             ORDER BY g.{$orderBy} {$order}, g.created DESC
         ";
 
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, [],$object ? static::class : null);
 
         if (!empty($data)) {
             $res = [];
             foreach ($data as $item) {
+                $item['link'] = str_replace('_', '-', $item['link']);
                 if (empty($item['parent_id'])) $res[0][$item['id']] = $item;
                 else $res[$item['parent_id']][$item['id']] = $item;
             }

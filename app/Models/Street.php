@@ -34,7 +34,7 @@ class Street extends Model
             ':street' => $street,
             ':city_id' => $city_id
         ];
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return $data ?? false;
     }

@@ -2,6 +2,7 @@
 
 namespace Controllers;
 
+use Models\Product;
 use System\RSA;
 use Models\Test;
 
@@ -9,6 +10,13 @@ class Tests extends Controller
 {
     protected function before()
     {
+    }
+
+    protected function actionDefault()
+    {
+        var_dump(Product::getById(1));
+        var_dump(Product::getByField('discount', 10));
+        Test::db();die;
     }
 
     protected function actionActions()

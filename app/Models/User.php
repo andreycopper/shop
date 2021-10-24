@@ -53,7 +53,7 @@ class User extends Model
      */
     public static function getLocation()
     {
-        $location = Geo::GetLocationFromIP('213.87.127.224'); // Новосибирск
+        $location = Geo::GetLocationFromIP('213.87.126.4'); // Новосибирск
         //$location = Geo::GetLocationFromIP('87.250.250.242'); // Москва
         //$location = Geo::GetLocationFromIP(Geo::GetUserIP()); // локальный
 
@@ -122,7 +122,7 @@ class User extends Model
             WHERE u.id = :id {$activity}
             ";
 
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }
@@ -134,7 +134,7 @@ class User extends Model
      * @return false|mixed
      * @throws DbException
      */
-    public static function getByHash(bool $active = true, $object = true)
+    public static function getByHash(bool $active = true, bool $object = true)
     {
         $activity =
             !empty($active) ? 'AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL' : '';
@@ -174,7 +174,7 @@ class User extends Model
             WHERE {$where} {$activity}
             ";
 
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }
@@ -266,7 +266,7 @@ class User extends Model
         $params = [
             ':id' => $id
         ];
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }
@@ -294,7 +294,7 @@ class User extends Model
         $params = [
             ':phone' => $phone
         ];
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }
@@ -320,7 +320,7 @@ class User extends Model
         $params = [
             ':email' => $email
         ];
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }
@@ -349,7 +349,7 @@ class User extends Model
         $params = [
             ':hash' => $hash
         ];
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }
@@ -378,7 +378,7 @@ class User extends Model
         $params = [
             ':hash' => $hash
         ];
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }

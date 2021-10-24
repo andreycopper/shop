@@ -1,16 +1,18 @@
 <?php
 
+use Controllers\Errors;
 use Models\Setting;
 use Exceptions\DbException;
+use System\Logger;
 
-define('ROOT', __DIR__ . '/..');
-define('APP', __DIR__ . '/../app');
-define('CONFIG', __DIR__ . '/../config');
-define('VENDOR', __DIR__ . '/../vendor');
-define('LOGS', __DIR__ . '/../logs');
-define('PUBLIC', __DIR__ . '/../public');
-define('VIEWS', __DIR__ . '/../views');
-define('TEMPLATES', __DIR__ . '/../views/templates');
+const _ROOT = __DIR__ . '/..';
+const _APP = __DIR__ . '/../app';
+const _CONFIG = __DIR__ . '/../config';
+const _VENDOR = __DIR__ . '/../vendor';
+const _LOGS = __DIR__ . '/../logs';
+const _PUBLIC = __DIR__ . '/../public';
+const _VIEWS = __DIR__ . '/../views';
+const _TEMPLATES = __DIR__ . '/../views/templates';
 
 try {
     $constants = Setting::getList();
@@ -20,7 +22,11 @@ try {
             define(strtoupper($constant->name), $constant->value);
         }
     }
-} catch (DbException $e) {
+}
+catch (DbException $e) {
+    Logger::getInstance()->error($e);
+    echo 'Нет соединения в базой данных. Попробуйте позже.';
+    die;
 }
 
 setcookie('page', $_SERVER['REQUEST_URI'] ?? '/', time() + 60 * 60 * 24 * 365, '/', SITE, 0);

@@ -43,13 +43,12 @@ abstract class Model
      * @param bool $active
      * @param bool $object
      * @return array|bool
-     * @throws DbException
      */
     public static function getList(string $order = 'created', string $sort = 'ASC', bool $active = true, bool $object = true)
     {
         $activity = !empty($active) ? 'WHERE active IS NOT NULL' : '';
-        $sql = "SELECT * FROM " . static::$table . " {$activity} ORDER BY " . $order . " " . strtoupper($sort);
-        $db = new Db();
+        $sql = "SELECT * FROM " . static::$table . " {$activity} ORDER BY {$order} " . strtoupper($sort);
+        $db = Db::getInstance();
         $data = $db->query($sql, [], $object ? static::class : null);
         return $data ?? false;
     }
@@ -60,28 +59,35 @@ abstract class Model
      * @param bool $active
      * @param bool $object
      * @return bool|mixed
-     * @throws DbException
      */
-    public static function getById(int $id, bool $active = false, bool $object = true)
+    public static function getById(int $id, bool $active = true, bool $object = true)
     {
         $where = !empty($active) ? ' AND active IS NOT NULL' : '';
         $sql = "SELECT * FROM " . static::$table . " WHERE id = :id {$where}";
         $params = [
-            ':id' => $id
+            'id' => $id
         ];
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }
 
+    /**
+     * Находит и возвращает одну запись из БД по полю и его значению
+     * @param string $field
+     * @param string $value
+     * @param bool $active
+     * @param bool $object
+     * @return array|false
+     */
     public static function getByField(string $field, string $value, bool $active = true, bool $object = true)
     {
         $activity = !empty($active) ? ' AND active IS NOT NULL' : '';
         $sql = "SELECT * FROM `" . static::$table . "` WHERE {$field} = :value {$activity}";
         $params = [
-            ':value' => $value
+            'value' => $value
         ];
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }
@@ -89,7 +95,6 @@ abstract class Model
     /**
      * Сохраняет запись в БД
      * @return bool|int
-     * @throws DbException
      */
     public function save()
     {
@@ -99,17 +104,15 @@ abstract class Model
     /**
      * Проверяет добавляется новый элемент или редактируется существующий
      * @return bool
-     * @throws DbException
      */
     public function isNew(): bool
     {
-        return (!empty($this->id) && !empty(self::getById($this->id))) ? false : true;
+        return !(!empty($this->id) && !empty(self::getById($this->id)));
     }
 
     /**
      * Добавляет запись в БД
      * @return bool|int
-     * @throws DbException
      */
     public function insert()
     {
@@ -120,14 +123,13 @@ abstract class Model
             $params[':' . $key] = $val;
         }
         $sql =  'INSERT INTO ' . static::$table . ' (' . implode(', ', $cols) . ') VALUES (' . ':' . implode(', :', $cols) . ')';
-        $db = new Db();
+        $db = Db::getInstance();
         $res = $db->execute($sql, $params);
         return !empty($res) ? $db->lastInsertId() : false;
     }
 
     /**
      * Обновляет запись в БД
-     * @throws DbException
      */
     public function update()
     {
@@ -140,14 +142,13 @@ abstract class Model
             $params[':' . $key] = $val;
         }
         $sql = 'UPDATE ' . static::$table . ' SET ' . implode(', ', $binds) . ' WHERE id = :id';
-        $db = new Db();
+        $db = Db::getInstance();
         return $db->execute($sql, $params) ? $this->id : false;
     }
 
     /**
      * Удаляет запись из БД
      * @return bool
-     * @throws DbException
      */
     public function delete(): bool
     {
@@ -155,19 +156,18 @@ abstract class Model
         $params = [
             ':id' => $this->id
         ];
-        $db = new Db();
+        $db = Db::getInstance();
         return $db->execute($sql, $params);
     }
 
     /**
      * Возвращает количество записей в таблице
      * @return bool|int
-     * @throws DbException
      */
     public static function count()
     {
-        $sql = 'SELECT COUNT(*) as count FROM ' . static::$table;
-        $db = new Db();
+        $sql = 'SELECT COUNT(*) count FROM ' . static::$table;
+        $db = Db::getInstance();
         $data = $db->query($sql, [], static::class);
         return !empty($data) ? (int)array_shift($data)->count : false;
     }

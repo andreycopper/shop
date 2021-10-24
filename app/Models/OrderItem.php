@@ -35,19 +35,28 @@ class OrderItem extends Model
     public $updated;            // дата создания записи
 
     /**
+     * Проверяет добавляется новый элемент или редактируется существующий
+     * @return bool
+     * @throws DbException
+     */
+    public function isNew(): bool
+    {
+        return empty(self::getProductByUser($this->product_id, $this->user_id, $this->user_hash));
+    }
+
+    /**
      * Получает актуальную корзину пользователя
      * @param int $user_id - id пользователя
-     * @param string|null $coupon_code - код купона (этот функционал пока отложен на будущее...)
      * @return array|false
      * @throws DbException
      */
-    public static function getCart(int $user_id, string $coupon_code = null)
+    public static function getCart(int $user_id)
     {
         $items = self::getListByUser($user_id, $_COOKIE['user']);
-        //$coupon = $coupon_code ? Coupon::getByCodeUser($coupon_code, $user_id, $_COOKIE['user'], true) : null;
 
         if (!empty($items) && is_array($items)) {
             $count_items = 0;
+            $count_absent = 0;
             $sum = 0;
             $sum_nds = 0;
             $sum_discount = 0;
@@ -57,6 +66,7 @@ class OrderItem extends Model
             foreach ($items as $key => $item) {
                 if ($item->count > $item->quantity) { // на складах недостаточно товара
                     $absent[] = $item;
+                    $count_absent += $item->count;
                     unset($items[$key]);
                     continue;
                 }
@@ -111,7 +121,7 @@ class OrderItem extends Model
                 'items'            => $items,
                 'absent'           => $absent,
                 'count_items'      => $count_items,
-                'count_absent'     => count($absent),
+                'count_absent'     => $count_absent,
                 'sum'              => $sum,
                 'sum_nds'          => $sum_nds,
                 'sum_discount'     => $sum_discount,
@@ -126,7 +136,7 @@ class OrderItem extends Model
     }
 
     /**
-     * Получает количество наименований товаров в корзине
+     * Получает количество товаров в корзине
      * @return false|mixed
      * @throws DbException
      */
@@ -137,25 +147,24 @@ class OrderItem extends Model
         $params = [':user_id' => $user->id ];
         if ($user->id === '2') $params[':user_hash'] = $_COOKIE['user'];
         $sql = "
-            SELECT count(*) AS count 
-            FROM order_items 
+            SELECT sum(count) AS count 
+            FROM shop.order_items 
             WHERE user_id = :user_id {$where} AND order_id IS NULL AND qorder_id IS NULL";
 
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params ?? []);
         return !empty($data) ? array_shift($data)['count'] : false;
     }
 
     /**
-     * Получает товар в корзине пользователя по его id и хэшу
+     * Получает товар в корзине пользователя по id товара и id пользователя
      * @param int $product_id - id товара
      * @param int $user_id - id пользователя
      * @param string $user_hash - хэш пользователя (нужен для неавторизованного)
      * @param bool $object - возвращать объект/массив
      * @return false|mixed
-     * @throws DbException
      */
-    public static function getByUser(int $product_id, int $user_id, string $user_hash = '', $object = true)
+    public static function getProductByUser(int $product_id, int $user_id, string $user_hash = '', bool $object = true)
     {
         $userHash = ($user_id === 2) ? 'AND oi.user_hash = :user_hash' : '';
         $params = [
@@ -170,19 +179,18 @@ class OrderItem extends Model
                    (oi.sum - oi.sum_discount) sum_economy, oi.created, oi.updated 
             FROM order_items oi 
             WHERE oi.user_id = :user_id AND oi.product_id = :product_id {$userHash} AND oi.order_id IS NULL";
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }
 
     /**
-     * Получает список товаров в корзине по hash неавторизованного пользователя
+     * Получает список товаров в корзине по id пользователя
      * @param int $user_id
      * @param string $user_hash
      * @param bool $active
      * @param bool $object
      * @return array|false
-     * @throws DbException
      */
     public static function getListByUser(int $user_id, string $user_hash = '', bool $active = true, bool $object = true)
     {
@@ -201,21 +209,21 @@ class OrderItem extends Model
                    u.sign AS unit,
                    curr.sign AS currency,
                    v.name AS vendor 
-            FROM order_items oi 
-            LEFT JOIN price_types pt 
+            FROM shop.order_items oi 
+            LEFT JOIN shop.price_types pt 
                 ON pt.id = oi.price_type_id 
-            LEFT JOIN products p 
+            LEFT JOIN shop.products p 
                 ON p.id = oi.product_id 
-            LEFT JOIN units u 
+            LEFT JOIN shop.units u 
                 ON u.id = p.unit_id
-            LEFT JOIN currencies curr
+            LEFT JOIN shop.currencies curr
                 ON p.currency_id = curr.id
-            LEFT JOIN taxes t 
+            LEFT JOIN shop.taxes t 
                 ON t.id = p.tax_id
-            LEFT JOIN vendors v 
+            LEFT JOIN shop.vendors v 
                 ON p.vendor_id = v.id
             WHERE oi.user_id = :user_id {$userHash} AND oi.order_id IS NULL AND oi.qorder_id IS NULL {$activity}";
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return $data ?? false;
     }
@@ -246,7 +254,7 @@ class OrderItem extends Model
     public static function add(User $user, int $product_id, int $count)
     {
         $product = Product::getPriceItem($product_id, $user->price_type_id); // товар из каталога
-        $item = self::getByUser($product_id, $user->id, $_COOKIE['user']); // попытка найти этот товар в корзине пользователя
+        $item = self::getProductByUser($product_id, $user->id, $_COOKIE['user']); // попытка найти этот товар в корзине пользователя
 
         if (empty($item->id)) { // товар в корзине не найден
             $item = new self();
@@ -291,7 +299,7 @@ class OrderItem extends Model
      */
     public static function deleteItem(int $product_id, int $user_id)
     {
-        $item = self::getByUser($product_id, $user_id, $_COOKIE['user']);
+        $item = self::getProductByUser($product_id, $user_id, $_COOKIE['user']);
         if ($item) return $item->delete();
 
         return false;
@@ -310,8 +318,8 @@ class OrderItem extends Model
         $params = [':user_id' => $user_id ];
         if ($user_id === 2) $params[':user_hash'] = $_COOKIE['user'];
         $sql = "DELETE FROM order_items WHERE user_id = :user_id {$userHash} AND order_id IS NULL AND qorder_id IS NULL";
-        $db = new Db();
-        return $db->iquery($sql, $params ?? []);
+        $db = Db::getInstance();
+        return $db->execute($sql, $params ?? []);
     }
 
 
@@ -380,7 +388,7 @@ class OrderItem extends Model
      */
     public static function recalc(User $user, int $product_id, int $count, bool $isAjax = false)
     {
-        $item = self::getByUser($product_id, $user->id, $_COOKIE['cookie_hash']); // товар в корзине пользователя
+        $item = self::getProductByUser($product_id, $user->id, $_COOKIE['cookie_hash']); // товар в корзине пользователя
         $cart = OrderItem::getCart($user->id); // корзина пользователя
 
         if ($cart && $item) { // получена актуальная корзина и добавленный товар
@@ -495,7 +503,7 @@ class OrderItem extends Model
             ':user_id' => $user_id,
             ':product_id' => $product_id
         ];
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }
@@ -516,7 +524,7 @@ class OrderItem extends Model
         $params = [
             ':user_hash' => $user_hash
         ];
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return $data ?? false;
     }

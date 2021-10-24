@@ -4,7 +4,7 @@
             <? if (!empty($this->groups)): ?>
                 <? foreach ($this->groups[0] as $group1): ?>
                     <li class="catalog-leftmenu-item">
-                        <a href="/catalog/<?=$group1['title']?>/" class="catalog-leftmenu-link"><?=$group1['title']?></a>
+                        <a href="/catalog/<?=$group1['link']?>/" class="catalog-leftmenu-link"><?=$group1['name']?></a>
                         <i class="fa fa-angle-right" aria-hidden="true"></i>
 
                         <? if (!empty($this->groups[$group1['id']]) && is_array($this->groups[$group1['id']])): ?>
@@ -12,16 +12,16 @@
                                 <? foreach ($this->groups[$group1['id']] as $group2): ?>
                                     <li class="catalog-leftsubmenu-item">
                                         <div class="catalog-leftsubmenu-image">
-                                            <a href="/catalog/<?=$group1['title']?>/<?=$group2['title']?>/"><img src="/uploads/groups/<?=$group2['id']?>/<?=$group2['image']?>" alt=""></a>
+                                            <a href="/catalog/<?=$group1['link']?>/<?=$group2['link']?>/"><img src="/uploads/groups/<?=$group2['id']?>/<?=$group2['image']?>" alt=""></a>
                                         </div>
 
                                         <div class="catalog-leftsubmenu-main">
-                                            <a href="/catalog/<?=$group1['title']?>/<?=$group2['title']?>/"><?=$group2['title']?></a>
+                                            <a href="/catalog/<?=$group1['link']?>/<?=$group2['link']?>/"><?=$group2['name']?></a>
 
                                             <? if (!empty($this->groups[$group2['id']]) && is_array($this->groups[$group2['id']])): ?>
                                                 <div class="catalog-leftsubmenu-subitems">
                                                     <? foreach ($this->groups[$group2['id']] as $group3): ?>
-                                                        <a href="/catalog/<?=$group1['title']?>/<?=$group2['title']?>/<?=$group3['title']?>/"><?=$group3['title']?></a>
+                                                        <a href="/catalog/<?=$group1['link']?>/<?=$group2['link']?>/<?=$group3['link']?>/"><?=$group3['name']?></a>
                                                     <? endforeach; ?>
                                                 </div>
                                             <? endif; ?>
@@ -113,7 +113,7 @@
             </div>
         </div>
     </div>
-    <!--            -->
+
     <div class="catalog-main">
         <div class="catalog-main-container">
             <? if (!empty($this->groups)): ?>
@@ -121,16 +121,16 @@
                     <div class="catalog-main-item">
                         <div class="catalog-main-top">
                             <div class="catalog-main-image">
-                                <a href="/catalog/<?=$group1['title']?>/"><img src="/uploads/groups/<?=$group1['id']?>/<?=$group1['image']?>" alt="<?=$group1['title']?>"></a>
+                                <a href="/catalog/<?=$group1['link']?>/"><img src="/uploads/groups/<?=$group1['id']?>/<?=$group1['image']?>" alt="<?=$group1['name']?>"></a>
                             </div>
 
                             <div class="catalog-main-header">
-                                <div class="catalog-main-title"><a href="/catalog/<?=$group1['title']?>/"><?=$group1['title']?></a></div>
+                                <div class="catalog-main-title"><a href="/catalog/<?=$group1['link']?>/"><?=$group1['name']?></a></div>
 
                                 <? if (!empty($this->groups[$group1['id']]) && is_array($this->groups[$group1['id']])): ?>
                                     <div class="catalog-main-list">
                                         <? foreach ($this->groups[$group1['id']] as $group2): ?>
-                                            <a href="/catalog/<?=$group1['title']?>/<?=$group2['title']?>/"><?=$group2['title']?> <span>6</span></a>
+                                            <a href="/catalog/<?=$group1['link']?>/<?=$group2['link']?>/"><?=$group2['name']?> <span>6</span></a>
                                         <? endforeach; ?>
                                     </div>
                                 <? endif; ?>

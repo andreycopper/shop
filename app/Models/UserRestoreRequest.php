@@ -25,7 +25,7 @@ class UserRestoreRequest extends Model
         $params = [
             ':hash' => $hash
         ];
-        $db = new Db();
+        $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }

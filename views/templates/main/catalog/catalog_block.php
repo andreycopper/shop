@@ -52,7 +52,7 @@
                     <? if (!empty($item->discount)): ?>
                         <div class="product-item-oldprice">
                             <span class="product-item-value"><?=number_format($price->price, 0, '.', ' ')?></span>
-                            <span class="product-item-currency"><?=$price->sign?></span><span class="product-item-measure">/<?=$item->unit?></span>
+                            <span class="product-item-currency"><?=$price->currency?></span><span class="product-item-measure">/<?=$item->unit?></span>
                             <div class="product-item-priceline"></div>
                         </div>
                     <? endif; ?>

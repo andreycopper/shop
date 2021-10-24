@@ -5194,8 +5194,10 @@ section.main {
 .basket-empty a:hover {
     color: #222222;
 }
-.basket-header,
-.basket-footer {
+#cart {
+    overflow: visible;
+}
+.basket-summary {
     display: flex;
     margin-bottom: 30px;
     padding: 20px 30px;
@@ -5523,6 +5525,7 @@ section.main {
     font: 14px/36px 'OpenSansRegular';
     text-align: center;
     background: #f3f3f5;
+    outline: none;
 }
 /* ORDER */
 .order-item {
