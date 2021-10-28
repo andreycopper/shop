@@ -5,6 +5,7 @@ require __DIR__ . '/../config/constants.php';
 
 session_start();
 
+use Models\QuickOrder;
 use System\Route;
 use System\Logger;
 use Controllers\Errors;

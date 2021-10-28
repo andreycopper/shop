@@ -4,14 +4,12 @@ namespace Controllers;
 
 use System\Request;
 use Models\CallBack;
-use Exceptions\DbException;
 use Exceptions\UserException;
 
 class CallBacks extends Controller
 {
     /**
      * Сохраняет обратный звонок
-     * @throws DbException
      * @throws UserException
      */
     protected function actionSave()
@@ -19,10 +17,12 @@ class CallBacks extends Controller
         if (Request::isPost()) {
             $form = Request::post();
 
-            if (!CallBack::checkData($form)) self::result(false,'Заполнены не все обязательные поля');
+            if (CallBack::checkData($form)) {
+                $res = CallBack::saveCallback($this->user->id, $form);
+                $message = $res ? 'Заказ обратного звонка отправлен' : 'Ошибка при отправке заказа обратного звонка';
+            } else $message = 'Заполнены не все обязательные поля';
 
-            $res = CallBack::saveCallback($this->user, $form);
-            self::result($res, $res ? 'Заказ обратного звонка отправлен' : 'Ошибка при отправке заказа обратного звонка');
+            self::result($res ?? false,$message);
         }
     }
 }

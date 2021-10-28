@@ -177,7 +177,7 @@ $(function () {
     });
 
     /* отправка модальных форм - быстрый заказ/обратный звонок */
-    $('.modalform form').on('submit', function (e) {
+    $('.modalform').on('submit', 'form', function (e) {
         e.preventDefault();
         let form = $(this),
             url = $(this).attr('action'),
@@ -241,10 +241,10 @@ $(function () {
     });
 
     /* смена режима просмотра каталога */
-    $('.product-view a').on('click', function (e) {
-        $('.product-view a').removeClass('active');
+    $('.view-filter-product').on('click', function (e) {
+        $('.view-filter-product').removeClass('active');
         $(this).addClass('active');
-        $.cookie('view', $(this).attr('data-view'), {expires: 1, path: '/'});
+        $.cookie('display', $(this).attr('data-view'), {expires: 1, path: '/'});
     });
 
     /* кнопка минус количества товаров */

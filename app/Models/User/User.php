@@ -1,12 +1,16 @@
 <?php
 
-namespace Models;
+namespace Models\User;
 
+use Models\Event;
+use Models\OrderItem;
 use System\Db;
-use System\Access;
 use System\Geo;
-use System\Logger;
 use System\RSA;
+use Models\Model;
+use System\Access;
+use System\Logger;
+use Models\Fias\City;
 use System\Validation;
 use Exceptions\DbException;
 use Exceptions\UserException;
@@ -32,7 +36,8 @@ class User extends Model
     public $personal_data;
     public $mailing = 1; // подписание на рассылку
     public $mailing_type_id = 2; // тип рассылки html
-    public $price_type_id; // тип цен
+    public $price_types; // типы цены, просмотр которых разрешен
+    public $price_type_id; // тип цены, по которой покупает
     public $private_key;
     public $created;
     public $updated;
@@ -64,11 +69,11 @@ class User extends Model
      * Получает текущего пользователя
      * Неавторизованный пользователь - id=2 Пользователь
      * @return false|mixed|null
-     * @throws DbException
      */
     public static function getCurrent()
     {
         $user = self::getByHash() ?: self::getById(2);
+        $user->price_types = self::getUserPriceTypes($user->group_id, $user->id);
         $_SESSION['user'] = $user;
         //if (!empty($user['cookie_hash'])) UserSession::extend($user);
 
@@ -76,9 +81,34 @@ class User extends Model
     }
 
     /**
+     * Возвращает список доступных для просмотра типов цен
+     * @param $group_id - группа пользователя
+     * @param $user_id - id пользователя
+     * @return array
+     */
+    public static function getUserPriceTypes($group_id, $user_id)
+    {
+        $params = [
+            'group_id' => $group_id,
+            'user_id' => $user_id,
+        ];
+        $sql = "SELECT price_type_id FROM shop.user_price_types WHERE user_group_id = :group_id OR user_id = :user_id";
+        $db = Db::getInstance();
+        $data = $db->query($sql, $params);
+
+        $res = [];
+        if (!empty($data) && is_array($data)) {
+            foreach ($data as $item) {
+                if (!in_array($item['price_type_id'], $res)) $res[] = intval($item['price_type_id']);
+            }
+        }
+
+        return $res;
+    }
+
+    /**
      * Проверяет авторизован ли пользователь
      * @return bool
-     * @throws DbException
      */
     public static function isAuthorized()
     {
@@ -92,7 +122,6 @@ class User extends Model
      * @param bool $active
      * @param bool $object
      * @return bool|mixed
-     * @throws DbException
      */
     public static function getById(int $id, bool $active = true, $object = true)
     {
@@ -132,7 +161,6 @@ class User extends Model
      * @param bool $active
      * @param bool $object
      * @return false|mixed
-     * @throws DbException
      */
     public static function getByHash(bool $active = true, bool $object = true)
     {
@@ -394,7 +422,7 @@ class User extends Model
     public static function authorize(int $user_id, bool $remember = false): bool
     {
         $user = self::getFullInfoById($user_id, true, true);
-        $_SESSION['user'] = $user->toArray();
+        $_SESSION['user'] = $user;
 
 
         return !empty($user->id) ?
@@ -511,9 +539,7 @@ class User extends Model
             die;
         }
         else {
-            $exc = new UserException($message);
-            Logger::getInstance()->error($exc);
-            throw $exc;
+            throw new UserException($message);
         }
     }
 

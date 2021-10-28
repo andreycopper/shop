@@ -36,7 +36,7 @@ class Validation
 
     public static function numbers(string $name, $count = null)
     {
-        $n = $count ? ('{' . $count . '}') : '+';//var_dump($count);var_dump($n);die;
+        $n = $count ? ('{' . $count . '}') : '+';
         return !empty($name) && preg_match("/^\d{$n}$/i", $name);
     }
 }

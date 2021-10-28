@@ -6,13 +6,12 @@ use Models\Group;
 use Models\Product;
 use System\Request;
 use Models\OrderItem;
-use System\Pagination;
-use Exceptions\DbException;
+use Models\Product\ProductStore;
 use Exceptions\NotFoundException;
 
 class Catalog extends Controller
 {
-    protected $perPage = 20;
+    protected $page_count = 20;
 
     protected function actionDefault()
     {
@@ -23,28 +22,25 @@ class Catalog extends Controller
      * Показ товара/списка товаров данной категории
      * @param $elem
      * @throws NotFoundException
-     * @throws DbException
      */
     protected function actionShow($elem)
     {
-        if (is_numeric($elem)) {
-            $this->view->item = Product::getPricesItem(intval($elem), [$this->view->user->price_type_id]);
-
-            if (!empty($this->view->item)) {
-                Product::addProductView($this->view->item->id); // добавляем просмотр товару
-                $this->view->display('catalog/product');
+        if (is_numeric($elem)) { // показ конкретного товара
+            $item = Product::getPrice(intval($elem), $this->user->price_types);
+            if (!empty($item)) {
+                Product::addProductView($item->id); // добавляем просмотр товару
+                $this->set('item', $item); // товар
+                $this->view->display('product/item');
             } else throw new NotFoundException('Товар не найден');
         }
-        else {
-            $this->view->group = Group::getByField('link', $elem, true); // категория товаров
-
-            if (!empty($this->view->group)) {
-                $items = Product::getPricesList([intval($this->view->group->id)], [intval($this->view->user->price_type_id)]);
-                $items = Pagination::make($items, $this->perPage); // массив страниц
-                $this->view->items = $items[$this->view->pageCurrent] ?? null; // список товаров данной страницы
-                $this->view->item_pages = $items['pages'] ?? null; // страницы данной категории
-                $this->view->subGroups  = Group::getSubGroups(intval($this->view->group->id)); // подкатегории
-                $this->view->display('catalog/catalog_view');
+        else { // список товаров категории
+            $group = Group::getByField('link', $elem, true);
+            if (!empty($group->id)) {
+                $this->set('group', $group); // категория товаров
+                $this->set('sub_groups', Group::getSubGroups(intval($group->id))); // подкатегории
+                $this->set('total_pages', ceil(Product::getCountByGroup([$group->id]) / $this->page_count)); // всего страниц для пагинации
+                $this->set('items', Product::getPriceList([$group->id], $this->user->price_types, $this->page_current, $this->page_count)); // товары
+                $this->view->display('catalog/list');
             } else throw new NotFoundException('Категория не найдена');
         }
     }
@@ -56,9 +52,9 @@ class Catalog extends Controller
     {
         if (Request::isPost()) {
             $item = Request::post(); // добавляемый товар
-            $product = Product::getPriceItem(intval($item['id']), $this->user->price_type_id); // товар в каталоге
+            $product = Product::getPrice(intval($item['id']), [$this->user->price_type_id]); // товар в каталоге
 
-            if (empty($product) || !OrderItem::checkCartProduct($product, intval($item['id']), intval($item['count'])))
+            if (empty($product) || !OrderItem::checkCartProduct(intval($item['id']), intval($item['count']), $product->quantity))
                 self::result(false, 'Товар отсутствует на складе');
 
             $res = OrderItem::add($this->user, intval($item['id']), intval($item['count']));

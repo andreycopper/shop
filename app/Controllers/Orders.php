@@ -7,7 +7,7 @@ use Models\Payment;
 use System\Request;
 use Models\Delivery;
 use Models\OrderItem;
-use Models\UserProfile;
+use Models\User\UserProfile;
 use Exceptions\DbException;
 use Exceptions\UserException;
 

@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Controllers\Company;
-
 
 use Controllers\Controller;
 

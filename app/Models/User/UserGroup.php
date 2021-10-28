@@ -1,6 +1,8 @@
 <?php
 
-namespace Models;
+namespace Models\User;
+
+use Models\Model;
 
 class UserGroup extends Model
 {

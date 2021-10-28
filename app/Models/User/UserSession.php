@@ -1,8 +1,9 @@
 <?php
 
-namespace Models;
+namespace Models\User;
 
 use System\Db;
+use Models\Model;
 use System\Logger;
 use Exceptions\DbException;
 

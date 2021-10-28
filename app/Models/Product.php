@@ -2,6 +2,7 @@
 
 namespace Models;
 
+use Models\Product\ProductStore;
 use System\Db;
 use Exceptions\DbException;
 
@@ -45,93 +46,11 @@ class Product extends Model
     public $updated;
 
     /**
-     * Возвращает список товаров определенной группы с ценой
-     * @param array $group - массив групп товаров (пустой массив - все товары)
-     * @param int $price_type - тип цены
-     * @param string $order - поле сортировки
-     * @param string $sort - порядок сортировки
-     * @param bool $active - активность
-     * @param bool $object - возвращать объект/массив
-     * @return array|bool|mixed
-     * @throws DbException
-     */
-    public static function getPriceList(array $group = [], int $price_type = 2, string $order = 'sort', string $sort = 'ASC', bool $active = true, bool $object = true)
-    {
-        $items = self::getListByGroup($group, $order, $sort, $active, $object);
-        if (!empty($items) && is_array($items)) {
-            foreach ($items as $key => $item) {
-                $item->price = ProductPrice::getPrice($item->id, $price_type, $active);
-            }
-        }
-        return $items ?: false;
-    }
-
-    /**
-     * Возвращает список товаров определенной группы с ценами
-     * @param array $group - массив групп товаров (пустой массив - все товары)
-     * @param array $price_type - массив типов цен (пустой массив - все типы цен)
-     * @param string $order - поле сортировки
-     * @param string $sort - порядок сортировки
-     * @param bool $active - активность
-     * @param bool $object - возвращать объект/массив
-     * @return array|bool|mixed
-     * @throws DbException
-     */
-    public static function getPricesList(array $group = [], array $price_type = [], string $order = 'sort', string $sort = 'ASC', bool $active = true, bool $object = true)
-    {
-        $items = self::getListByGroup($group, $order, $sort, $active, $object);
-        if (!empty($items) && is_array($items)) {
-            foreach ($items as $key => $item) {
-                $item->prices = ProductPrice::getPrices($item->id, $price_type, $active);
-            }
-        }
-        return $items ?: false;
-    }
-
-    /**
-     * Возвращает товар с ценой
-     * @param int $id - id товара
-     * @param int $price_type - тип цены
-     * @param bool $active - активность
-     * @param bool $object - возвращать объект/массив
-     * @return bool|mixed
-     * @throws DbException
-     */
-    public static function getPriceItem(int $id, int $price_type = 2, bool $active = true, bool $object = true)
-    {
-        $item = self::getById($id, $active, $object);
-        if (!empty($item)) $item->price = ProductPrice::getPrice($id, $price_type, $active);
-        return $item ?: false;
-    }
-
-    /**
-     * Возвращает товар с ценами
-     * @param int $id - id товара
-     * @param array $price_type - массив типов цен (пустой массив - все типы цен)
-     * @param bool $active - активность
-     * @param bool $object - возвращать объект/массив
-     * @return bool|mixed
-     * @throws DbException
-     */
-    public static function getPricesItem(int $id, array $price_type = [], bool $active = true, bool $object = true)
-    {
-        $item = self::getById($id, $active, $object);
-        if (!empty($item)) {
-            $item->prices = ProductPrice::getPrices($id, $price_type, $active);
-            $item->images = ProductImage::getByProductId($id);
-        }
-        return $item ?: false;
-    }
-
-
-
-    /**
      * Возвращает товар по id
      * @param int $id - id товара
      * @param bool $active - активность
      * @param bool $object - возвращать объект/массив
      * @return bool|mixed
-     * @throws DbException
      */
     public static function getById(int $id, bool $active = true, bool $object = true)
     {
@@ -171,62 +90,13 @@ class Product extends Model
     }
 
     /**
-     * Возвращает список товаров по id группы
-     * @param array $group - массив групп товаров (пустой массив - все товары)
-     * @param string $order - поле сортировки
-     * @param string $sort - порядок сортировки
-     * @param bool $active - активность
-     * @param bool $object - возвращать объект/массив
-     * @return array|bool
-     * @throws DbException
-     */
-    public static function getListByGroup(array $group = [], string $order = 'sort', string $sort = 'ASC', bool $active = true, $object = true)
-    {
-        $groups = !empty($group) ? ('group_id IN (' . implode(',', $group) . ')') : '';
-        $activity = !empty($active) ? ((!empty($groups) ? 'AND ' : '') . 'p.active IS NOT NULL AND g.active IS NOT NULL AND v.active IS NOT NULL') : '';
-
-        $sql = "
-            SELECT 
-                p.id, p.name, p.articul, p.quantity, p.quantity_from, p.quantity_to, p.discount,  p.views,
-                p.is_hit, p.is_new, p.is_action, p.is_recommend,
-                p.preview_image, p.preview_text, p.preview_text_type_id, ptt.name preview_text_type, 
-                p.detail_image, p.detail_text, p.detail_text_type_id, dtt.name detail_text_type, 
-                p.unit_id, u.name unit_name, u.sign unit, 
-                p.warranty, p.warranty_period_id, wp.name warranty_name,
-                p.group_id, g.name group_name, g.link group_link,
-                p.vendor_id, v.name vendor, v.image vendor_image,
-                p.tax_id, p.tax_included, t.name tax_name, t.value tax_value 
-            FROM products p  
-            LEFT JOIN `groups` g 
-                ON p.group_id = g.id 
-            LEFT JOIN vendors v 
-                ON p.vendor_id = v.id 
-            LEFT JOIN taxes t 
-                ON p.tax_id = t.id 
-            LEFT JOIN units u 
-                ON p.unit_id = u.id 
-            LEFT JOIN warranty_periods wp 
-                ON p.warranty_period_id = wp.id 
-            LEFT JOIN text_types ptt 
-                ON p.preview_text_type_id = ptt.id 
-            LEFT JOIN text_types dtt 
-                ON p.detail_text_type_id = dtt.id 
-            WHERE {$groups} {$activity} 
-            ORDER BY p.{$order}, p.created, p.id {$sort}";
-
-        $db = Db::getInstance();
-        $items = $db->query($sql, [], $object ? static::class : null);
-        return $items ?: false;
-    }
-
-    /**
      * Возвращает список товаров
+     * (по сути не нужен, т.к. getListByGroup делает тоже самое, но с учето групп товаров. сделан для совместимости с базовым getList)
      * @param string $order - поле сортировки
      * @param string $sort - порядок сортировки
      * @param bool $active - активность
      * @param bool $object - возвращать объект/массив
      * @return array|bool
-     * @throws DbException
      */
     public static function getList(string $order = 'sort', string $sort = 'ASC', bool $active = true, bool $object = true)
     {
@@ -266,163 +136,45 @@ class Product extends Model
     }
 
     /**
-     * Добавляет товару просмотр
-     * @param int $id - id товара
-     * @return bool
-     * @throws DbException
-     */
-    public static function addProductView(int $id)
-    {
-        $params = [':id' => $id];
-        $sql = "UPDATE products SET views = views + 1 WHERE products.id = :id";
-        $db = Db::getInstance();
-        return $db->execute($sql, $params);
-    }
-
-    /**
-     * Возвращает количество товара на складе
-     * @param int $id - id товара
+     * Возвращает список товаров по id группы
+     * @param array $group - массив групп товаров (пустой массив - все товары)
+     * @param string $order - поле сортировки
+     * @param string $sort - порядок сортировки
      * @param bool $active - активность
      * @param bool $object - возвращать объект/массив
-     * @return false|mixed
-     * @throws DbException
+     * @return array|bool
      */
-    public static function getQuantity(int $id, bool $active = true, bool $object = true)
+    public static function getListByGroup(
+        array $group = [],
+        int $page_number = null,
+        int $page_count = null,
+        string $order = 'sort',
+        string $sort = 'ASC',
+        bool $active = true,
+        bool $object = true
+    )
     {
-        $params = [':id' => $id];
-        $activity = !empty($active) ? 'AND p.active IS NOT NULL' : '';
-        $sql = "SELECT p.quantity FROM products p WHERE p.id = :id {$activity}";
-        $db = Db::getInstance();
-        $data = $db->query($sql, $params, $object ? static::class : null);
-        return !empty($data) ? array_shift($data)['quantity'] : false;
-    }
+        $groups = !empty($group) ? ('group_id IN (' . implode(',', $group) . ')') : '';
+        $offset = !empty($page_number) && !empty($page_count) ? $page_count * ($page_number - 1) : null;
+        $limit = isset($offset) && !empty($page_count) ? "LIMIT {$offset}, {$page_count}" : '';
+        $activity = !empty($active) ? ((!empty($groups) ? 'AND ' : '') . 'p.active IS NOT NULL AND g.active IS NOT NULL AND v.active IS NOT NULL') : '';
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /**
-     * Находит и возвращает одну запись из БД по id
-     * @param int $id
-     * @param int $price_type
-     * @param bool $active
-     * @param bool $object
-     * @return bool|mixed
-     * @throws DbException
-     */
-    public static function getByIdWithRate(int $id, int $price_type, bool $active = false, $object = true)
-    {
-        $where = !empty($active) ? ' AND p.active IS NOT NULL' : '';
-        $sql = "
-            SELECT p.id, p.name, p.quantity, p.discount,  
-                   pp.price, 
-                   cr.rate, 
-                   t.value tax 
-            FROM products p 
-            LEFT JOIN product_prices pp 
-                ON p.id = pp.product_id AND pp.price_type_id = :price_type
-            LEFT JOIN currency_rates cr 
-                ON pp.currency_id = cr.currency_id 
-            LEFT JOIN taxes t 
-                ON p.tax_id = t.id
-            WHERE p.id = :id {$where}
-        ";
-        $params = [
-            ':id' => $id,
-            ':price_type' => $price_type
-        ];
-        $db = Db::getInstance();
-        $data = $db->query($sql, $params, $object ? static::class : null);
-        return !empty($data) ? array_shift($data) : false;
-    }
-
-    /**
-     * Находит и возвращает одну запись из БД по id с полной информацией о товаре
-     * @param int $id
-     * @param $price_type
-     * @param bool $active
-     * @param bool $object
-     * @return bool|mixed
-     * @throws DbException
-     */
-    public static function getFullInfoById(int $id, int $price_type, bool $active = false, $object = true)
-    {
         $sql = "
             SELECT 
-                p.id, p.name, p.articul, p.discount, p.quantity, p.detail_image, p.preview_text, p.detail_text, 
-                p.is_hit AS hit, p.is_new AS new, p.is_action AS action, p.is_recommend AS recommend, 
-                g.name AS group_name, g.title AS group_title, 
-                v.name AS vendor, v.image AS vendor_image, 
-                c.sign AS currency, 
-                cr.rate,
-                t.value AS tax, t.name AS tax_name,
-                u.sign AS unit,
-                wp.name AS warranty, 
-                ptt.name AS preview_text_type, 
-                dtt.name AS detail_text_type,
-                pp.price 
-            FROM products p 
-            LEFT JOIN product_prices pp 
-                ON p.id = pp.product_id AND pp.price_type_id = :price_type
+                p.id, p.name, p.articul, p.quantity, p.quantity_from, p.quantity_to, p.discount,  p.views,
+                p.is_hit, p.is_new, p.is_action, p.is_recommend,
+                p.preview_image, p.preview_text, p.preview_text_type_id, ptt.name preview_text_type, 
+                p.detail_image, p.detail_text, p.detail_text_type_id, dtt.name detail_text_type, 
+                p.unit_id, u.name unit_name, u.sign unit, 
+                p.warranty, p.warranty_period_id, wp.name warranty_name,
+                p.group_id, g.name group_name, g.link group_link,
+                p.vendor_id, v.name vendor, v.image vendor_image,
+                p.tax_id, p.tax_included, t.name tax_name, t.value tax_value 
+            FROM products p  
             LEFT JOIN `groups` g 
                 ON p.group_id = g.id 
             LEFT JOIN vendors v 
                 ON p.vendor_id = v.id 
-            LEFT JOIN currencies c 
-                ON p.currency_id = c.id 
-            LEFT JOIN currency_rates cr 
-                ON p.currency_id = cr.currency_id 
             LEFT JOIN taxes t 
                 ON p.tax_id = t.id 
             LEFT JOIN units u 
@@ -433,170 +185,103 @@ class Product extends Model
                 ON p.preview_text_type_id = ptt.id 
             LEFT JOIN text_types dtt 
                 ON p.detail_text_type_id = dtt.id 
-            WHERE p.id = :id
-        ";
-        $sql .= !empty($active) ? ' AND p.active IS NOT NULL' : '';
-        $params = [
-            ':id' => $id,
-            ':price_type' => $price_type
-        ];
+            WHERE {$groups} {$activity} 
+            ORDER BY p.{$order}, p.created, p.id {$sort} 
+            {$limit}";
+
         $db = Db::getInstance();
-        $data = $db->query($sql, $params, $object ? static::class : null);
-        return !empty($data) ? array_shift($data) : false;
+        $items = $db->query($sql, [], $object ? static::class : null);
+        return $items ?: false;
     }
 
-    public function filter_id($id)
+    /**
+     * Возвращает список товаров по id группы
+     * @param array $group - массив групп товаров (пустой массив - все товары)
+     * @param bool $active - активность
+     * @return array|bool
+     */
+    public static function getCountByGroup(
+        array $group = [],
+        bool $active = true
+    )
     {
-        return (int)$id;
+        $groups = !empty($group) ? ('group_id IN (' . implode(',', $group) . ')') : '';
+        $activity = !empty($active) ? ((!empty($groups) ? 'AND ' : '') . 'p.active IS NOT NULL AND g.active IS NOT NULL AND v.active IS NOT NULL') : '';
+
+        $sql = "
+            SELECT 
+                count(p.id) count 
+            FROM products p 
+            LEFT JOIN `groups` g 
+                ON p.group_id = g.id 
+            LEFT JOIN vendors v 
+                ON p.vendor_id = v.id 
+            WHERE {$groups} {$activity}";
+
+        $db = Db::getInstance();
+        $res = $db->query($sql);
+        return $res ? array_shift($res)['count'] : false;
     }
 
-    public function filter_xml_id($id)
+    /**
+     * Возвращает товар с ценами
+     * @param int $id - id товара
+     * @param array $price_type - массив типов цен (пустой массив - все типы цен)
+     * @param bool $active - активность
+     * @param bool $object - возвращать объект/массив
+     * @return bool|mixed
+     */
+    public static function getPrice(int $id, array $price_type = [2], bool $active = true, bool $object = true)
     {
-        return (int)$id;
+        $item = self::getById($id, $active, $object);
+        if (!empty($item)) {
+            $item->prices = ProductPrice::getPrice($id, $price_type, $active);
+            $item->images = ProductImage::getByProductId($id);
+            $item->stores = ProductStore::getQuantities($id);
+        }
+        return $item ?: false;
     }
 
-    public function filter_ie_id($id)
+    /**
+     * Возвращает список товаров определенной группы с ценами
+     * @param array $group - массив групп товаров (пустой массив - все товары)
+     * @param array $price_type - массив типов цен (пустой массив - все типы цен)
+     * @param string $order - поле сортировки
+     * @param string $sort - порядок сортировки
+     * @param bool $active - активность
+     * @param bool $object - возвращать объект/массив
+     * @return array|bool|mixed
+     */
+    public static function getPriceList(
+        array $group = [],
+        array $price_type = [],
+        $page_number = null,
+        $page_count = null,
+        string $order = 'sort',
+        string $sort = 'ASC',
+        bool $active = true,
+        bool $object = true
+    )
     {
-        return (int)$id;
+        $items = self::getListByGroup($group, $page_number, $page_count, $order, $sort, $active, $object);
+        if (!empty($items) && is_array($items)) {
+            foreach ($items as $key => $item) {
+                $item->prices = ProductPrice::getPrice($item->id, $price_type, $active);
+            }
+        }
+        return $items ?: false;
     }
 
-    public function filter_name($text)
+    /**
+     * Добавляет товару просмотр
+     * @param int $id - id товара
+     * @return bool
+     */
+    public static function addProductView(int $id)
     {
-        return strip_tags(trim($text));
-    }
-
-    public function filter_active($value)
-    {
-        return (int)$value;
-    }
-
-    public function filter_articul($text)
-    {
-        return strip_tags(trim($text));
-    }
-
-    public function filter_group_id($value)
-    {
-        return (int)$value;
-    }
-
-    public function filter_vendor_id($value)
-    {
-        return (int)$value;
-    }
-
-    public function filter_preview_image($text)
-    {
-        return strip_tags(trim($text));
-    }
-
-    public function filter_preview_text($text)
-    {
-        return trim($text);
-    }
-
-    public function filter_preview_text_type_id($value)
-    {
-        return (int)$value;
-    }
-
-    public function filter_detail_image($text)
-    {
-        return strip_tags(trim($text));
-    }
-
-    public function filter_detail_text($text)
-    {
-        return trim($text);
-    }
-
-    public function filter_detail_text_type_id($value)
-    {
-        return (int)$value;
-    }
-
-    public function filter_is_hit($value)
-    {
-        return (int)$value;
-    }
-
-    public function filter_is_new($value)
-    {
-        return (int)$value;
-    }
-
-    public function filter_is_action($value)
-    {
-        return (int)$value;
-    }
-
-    public function filter_is_recommend($value)
-    {
-        return (int)$value;
-    }
-
-    public function filter_tax_id($value)
-    {
-        return (float)$value;
-    }
-
-    public function filter_tax_included($value)
-    {
-        return (int)$value;
-    }
-
-    public function filter_quantity($value)
-    {
-        return (int)$value;
-    }
-
-    public function filter_quantity_from($value)
-    {
-        return (int)$value;
-    }
-
-    public function filter_quantity_to($value)
-    {
-        return (int)$value;
-    }
-
-    public function filter_discount($value)
-    {
-        return (float)$value;
-    }
-
-    public function filter_price($value)
-    {
-        return (float)$value;
-    }
-
-    public function filter_currency_id($value)
-    {
-        return (int)$value;
-    }
-
-    public function filter_unit_id($value)
-    {
-        return (int)$value;
-    }
-
-    public function filter_warranty($value)
-    {
-        return (int)$value;
-    }
-
-    public function filter_warranty_period_id($value)
-    {
-        return (int)$value;
-    }
-
-    public function filter_views($value)
-    {
-        return (int)$value;
-    }
-
-    public function filter_sort($value)
-    {
-        return (int)$value;
+        $params = [':id' => $id];
+        $sql = "UPDATE products SET views = views + 1 WHERE products.id = :id";
+        $db = Db::getInstance();
+        return $db->execute($sql, $params);
     }
 }

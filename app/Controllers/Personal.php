@@ -2,8 +2,8 @@
 
 namespace Controllers;
 
-use Models\User;
 use System\Request;
+use Models\User\User;
 use Exceptions\DbException;
 use Exceptions\UserException;
 

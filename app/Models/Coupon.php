@@ -2,9 +2,10 @@
 
 namespace Models;
 
-use Exceptions\DbException;
+use Models\User\User;
 use System\Db;
 use System\Logger;
+use Exceptions\DbException;
 use Exceptions\UserException;
 
 class Coupon extends Model

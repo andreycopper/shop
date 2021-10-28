@@ -1,13 +1,14 @@
 <?php
 
-namespace Models;
+namespace Models\Fias;
 
 use System\Db;
+use Models\Model;
 use Exceptions\DbException;
 
 class City extends Model
 {
-    protected static $table = 'fias_cities';
+    protected static $table = 'fias.cities';
     public $id;
     public $active;
     public $region_id;
@@ -42,20 +43,20 @@ class City extends Model
         $activity = !empty($active) ? ' AND c.active IS NOT NULL AND r.active IS NOT NULL' : '';
         $sql = "
             SELECT c.id, c.name AS city, r.name AS region, s.shortname 
-            FROM fias_cities c 
-            LEFT JOIN fias_regions r 
+            FROM fias.cities c 
+            LEFT JOIN fias.regions r 
                 ON c.region_id = r.id 
-            LEFT JOIN fias_shortnames s 
+            LEFT JOIN fias.shortnames s 
                 ON c.shortname_id = s.id 
             WHERE c.name = :city {$activity} 
             UNION ALL 
             SELECT c.id, c.name AS city, r.name AS region, s.shortname 
-            FROM fias_cities c 
-            LEFT JOIN fias_regions r 
+            FROM fias.cities c 
+            LEFT JOIN fias.regions r 
                 ON c.region_id = r.id 
-            LEFT JOIN fias_shortnames s 
+            LEFT JOIN fias.shortnames s 
                 ON c.shortname_id = s.id
-            WHERE NOT EXISTS(SELECT * FROM fias_cities WHERE name = :city) AND c.name = 'Москва' {$activity}";
+            WHERE NOT EXISTS(SELECT * FROM fias.cities WHERE name = :city) AND c.name = 'Москва' {$activity}";
         $params = [
             ':city' => $city
         ];
@@ -132,9 +133,9 @@ class City extends Model
         $where = !empty($active) ? ' AND c.active IS NOT NULL AND r.active IS NOT NULL' : '';
         $sql = "
             SELECT c.id, r.name region, c.name, s1.shortname shortname 
-            FROM fias_cities c 
-            LEFT JOIN fias_regions r ON c.region_id = r.id 
-            LEFT JOIN fias_shortnames s1 ON c.shortname_id = s1.id 
+            FROM fias.cities c 
+            LEFT JOIN fias.regions r ON c.region_id = r.id 
+            LEFT JOIN fias.shortnames s1 ON c.shortname_id = s1.id 
             WHERE c.formalname LIKE CONCAT('%', :city, '%') {$where} LIMIT {$limit}";
 
         $params = [

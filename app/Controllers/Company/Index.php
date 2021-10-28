@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Controllers\Company;
-
 
 use Controllers\Controller;
 
@@ -13,6 +11,6 @@ class Index extends Controller
      */
     protected function actionDefault()
     {
-        $this->view->display('main', 'company.php');
+        $this->view->display('company');
     }
 }

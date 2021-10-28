@@ -4,7 +4,7 @@ namespace System;
 
 class Pagination
 {
-    public static function make($items, $perPage)
+    public static function make($items, $page_count)
     {
         if (!empty($items) && is_array($items)) {
             $res = [];
@@ -14,7 +14,7 @@ class Pagination
             foreach ($items as $key => $item) {
                 $res['pages'][$page] = $page;
                 $res[$page][] = $item;
-                if ($i % $perPage === 0) $page++;
+                if ($i % $page_count === 0) $page++;
                 $i++;
             }
         }

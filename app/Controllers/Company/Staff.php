@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Controllers\Company;
-
 
 use Controllers\Controller;
 
@@ -13,6 +11,6 @@ class Staff extends Controller
      */
     protected function actionDefault()
     {
-        $this->view->display('main', 'staff.php');
+        $this->view->display('staff');
     }
 }

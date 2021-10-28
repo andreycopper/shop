@@ -1,35 +1,33 @@
-<? if (!empty($this->item_pages) && is_array($this->item_pages) && count($this->item_pages) > 1): ?>
+<?php if (!empty($total_pages) && $total_pages > 1): ?>
     <div class="load">
         <span>Показать еще</span>
     </div>
 
     <div class="pagination">
-        <? if ($this->pageCurrent > 1): ?>
-            <? if ($this->pageCurrent > 3): ?>
+        <?php if ($page_current > 1): ?>
+            <?php if ($page_current > 2): ?>
                 <a href="?page=1" class="start"></a>
-            <? endif; ?>
+            <?php endif; ?>
 
-            <a href="?page=<?=($this->pageCurrent - 1)?>" class="prev"></a>
-        <? endif; ?>
+            <a href="?page=<?=($page_current - 1)?>" class="prev"></a>
+        <?php endif; ?>
 
-        <? if (!empty($this->item_pages) && is_array($this->item_pages)): ?>
-            <? foreach ($this->item_pages as $item_page): ?>
-                <? if ($item_page < $this->pageCurrent - 2 || $item_page > $this->pageCurrent + 2) continue; ?>
+        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+            <?php if ($i < $page_current - 2 || $i > $page_current + 2) continue; ?>
 
-                <? if ($item_page === $this->pageCurrent): ?>
-                    <span><?=$item_page?></span>
-                <? else: ?>
-                    <a href="?page=<?=$item_page?>"><?=$item_page?></a>
-                <? endif; ?>
-            <? endforeach; ?>
-        <? endif; ?>
+            <?php if ($i === $page_current): ?>
+                <span><?=$i?></span>
+            <?php else: ?>
+                <a href="?page=<?=$i?>"><?=$i?></a>
+            <?php endif; ?>
+        <?php endfor; ?>
 
-        <? if ($this->pageCurrent < $this->item_pages[count($this->item_pages)]): ?>
-            <a href="?page=<?=($this->pageCurrent + 1)?>" class="next"></a>
+        <?php if ($page_current < $total_pages): ?>
+            <a href="?page=<?=($page_current + 1)?>" class="next"></a>
 
-            <? if ($this->pageCurrent < $this->item_pages[count($this->item_pages)] - 2): ?>
-                <a href="?page=<?=($this->item_pages[count($this->item_pages)])?>" class="end"></a>
-            <? endif; ?>
-        <? endif; ?>
+            <?php if ($page_current < $total_pages - 1): ?>
+                <a href="?page=<?=$total_pages?>" class="end"></a>
+            <?php endif; ?>
+        <?php endif; ?>
     </div>
-<? endif; ?>
+<?php endif; ?>

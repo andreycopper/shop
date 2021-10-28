@@ -2,7 +2,6 @@
 
 namespace Controllers;
 
-use Models\Coupon;
 use System\Request;
 use Models\OrderItem;
 use Exceptions\DbException;

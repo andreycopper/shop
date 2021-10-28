@@ -4,12 +4,12 @@ namespace Controllers;
 
 use Views\View;
 use Models\Page;
-use Models\User;
 use Models\Group;
 use System\Logger;
 use System\Request;
-use Models\District;
+use Models\User\User;
 use Models\OrderItem;
+use Models\Fias\District;
 use Exceptions\DbException;
 use Exceptions\UserException;
 use Exceptions\NotFoundException;
@@ -21,10 +21,10 @@ use Exceptions\ForbiddenException;
  */
 abstract class Controller
 {
-    protected $user;           // текущий пользователь
-    protected $publicKey;      // публичный ключ шифрования
-    protected $pageCurrent;    // текущая страница
-    protected $pageCount = 10; // элементов на странице
+    protected $user;            // текущий пользователь
+    protected $publicKey;       // публичный ключ шифрования
+    protected $page_current;    // текущая страница
+    protected $page_count = 10; // элементов на странице
     protected $view;
 
     /**
@@ -37,7 +37,7 @@ abstract class Controller
 
         $this->user        = $_SESSION['user'] ?? User::getCurrent();
         $this->publicKey   = $_SESSION['public_key'] ?? User::generatePublicKey();
-        $this->pageCurrent = intval(Request::get('page') ?? 1);
+        $this->page_current = intval(Request::get('page') ?? 1);
 
         $this->set('user', $this->user);
         $this->set('publicKey', $this->publicKey);
@@ -46,7 +46,7 @@ abstract class Controller
 
         $this->set('page', Page::getPageInfo(ROUTE)); // информация о странице
         $this->set('breadcrumbs', Page::getBreadCrumbs()); // breadcrumbs
-        $this->set('pageCurrent', $this->pageCurrent);
+        $this->set('page_current', $this->page_current);
 
         $this->set('menu', $_SESSION['menu'] ?? Page::getMenuTree(true)); // меню
         $this->set('groups', $_SESSION['groups'] ?? Group::getCatalog()); // каталог товаров

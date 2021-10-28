@@ -2,9 +2,8 @@
 
 namespace System;
 
-use System\Logger;
-use Models\User;
-use Models\UserSession;
+use Models\User\User;
+use Models\User\UserSession;
 use Exceptions\DbException;
 use Exceptions\NotFoundException;
 

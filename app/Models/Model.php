@@ -2,13 +2,9 @@
 
 namespace Models;
 
-use System\Config;
 use System\Db;
-use System\Logger;
 use Traits\Magic;
 use Traits\CastableToArray;
-use Exceptions\DbException;
-use Exceptions\UserException;
 
 /**
  * Class Model
@@ -30,7 +26,9 @@ abstract class Model
     {
         $object = new static();
         foreach (get_class_vars(get_called_class()) as $key => $field) {
-            if ('table' === $key) continue;
+            if ($key === 'table') continue;
+            if (empty($item->$key)) continue;
+
             $object->$key = $item->$key ?? null;
         }
         return $object;
@@ -107,7 +105,7 @@ abstract class Model
      */
     public function isNew(): bool
     {
-        return !(!empty($this->id) && !empty(self::getById($this->id)));
+        return !(!empty($this->id) && !empty(self::getById($this->id, false)));
     }
 
     /**
@@ -119,6 +117,7 @@ abstract class Model
         $cols = [];
         $params = [];
         foreach ($this as $key => $val) {
+            if ($val === null) continue;
             $cols[] = $key;
             $params[':' . $key] = $val;
         }
@@ -136,10 +135,9 @@ abstract class Model
         $binds = [];
         $params = [];
         foreach ($this as $key => $val) {
-            if ('id' !== $key) {
-                $binds[] = $key . '=:' . $key;
-            }
-            $params[':' . $key] = $val;
+            if ($val === null) continue;
+            if ('id' !== $key) $binds[] = $key . ' = :' . $key;
+            $params[$key] = $val;
         }
         $sql = 'UPDATE ' . static::$table . ' SET ' . implode(', ', $binds) . ' WHERE id = :id';
         $db = Db::getInstance();
@@ -183,7 +181,7 @@ abstract class Model
         foreach ($data as $key => $value) {
             $method = 'filter_' . mb_strtolower($key);
             if (method_exists($this, $method)) $value = $this->$method($value);
-            if ('' === $value) $value = null;
+            if ($value === '') $value = null;
             $this->$key = $value;
         }
         return $this;

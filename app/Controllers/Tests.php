@@ -14,6 +14,16 @@ class Tests extends Controller
 
     protected function actionDefault()
     {
+        var_dump(1);
+    }
+
+    protected function actionStores()
+    {
+        Test::stores();
+    }
+
+    protected function actionDiscount()
+    {
         var_dump(Product::getById(1));
         var_dump(Product::getByField('discount', 10));
         Test::db();die;

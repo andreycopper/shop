@@ -2,6 +2,7 @@
 
 namespace Models;
 
+use Models\User\User;
 use System\Logger;
 use System\Mailer;
 use Exceptions\DbException;

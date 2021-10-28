@@ -49,17 +49,20 @@
 
             <? if (!empty($item->prices) && is_array($item->prices)): ?>
                 <? foreach ($item->prices as $price): ?>
-                    <? if (!empty($item->discount)): ?>
-                        <div class="product-item-oldprice">
+                    <? if (count($item->prices) > 1): ?>
+                        <div class="product-price-title"><?= $price->price_type ?></div>
+                    <? endif; ?><? //var_dump($price->price_type_id);var_dump($user->price_type_id); ?>
+                    <? if (!empty($price->discount)): ?>
+                        <div class="product-item-oldprice <?= $price->price_type_id !== $user->price_type_id ? 'inactive' : '' ?>">
                             <span class="product-item-value"><?=number_format($price->price, 0, '.', ' ')?></span>
                             <span class="product-item-currency"><?=$price->currency?></span><span class="product-item-measure">/<?=$item->unit?></span>
                             <div class="product-item-priceline"></div>
                         </div>
                     <? endif; ?>
 
-                    <div class="product-item-price">
+                    <div class="product-item-price <?= $price->price_type_id !== $user->price_type_id ? 'inactive' : '' ?>">
                         <span class="product-item-value">
-                            <?=number_format(($price->price * (100 - $item->discount) / 100), 0, '.', ' ')?>
+                            <?=number_format(round($price->price * (100 - $price->discount) / 100), 0, '.', ' ')?>
                         </span>
                         <span class="product-item-currency"><?=$price->currency?></span>
                         <span class="product-item-measure">/<?=$item->unit?></span>

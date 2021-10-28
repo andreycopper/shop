@@ -1,12 +1,12 @@
 <?php
 
-namespace Models;
+namespace Models\User;
 
 use System\Db;
 use System\RSA;
+use Models\Model;
 use System\Request;
 use Exceptions\DbException;
-use Exceptions\UserException;
 
 class UserProfile extends Model
 {
@@ -65,13 +65,13 @@ class UserProfile extends Model
             FROM user_profiles up 
             LEFT JOIN users u 
                 ON up.user_id = u.id 
-            LEFT JOIN fias_cities c 
+            LEFT JOIN fias.cities c 
                 ON c.id = up.city_id 
-            LEFT JOIN fias_streets s 
+            LEFT JOIN fias.streets s 
                 ON s.id = up.street_id 
-            LEFT JOIN fias_shortnames sn1 
+            LEFT JOIN fias.shortnames sn1 
                 ON sn1.id = c.shortname_id 
-            LEFT JOIN fias_shortnames sn2 
+            LEFT JOIN fias.shortnames sn2 
                 ON sn2.id = s.shortname_id 
             WHERE up.user_id = :user_id {$userHash} {$activity}";
         $db = Db::getInstance();

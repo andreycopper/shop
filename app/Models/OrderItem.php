@@ -2,11 +2,12 @@
 
 namespace Models;
 
-use Exceptions\UserException;
+use Models\User\User;
 use System\Db;
 use System\Logger;
 use Exceptions\DbException;
 use Exceptions\EditException;
+use Exceptions\UserException;
 use Exceptions\DeleteException;
 
 class OrderItem extends Model
@@ -31,6 +32,8 @@ class OrderItem extends Model
     public $sum_nds;            // НДС суммы
     public $sum_discount;       // сумма со скидкой
     public $sum_discount_nds;   // НДС суммы со скидкой
+    public $delivery;           // сумма доставки
+    public $delivery_nds;       // НДС суммы доставки
     public $created;            // дата создания записи
     public $updated;            // дата создания записи
 
@@ -47,7 +50,6 @@ class OrderItem extends Model
      * Получает актуальную корзину пользователя
      * @param int $user_id - id пользователя
      * @return array|false
-     * @throws DbException
      */
     public static function getCart(int $user_id)
     {
@@ -73,9 +75,9 @@ class OrderItem extends Model
                 $outdated = str_replace('-', '', explode(' ', $item->updated ?: $item->created)[0]) < date('Ymd');
                 if ($outdated) { // товар в корзине больше суток
                     $message = 'Цены товаров, добавленных в корзину более суток назад обновлены';
-                    $product = Product::getPriceItem($item->product_id, $item->price_type_id); // актуальные цены товара
+                    $product = Product::getPrice($item->product_id, [$item->price_type_id]); // актуальные цены товара
 
-                    $item->price = $product->price->price;
+                    $item->price = $product->price[0]->price;
                     $item->price_nds = null;
                     $item->sum = $item->price * $item->count;
                     $item->sum_nds = null;
@@ -93,8 +95,8 @@ class OrderItem extends Model
                         $item->sum_nds = round($item->sum * $item->tax / (100 + $item->tax), 4);
                     }
 
-                    if (!empty($product->discount)) { // скидка
-                        $item->discount = $product->discount;
+                    if (!empty($product->price[0]->discount)) { // скидка
+                        $item->discount = $product->price[0]->discount;
                         $item->price_discount = round($item->price * (100 - $item->discount) / 100);
                         $item->sum_discount = $item->price_discount * $item->count;
                         $item->economy = $item->price - $item->price_discount;
@@ -177,7 +179,7 @@ class OrderItem extends Model
                    oi.sum_discount_nds, oi.sum_discount, (oi.price - oi.price_discount) economy, 
                    (oi.sum - oi.sum_discount) sum_economy, oi.created, oi.updated 
             FROM order_items oi 
-            WHERE oi.user_id = :user_id AND oi.product_id = :product_id {$userHash} AND oi.order_id IS NULL";
+            WHERE oi.user_id = :user_id AND oi.product_id = :product_id {$userHash} AND oi.order_id IS NULL AND oi.qorder_id IS NULL";
         $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
@@ -229,17 +231,14 @@ class OrderItem extends Model
 
     /**
      * Проверяет добавленный товар в корзину
-     * @param Product $product - товар
      * @param int $product_id - id товара
      * @param int $count - количество товара
+     * @param int $store_count - количество товара на складе
      * @return bool
      */
-    public static function checkCartProduct(Product $product, int $product_id, int $count)
+    public static function checkCartProduct(int $product_id, int $count, int $store_count)
     {
-        if (!empty($product_id) && !empty($count) && intval($product->quantity) >= $count)
-            return true;
-
-        return false;
+        return !empty($product_id) && !empty($count) && $store_count >= $count;
     }
 
     /**
@@ -247,12 +246,11 @@ class OrderItem extends Model
      * @param User $user - пользователь
      * @param int $product_id - id товара
      * @param int $count - количество товара
-     * @return false|mixed
-     * @throws DbException
+     * @return bool|int
      */
     public static function add(User $user, int $product_id, int $count)
     {
-        $product = Product::getPriceItem($product_id, $user->price_type_id); // товар из каталога
+        $product = Product::getPrice($product_id, [$user->price_type_id]); // товар из каталога
         $item = self::getProductByUser($product_id, $user->id, $_COOKIE['user']); // попытка найти этот товар в корзине пользователя
 
         if (empty($item->id)) { // товар в корзине не найден
@@ -261,12 +259,12 @@ class OrderItem extends Model
             $item->user_hash = $_COOKIE['user'];
             $item->product_id = $product_id;
         }
+        else $item->updated = date('Y-m-d H:i:s');
 
         $item->price_type_id = intval($user->price_type_id);
         $item->count = $count;
-        $item->price = intval($product->price->price);
+        $item->price = intval($product->price[0]->price);
         $item->sum = $item->price * $count;
-        $item->created = date('Y-m-d');
 
         if (!empty($product->tax_value)) { // НДС
             $item->tax = floatval($product->tax_value);
@@ -274,10 +272,10 @@ class OrderItem extends Model
             $item->sum_nds = round($item->sum * $item->tax / (100 + $item->tax), 4);
         }
 
-        if (!empty($product->discount)) { // скидка
-            $item->discount = floatval($product->discount);
+        if (!empty($product->price[0]->discount)) { // скидка
+            $item->discount = floatval($product->price[0]->discount);
 
-            $item->price_discount = round($item->price * (100 - $product->discount) / 100);
+            $item->price_discount = round($item->price * (100 - $item->discount) / 100);
             $item->sum_discount = $item->price_discount * $count;
 
             if (!empty($item->tax)) { // НДС
@@ -294,7 +292,6 @@ class OrderItem extends Model
      * @param int $product_id - id товара
      * @param int $user_id - id пользователя
      * @return bool
-     * @throws DbException
      */
     public static function deleteItem(int $product_id, int $user_id)
     {
@@ -309,7 +306,6 @@ class OrderItem extends Model
      * @param int $user_id - id пользователя
      * @param bool $isAjax - ajax запрос
      * @return bool
-     * @throws DbException
      */
     public static function clearCart(int $user_id, bool $isAjax = true)
     {

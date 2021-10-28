@@ -1,9 +1,9 @@
 <?php
 
-use Controllers\Errors;
+use System\Logger;
+use \System\Config;
 use Models\Setting;
 use Exceptions\DbException;
-use System\Logger;
 
 const _ROOT = __DIR__ . '/..';
 const _APP = __DIR__ . '/../app';
@@ -13,6 +13,7 @@ const _LOGS = __DIR__ . '/../logs';
 const _PUBLIC = __DIR__ . '/../public';
 const _VIEWS = __DIR__ . '/../views';
 const _TEMPLATES = __DIR__ . '/../views/templates';
+define("_TABLE", Config::getInstance()->data['db']['dbname']);
 
 try {
     $constants = Setting::getList();

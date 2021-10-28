@@ -8,6 +8,45 @@ class Test extends Model
 {
     protected static $table = 'test';
 
+    /**
+     * Генерируем количество на складах
+     * @param null $object
+     * @throws \Exception
+     */
+    public static function stores($object = null)
+    {
+        $db = Db::getInstance();
+        $sql = "SELECT id, quantity FROM shop.products";
+        $data = $db->query($sql);
+
+        //$i = 0;
+        $success = 0;
+        foreach ($data as $item) {
+            $store1 = random_int(0, round($item['quantity']/2));
+            $store2 = $item['quantity'] - $store1;
+
+            $params1 = [
+                'product_id' => $item['id'],
+                'quantity'   => $store1,
+            ];
+            $sql = "INSERT INTO shop.product_stores (store_id, product_id, quantity) VALUES (1, :product_id, :quantity)";
+            $res1 = $db->execute($sql, $params1);
+            if ($res1) $success++;
+
+            $params2 = [
+                'product_id' => $item['id'],
+                'quantity'   => $store2,
+            ];
+            $sql = "INSERT INTO shop.product_stores (store_id, product_id, quantity) VALUES (2, :product_id, :quantity)";
+            $res2 = $db->execute($sql, $params2);
+            if ($res2) $success++;
+
+            //$i++;
+        }
+
+        var_dump($success);
+    }
+
     public static function db($object = null)
     {
         $sql = "SELECT count(id) FROM shop.products WHERE discount IS NOT NULL";
@@ -16,13 +55,11 @@ class Test extends Model
 
         var_dump($data);
         die;
-
-
     }
 
     public static function fias($object = null)
     {
-        $sql = "SELECT id, shortname FROM fias_shortnames";
+        $sql = "SELECT id, shortname FROM fias.shortnames";
         $db = Db::getInstance();
         $data = $db->query($sql, []);
     }

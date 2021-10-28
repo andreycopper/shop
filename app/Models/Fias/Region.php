@@ -1,12 +1,13 @@
 <?php
 
-namespace Models;
+namespace Models\Fias;
 
 use System\Db;
+use Models\Model;
 
 class Region extends Model
 {
-    protected static $table = 'fias_regions';
+    protected static $table = 'fias.regions';
 
     public static function getListByDistrictId(int $district_id, bool $active = false, $object = true)
     {

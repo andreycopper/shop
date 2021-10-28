@@ -3,7 +3,6 @@
 namespace Models;
 
 use System\Validation;
-use Exceptions\DbException;
 
 class CallBack extends Model
 {
@@ -23,9 +22,9 @@ class CallBack extends Model
      */
     public static function checkData(array $form)
     {
-        if (!empty(trim($form['agreement'])))
-            if (!empty(trim($form['name'])) && Validation::name(trim($form['name'])))
-                if (!empty(trim($form['phone'])) && Validation::phone(trim($form['phone'])))
+        if (!empty($form['agreement']))
+            if (!empty($form['name']) && Validation::name(trim($form['name'])))
+                if (!empty($form['phone']) && Validation::phone(trim($form['phone'])))
                     return true;
 
         return false;
@@ -33,19 +32,17 @@ class CallBack extends Model
 
     /**
      * Сохранение быстрого заказа
-     * @param $user - пользователь
+     * @param $user_id - id пользователя
      * @param $form - форма с данными (имя и телефон)
      * @return bool
-     * @throws DbException
      */
-    public static function saveCallback($user, $form)
+    public static function saveCallback($user_id, $form)
     {
         $callback = new self();
-        $callback->user_id = $user->id;
+        $callback->user_id = $user_id;
         $callback->user_hash = $_COOKIE['user'];
-        $callback->name = $form['name'];
-        $callback->phone = preg_replace('/[^0-9]/', '', $form['phone']);
-        $callback->created = date('Y-m-d H:i:s');
+        $callback->name = trim($form['name']);
+        $callback->phone = preg_replace('/[^0-9]/', '', trim($form['phone']));
         return $callback->save();
     }
 }

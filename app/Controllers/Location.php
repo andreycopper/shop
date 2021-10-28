@@ -2,11 +2,11 @@
 
 namespace Controllers;
 
-use Models\City;
-use Models\Region;
-use Models\Street;
-use Models\User;
 use System\Request;
+use Models\User\User;
+use Models\Fias\City;
+use Models\Fias\Street;
+use Models\Fias\Region;
 
 class Location extends Controller
 {
