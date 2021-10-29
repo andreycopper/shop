@@ -195,19 +195,15 @@ class Product extends Model
     }
 
     /**
-     * Возвращает список товаров по id группы
+     * Возвращает количество товаров в конкретной группе
      * @param array $group - массив групп товаров (пустой массив - все товары)
      * @param bool $active - активность
      * @return array|bool
      */
-    public static function getCountByGroup(
-        array $group = [],
-        bool $active = true
-    )
+    public static function getCountByGroup(array $group = [], bool $active = true)
     {
         $groups = !empty($group) ? ('group_id IN (' . implode(',', $group) . ')') : '';
         $activity = !empty($active) ? ((!empty($groups) ? 'AND ' : '') . 'p.active IS NOT NULL AND g.active IS NOT NULL AND v.active IS NOT NULL') : '';
-
         $sql = "
             SELECT 
                 count(p.id) count 
@@ -226,16 +222,16 @@ class Product extends Model
     /**
      * Возвращает товар с ценами
      * @param int $id - id товара
-     * @param array $price_type - массив типов цен (пустой массив - все типы цен)
+     * @param array $price_types - массив типов цен (пустой массив - все типы цен)
      * @param bool $active - активность
      * @param bool $object - возвращать объект/массив
      * @return bool|mixed
      */
-    public static function getPrice(int $id, array $price_type = [2], bool $active = true, bool $object = true)
+    public static function getPrice(int $id, array $price_types = [2], bool $active = true, bool $object = true)
     {
         $item = self::getById($id, $active, $object);
         if (!empty($item)) {
-            $item->prices = ProductPrice::getPrice($id, $price_type, $active);
+            $item->prices = ProductPrice::getPrices($id, $price_types, $active);
             $item->images = ProductImage::getByProductId($id);
             $item->stores = ProductStore::getQuantities($id);
         }
@@ -245,7 +241,7 @@ class Product extends Model
     /**
      * Возвращает список товаров определенной группы с ценами
      * @param array $group - массив групп товаров (пустой массив - все товары)
-     * @param array $price_type - массив типов цен (пустой массив - все типы цен)
+     * @param array $price_types - массив типов цен (пустой массив - все типы цен)
      * @param string $order - поле сортировки
      * @param string $sort - порядок сортировки
      * @param bool $active - активность
@@ -254,7 +250,7 @@ class Product extends Model
      */
     public static function getPriceList(
         array $group = [],
-        array $price_type = [],
+        array $price_types = [],
         $page_number = null,
         $page_count = null,
         string $order = 'sort',
@@ -265,8 +261,8 @@ class Product extends Model
     {
         $items = self::getListByGroup($group, $page_number, $page_count, $order, $sort, $active, $object);
         if (!empty($items) && is_array($items)) {
-            foreach ($items as $key => $item) {
-                $item->prices = ProductPrice::getPrice($item->id, $price_type, $active);
+            foreach ($items as $item) {
+                $item->prices = ProductPrice::getPrices($item->id, $price_types, $active);
             }
         }
         return $items ?: false;

@@ -36,7 +36,6 @@ class User extends Model
     public $personal_data;
     public $mailing = 1; // подписание на рассылку
     public $mailing_type_id = 2; // тип рассылки html
-    public $price_types; // типы цены, просмотр которых разрешен
     public $price_type_id; // тип цены, по которой покупает
     public $private_key;
     public $created;
@@ -73,7 +72,7 @@ class User extends Model
     public static function getCurrent()
     {
         $user = self::getByHash() ?: self::getById(2);
-        $user->price_types = self::getUserPriceTypes($user->group_id, $user->id);
+        $user->price_types = self::getUserPriceTypes($user->group_id, $user->id); // тип цен, разершен просмотр
         $_SESSION['user'] = $user;
         //if (!empty($user['cookie_hash'])) UserSession::extend($user);
 
@@ -102,7 +101,6 @@ class User extends Model
                 if (!in_array($item['price_type_id'], $res)) $res[] = intval($item['price_type_id']);
             }
         }
-
         return $res;
     }
 
@@ -118,20 +116,15 @@ class User extends Model
 
     /**
      * Возвращает пользователя по id
-     * @param int $id
-     * @param bool $active
-     * @param bool $object
+     * @param int $id - id пользователя
+     * @param bool $active - возвращать активного/неактивного пользователя
+     * @param bool $object - возвращать объект/массив
      * @return bool|mixed
      */
     public static function getById(int $id, bool $active = true, $object = true)
     {
-        $activity =
-            !empty($active) ? 'AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL' : '';
-
-        $params = [
-            ':id' => $id
-        ];
-
+        $activity = !empty($active) ? 'AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL' : '';
+        $params = ['id' => $id];
         $sql = "
             SELECT 
                 u.id, u.active, u.blocked, u.group_id, u.last_name, u.name, u.second_name, u.email, u.phone, u.password, 
@@ -158,28 +151,23 @@ class User extends Model
 
     /**
      * Возращает пользователя по session_hash и cookie_hash
-     * @param bool $active
-     * @param bool $object
+     * @param bool $active - возвращать активного/неактивного пользователя
+     * @param bool $object - возвращать объект/массив
      * @return false|mixed
      */
     public static function getByHash(bool $active = true, bool $object = true)
     {
-        $activity =
-            !empty($active) ? 'AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL' : '';
+        $activity = !empty($active) ? 'AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL' : '';
 
         if (!empty($_SESSION['session_hash'])) {
             $where = 'us.session_hash = :hash';
-            $params = [
-                ':hash' => $_SESSION['session_hash']
-            ];
+            $params = ['hash' => $_SESSION['session_hash']];
         }
         elseif (!empty($_COOKIE['cookie_hash'])) {
             if (!empty($active)) $activity .= ' AND us.expire > NOW()';
 
             $where = 'us.cookie_hash = :hash';
-            $params = [
-                ':hash' => $_COOKIE['cookie_hash']
-            ];
+            $params = ['hash' => $_COOKIE['cookie_hash']];
         }
         else return false;
 
@@ -269,11 +257,11 @@ class User extends Model
      * @param bool $active
      * @param bool $object
      * @return bool|mixed
-     * @throws DbException
      */
     public static function getFullInfoById(int $id, bool $active = false, $object = true)
     {
         $where = !empty($active) ? ' AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL' : '';
+        $params = ['id' => $id];
         $sql = "
             SELECT 
                 u.id, u.active, u.blocked, u.group_id, u.last_name, u.name, u.second_name, u.email, u.phone, u.password, 
@@ -292,9 +280,6 @@ class User extends Model
                 ON u.mailing_type_id = tt.id 
             WHERE u.id = :id {$where}
             ";
-        $params = [
-            ':id' => $id
-        ];
         $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
@@ -308,7 +293,6 @@ class User extends Model
      * @param bool $active
      * @param bool $object
      * @return bool|mixed
-     * @throws DbException
      */
     public static function getByPhone(int $phone, bool $active = false, $object = true)
     {
@@ -334,7 +318,6 @@ class User extends Model
      * @param bool $active
      * @param bool $object
      * @return bool|mixed
-     * @throws DbException
      */
     public static function getByEmail(string $email, bool $active = false, $object = true)
     {
@@ -360,7 +343,6 @@ class User extends Model
      * @param bool $active
      * @param bool $object
      * @return false|mixed
-     * @throws DbException
      */
     public static function getByRestoreHash(string $hash, bool $active = false, $object = true)
     {
@@ -389,7 +371,6 @@ class User extends Model
      * @param bool $active
      * @param bool $object
      * @return false|mixed
-     * @throws DbException
      */
     public static function getByConfirmHash(string $hash, bool $active = true, $object = true)
     {
@@ -849,6 +830,16 @@ class User extends Model
     {
         return self::getLocation()['city'];
     }
+
+
+
+
+
+
+
+
+
+
 
     public function filter_id($id)
     {

@@ -73,32 +73,24 @@ class OrderItem extends Model
                 }
 
                 $outdated = str_replace('-', '', explode(' ', $item->updated ?: $item->created)[0]) < date('Ymd');
+                var_dump(str_replace('-', '', explode(' ', $item->updated ?: $item->created)[0]));var_dump(date('Ymd'));
                 if ($outdated) { // товар в корзине больше суток
                     $message = 'Цены товаров, добавленных в корзину более суток назад обновлены';
-                    $product = Product::getPrice($item->product_id, [$item->price_type_id]); // актуальные цены товара
-
-                    $item->price = $product->price[0]->price;
-                    $item->price_nds = null;
+                    $price = ProductPrice::getPrice($item->product_id, $item->price_type_id); // актуальные цены товара
+                    $item->price = $price->price;
                     $item->sum = $item->price * $item->count;
-                    $item->sum_nds = null;
-                    $item->updated = date('Y-m-d');
-                    $item->discount = null;
-                    $item->price_discount = null;
-                    $item->price_discount_nds = null;
-                    $item->sum_discount = null;
-                    $item->sum_discount_nds = null;
-                    $item->economy = null;
+                    $item->updated = date('Y-m-d H:i:s');
 
-                    if (!empty($product->tax_value)) { // НДС
-                        $item->tax = $product->tax_value;
+                    if (!empty($price->tax_value)) { // НДС
+                        $item->tax = floatval($price->tax_value);
                         $item->price_nds = round($item->price * $item->tax / (100 + $item->tax), 4);
                         $item->sum_nds = round($item->sum * $item->tax / (100 + $item->tax), 4);
                     }
 
-                    if (!empty($product->price[0]->discount)) { // скидка
-                        $item->discount = $product->price[0]->discount;
-                        $item->price_discount = round($item->price * (100 - $item->discount) / 100);
-                        $item->sum_discount = $item->price_discount * $item->count;
+                    if (!empty($price->discount)) { // скидка
+                        $item->discount = $price->discount;
+                        $item->price_discount = round($item->price * (100 - $item->discount) / 100, 4);
+                        $item->sum_discount = round($item->price_discount * $item->count, 4);
                         $item->economy = $item->price - $item->price_discount;
                         $item->sum_economy = $item->sum - $item->sum_discount;
 
@@ -250,9 +242,10 @@ class OrderItem extends Model
      */
     public static function add(User $user, int $product_id, int $count)
     {
-        $product = Product::getPrice($product_id, [$user->price_type_id]); // товар из каталога
-        $item = self::getProductByUser($product_id, $user->id, $_COOKIE['user']); // попытка найти этот товар в корзине пользователя
+        $price = ProductPrice::getPrice($product_id, $user->price_type_id);
+        if (empty($price)) return false;
 
+        $item = self::getProductByUser($product_id, $user->id, $_COOKIE['user']); // попытка найти этот товар в корзине пользователя
         if (empty($item->id)) { // товар в корзине не найден
             $item = new self();
             $item->user_id = $user->id;
@@ -263,20 +256,19 @@ class OrderItem extends Model
 
         $item->price_type_id = intval($user->price_type_id);
         $item->count = $count;
-        $item->price = intval($product->price[0]->price);
-        $item->sum = $item->price * $count;
+        $item->price = floatval($price->price);
+        $item->sum = floatval($item->price * $item->count);
 
-        if (!empty($product->tax_value)) { // НДС
-            $item->tax = floatval($product->tax_value);
+        if (!empty($price->tax_value)) { // НДС
+            $item->tax = floatval($price->tax_value);
             $item->price_nds = round($item->price * $item->tax / (100 + $item->tax), 4);
             $item->sum_nds = round($item->sum * $item->tax / (100 + $item->tax), 4);
         }
 
-        if (!empty($product->price[0]->discount)) { // скидка
-            $item->discount = floatval($product->price[0]->discount);
-
+        if (!empty($price->discount)) { // скидка
+            $item->discount = floatval($price->discount);
             $item->price_discount = round($item->price * (100 - $item->discount) / 100);
-            $item->sum_discount = $item->price_discount * $count;
+            $item->sum_discount = $item->price_discount * $item->count;
 
             if (!empty($item->tax)) { // НДС
                 $item->price_discount_nds = round($item->price_discount * $item->tax / (100 + $item->tax), 4);

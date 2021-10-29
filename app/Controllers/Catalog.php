@@ -4,6 +4,7 @@ namespace Controllers;
 
 use Models\Group;
 use Models\Product;
+use Models\ProductPrice;
 use System\Request;
 use Models\OrderItem;
 use Models\Product\ProductStore;
@@ -52,11 +53,6 @@ class Catalog extends Controller
     {
         if (Request::isPost()) {
             $item = Request::post(); // добавляемый товар
-            $product = Product::getPrice(intval($item['id']), [$this->user->price_type_id]); // товар в каталоге
-
-            if (empty($product) || !OrderItem::checkCartProduct(intval($item['id']), intval($item['count']), $product->quantity))
-                self::result(false, 'Товар отсутствует на складе');
-
             $res = OrderItem::add($this->user, intval($item['id']), intval($item['count']));
             self::result($res, $res ? OrderItem::getCount() : 'Не удалось добавить товар в корзину');
         }

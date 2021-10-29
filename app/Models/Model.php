@@ -20,18 +20,20 @@ abstract class Model
     /**
      * Создает объект вызвавшего класса и заполняет его свойства
      * @param Model $item
-     * @return static
+     * @return Model|null
      */
     public static function factory(self $item)
     {
-        $object = new static();
-        foreach (get_class_vars(get_called_class()) as $key => $field) {
-            if ($key === 'table') continue;
-            if (empty($item->$key)) continue;
+        if (!empty($item) && is_object($item)) {
+            $object = new static();
+            foreach (get_class_vars(get_called_class()) as $key => $field) {
+                if ($key === 'table') continue;
+                if (empty($item->$key)) continue;
 
-            $object->$key = $item->$key ?? null;
+                $object->$key = $item->$key ?? null;
+            }
         }
-        return $object;
+        return $object ?? null;
     }
 
     /**
