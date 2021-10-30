@@ -1,8 +1,9 @@
 <?php
 
-namespace Models;
+namespace Models\Product;
 
 use System\Db;
+use Models\Model;
 
 class ProductImage extends Model
 {

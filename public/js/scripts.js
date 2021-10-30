@@ -147,16 +147,41 @@ $(function () {
     /**************************** !MENU ****************************/
     /**************************** MODAL ****************************/
     /* открытие модального окна по клике в шапке */
-    $('.header-action, .order-action').on('click', function (e) {
+    $('.header-action, .order-action, .product-item-fastview, .product-itemlist-fastview, .product-itemtable-fastview').on('click', function (e) {
+        console.log($(this).attr('class'));
+        console.log($(this).data('id'));
+
         e.preventDefault();
+        $('body').addClass('overflow');
         $('.menu-mobile').hide();
         $('#' + $(this).data('target')).show();
         $('.overlay').show();
+
+        switch ($(this).attr('class')) {
+            case 'product-item-fastview':
+            case 'product-itemlist-fastview':
+            case 'product-itemtable-fastview':
+                $.ajax({
+                    method: "POST",
+                    dataType: 'html',
+                    url: '/catalog/fastView/',
+                    data: {id: $(this).data('id')},
+                    beforeSend: function() {
+                        loader.show();
+                    },
+                    success: function(data){console.log(data);
+                        loader.hide();
+                        $('#fast .content').html(data);
+                    }
+                });
+                break;
+        }
     });
 
     /* открытие модального окна по клике в мобильном меню */
     $('.mobile-action').on('click', function (e) {
         e.preventDefault();
+        $('body').addClass('overflow');
         $('#' + $(this).data('target')).show();
         $('.overlay').show();
         $('.hamburger').removeClass('is-active');
@@ -164,6 +189,7 @@ $(function () {
     });
 
     $('.overlay').on('click', function () {
+        $('body').removeClass('overflow');
         $('.menu-mobile').css('left', '-320px');
         $('.overlay').hide();
         $('.modal').hide();
@@ -172,6 +198,7 @@ $(function () {
 
     /* закрытие модального окна по клику на крестик */
     $('.close').on('click', function () {
+        $('body').removeClass('overflow');
         $(this).parent('.modal').hide();
         $('.overlay').hide();
     });
@@ -303,6 +330,14 @@ $(function () {
         $(this).toggleClass('active').parents('.product-itemlist-moreprops').next().slideToggle();
 
     });
+
+    // $('.product-item-fastview, .product-itemlist-fastview, .product-itemtable-fastview').on('click', function (e) {
+    //     e.preventDefault();
+    //     console.log(321);
+    //     $('.menu-mobile').hide();
+    //     $('#' + $(this).data('target')).show();
+    //     $('.overlay').show();
+    // });
     /**************************** !CATALOG ****************************/
     /**************************** CART ****************************/
     /* добавление товара в корзину */

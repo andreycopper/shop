@@ -2,6 +2,7 @@
 
 namespace Models;
 
+use Models\Product\Product;
 use System\Db;
 use Exceptions\DbException;
 

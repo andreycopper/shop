@@ -2,9 +2,9 @@
 
 namespace Controllers;
 
-use Models\Product;
 use System\RSA;
 use Models\Test;
+use Models\Product\Product;
 
 class Tests extends Controller
 {

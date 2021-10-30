@@ -2,13 +2,13 @@
 
 namespace Models;
 
-use Models\User\User;
 use System\Db;
 use System\Logger;
+use Models\User\User;
 use Exceptions\DbException;
 use Exceptions\EditException;
 use Exceptions\UserException;
-use Exceptions\DeleteException;
+use Models\Product\ProductPrice;
 
 class OrderItem extends Model
 {

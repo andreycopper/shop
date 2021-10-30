@@ -3,11 +3,9 @@
 namespace Controllers;
 
 use Models\Group;
-use Models\Product;
-use Models\ProductPrice;
 use System\Request;
 use Models\OrderItem;
-use Models\Product\ProductStore;
+use Models\Product\Product;
 use Exceptions\NotFoundException;
 
 class Catalog extends Controller
@@ -43,6 +41,20 @@ class Catalog extends Controller
                 $this->set('items', Product::getPriceList([$group->id], $this->user->price_types, $this->page_current, $this->page_count)); // товары
                 $this->view->display('catalog/list');
             } else throw new NotFoundException('Категория не найдена');
+        }
+    }
+
+    /**
+     * Добавляет товар в корзину
+     */
+    protected function actionFastView()
+    {
+        if (Request::isPost()) {
+            $item = Request::post('id');
+            $item = Product::getPrice(intval($item), $this->user->price_types);
+            $this->set('item', $item); // товар
+            echo $this->view->render('product/fast');
+            die;
         }
     }
 

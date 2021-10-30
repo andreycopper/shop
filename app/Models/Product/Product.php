@@ -1,10 +1,9 @@
 <?php
 
-namespace Models;
+namespace Models\Product;
 
-use Models\Product\ProductStore;
 use System\Db;
-use Exceptions\DbException;
+use Models\Model;
 
 class Product extends Model
 {

@@ -32,6 +32,9 @@
 .block {
     display: block !important;
 }
+.overflow {
+    overflow: hidden;
+}
 .visible {
     overflow: visible;
 }
@@ -230,8 +233,22 @@
     text-align: center;
     border-bottom: 2px solid #de002b;
 }
+.modal .modal-content {
+    position: absolute;
+    top: 90px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
 .modal .content {
-    padding: 20px 30px 30px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    padding: 30px;
+    overflow-y: auto;
 }
 .modal form {
     padding: 20px 30px;
@@ -1951,6 +1968,15 @@ section.main {
     font: 16px 'FontAwesome';
     content: '\f002';
 }
+/* FAST */
+#fast {
+    top: 5%;
+    bottom: 5%;
+    left: 5%;
+    right: 5%;
+    width: 90%;
+    height: 90%;
+}
 /* COMPARE */
 #compare {
     top: 5%;
@@ -3005,6 +3031,7 @@ section.main {
     display: flex;
     width: 100%;
     padding: 10px;
+    border: 1px solid #f2f2f2;
 }
 .product-itemlist:hover {
     box-shadow: 0 0 20px rgba(0, 0, 0, .1);
@@ -3200,7 +3227,7 @@ section.main {
     background-color: #666666;
 }
 .product-itemlist-price {
-    margin: 0 0 20px;
+    margin: 0 0 10px;
     cursor: default;
     color: #000000;
     font: 18px/20px 'OpenSansBold';
@@ -3294,10 +3321,9 @@ section.main {
 .product-itemtable-image {
     position: relative;
     width: 90px;
-    margin: 0 auto;
     padding: 15px 0 15px 15px;
     text-align: center;
-    vertical-align: top;
+    vertical-align: middle;
 }
 .product-itemtable-image img {
     max-width: 100%;
@@ -3306,18 +3332,26 @@ section.main {
     padding: 15px 10px 15px;
     vertical-align: top;
 }
+.product-itemtable-prices {
+    width: 170px;
+    padding: 10px;
+    text-align: center;
+    vertical-align: middle;
+}
 .product-itemtable-buy {
-    width: 500px;
-    padding: 15px 15px 15px 0;
+    width: 150px;
+    padding: 10px 10px 10px 0;
     text-align: right;
-    vertical-align: top;
+    vertical-align: middle;
 }
 .product-itemtable-fastview {
     position: absolute;
-    top: 25px;
-    bottom: 15px;
-    left: 15px;
-    right: 0;
+    top: 50%;
+    bottom: 50%;
+    left: 50%;
+    right: 50%;
+    width: 30px;
+    height: 30px;
     background-color: rgba(255, 255, 255, .5);
     visibility: hidden;
     cursor: pointer;
@@ -3326,8 +3360,8 @@ section.main {
 }
 .product-itemtable-fastview:after {
     position: absolute;
-    top: 17px;
-    right: 17px;
+    top: 7px;
+    left: 7px;
     width: 30px;
     height: 30px;
     content: "";
@@ -3354,12 +3388,13 @@ section.main {
     margin: 10px 0 5px 20px;
     color: #999999;
 }
+.product-itemtable-text {}
 .product-itemtable-like {
-    display: inline-block;
-    width: 30px;
+    width: 65px;
+    margin: 10px auto;
 }
 .product-itemtable-wish {
-    display: block;
+    display: inline-block;
     width: 30px;
     height: 30px;
     background: url("/images/wish.svg") 5px -16px no-repeat;
@@ -3369,7 +3404,7 @@ section.main {
     background: #e2e2e2 url("/images/wish.svg") 5px -72px no-repeat;
 }
 .product-itemtable-compare {
-    display: block;
+    display: inline-block;
     width: 30px;
     height: 30px;
     background: url("/images/wish.svg") -19px -17px no-repeat;
@@ -3379,28 +3414,22 @@ section.main {
     background: #e2e2e2 url("/images/wish.svg") -19px -73px no-repeat;
 }
 .product-itemtable-priceblock {
-    display: inline-block;
-    width: 240px;
-    padding-top: 20px;
-    vertical-align: top;
+    padding: 5px 0 10px;
 }
 .product-itemtable-price {
-    display: inline-block;
     margin: 0 10px 0 0;
     cursor: default;
-    color: #000000;
     font: 15px/20px 'OpenSansBold';
-    vertical-align: top;
 }
 .product-itemtable-oldprice {
-    position: relative;
     display: inline-block;
+    position: relative;
     margin: 2px 10px 0 0;
     padding: 0 2px;
     cursor: default;
     color: #666666;
     font: 13px/17px 'OpenSansRegular';
-    vertical-align: top;
+
 }
 .product-itemtable-priceline {
     position: absolute;
@@ -3414,10 +3443,10 @@ section.main {
 .product-itemtable-currency {}
 .product-itemtable-measure {}
 .product-itemtable-counter {
-    display: inline-block;
+    display: block;
     width: 84px;
     height: 36px;
-    margin-top: 14px;
+    margin: 14px auto 0;
     font-size: 0;
     border: 1px solid #f3f3f5;
     border-radius: 2px;
@@ -3426,7 +3455,8 @@ section.main {
     user-select: none;
 }
 .product-itemtable-buygroup {
-    display: inline-block;
+    text-align: center;
+
 }
 .product-itemtable-plus,
 .product-itemtable-minus {
