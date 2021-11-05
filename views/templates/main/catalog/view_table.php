@@ -3,7 +3,7 @@
         <tr class="product-itemtable">
             <td class="product-itemtable-image">
                 <a href="<?= $item->id ?>/"><img src="/uploads/catalog/<?=$item->id?>/<?=$item->preview_image?>" alt=""></a>
-                <a class="product-itemtable-fastview" data-target="fast"></a>
+                <a class="product-itemtable-fastview info" data-target="fast" data-url="/catalog/fastView/"></a>
             </td>
             <td class="product-itemtable-description">
                 <div class="product-item-title">

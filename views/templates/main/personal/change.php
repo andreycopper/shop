@@ -1,3 +1,7 @@
+<?php
+use System\Request;
+?>
+
 <div class="container">
     <div class="main-header">
         <div class="breadcrumbs">
@@ -10,7 +14,7 @@
     </div>
 
     <div class="personal change">
-        <? if (!empty($this->form)): ?>
+        <?php if (!empty($this->form)): ?>
             <form action="/personal/change/" method="post" id="change">
                 Введите новый пароль и подтвердите его.
                 <label>
@@ -25,7 +29,7 @@
                     <span class="tooltip"></span>
                 </label>
 
-                <input type="hidden" name="hash" value="<?= \App\System\Request::get('hash') ?? null ?>">
+                <input type="hidden" name="hash" value="<?= Request::get('hash') ?? null ?>">
 
                 <input type="submit" name="send" value="Отправить">
 
@@ -33,8 +37,8 @@
             </form>
 
             <div class="success_message"></div>
-        <? else: ?>
-            <? if (empty($this->success)): ?>
+        <?php else: ?>
+            <?php if (empty($this->success)): ?>
                 <form action="/personal/change/" method="get">
                     Введите код из письма в поле.
                     <label>
@@ -44,13 +48,83 @@
                     </label>
                     <input type="submit" value="Отправить">
                 </form>
-            <? else: ?>
+            <?php else: ?>
                 <div class="success_message block">Пароль успешно изменен.</div>
-            <? endif; ?>
+            <?php endif; ?>
 
-            <? if (!empty($this->error)): ?>
+            <?php if (!empty($this->error)): ?>
                 <div class="message_error block">Введен неверный или недействительный код.</div>
-            <? endif; ?>
-        <? endif; ?>
+            <?php endif; ?>
+        <?php endif; ?>
     </div>
 </div>
+
+<script>
+    /* изменение пароля */
+    $('#change').on('submit', function (e) {
+        e.preventDefault();
+        let form = $(this),
+            input_password = form.find('input[name=password'),
+            input_password_confirm = form.find('input[name=password_confirm'),
+            password = input_password.val(),
+            password_confirm = input_password_confirm.val(),
+            message_error = form.find('.message_error'),
+            error = [];
+
+        form.find('input.required').each(function () {
+            if (!$(this).val()) {
+                error.push(true);
+                $(this).addClass('error');
+                $(this).parent().find('.tooltip').html('Введите пароль').addClass('active');
+            }
+            else if (!checkUserData($(this).val(), 'pass')) {
+                error.push(true);
+                $(this).addClass('error');
+                $(this).parent().find('.tooltip').html('Пароль должен содержать 1 цифру, 1 заглавную и строчные буквы').addClass('active');
+            }
+            else if (password !== password_confirm) {
+                error.push(true);
+                input_password.addClass('error');
+                input_password_confirm.addClass('error');
+                input_password_confirm.parent().find('.tooltip').html('Пароль и его подтверждение не совпадают').addClass('active');
+            }
+            else {
+                error.push(false);
+                $(this).removeClass('error');
+            }
+        });
+
+        if (-1 === error.indexOf(true)) {
+            message_error.html('').hide();
+            $('.tooltip').html('').removeClass('active');
+
+            let $data = {
+                password: password,
+                password_confirm: password_confirm,
+                hash: form.find('input[name=hash').val()
+            };
+
+            $.ajax({
+                method: "POST",
+                dataType: 'json',
+                url: "/personal/change/",
+                data: $data,
+                beforeSend: function() {
+                    loader.show();
+                },
+                success: function(data){console.log(data);
+                    loader.hide();
+
+                    if (!data.result) {
+                        if (1 === data.error) input_password.parent().find('.tooltip').html(data.message).addClass('active');
+                        else if (2 === data.error) input_password_confirm.parent().find('.tooltip').html(data.message).addClass('active');
+                        else message_error.html(data.message).show();
+                    } else {
+                        form.hide();
+                        $('.success_message').html('Пароль успешно изменен').show();
+                    }
+                }
+            });
+        }
+    });
+</script>

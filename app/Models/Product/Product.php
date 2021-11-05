@@ -31,10 +31,8 @@ class Product extends Model
     public $tax_id;
     public $tax_included;
     public $quantity;
-    public $quantity_from;
-    public $quantity_to;
     public $discount;
-    public $price;
+    //public $price; // цена товара со скидкой (нужна исключительно для сортировки выборки)
     public $currency_id;
     public $unit_id;
     public $warranty;
@@ -57,7 +55,7 @@ class Product extends Model
         $activity = !empty($active) ? 'AND p.active IS NOT NULL AND g.active IS NOT NULL AND v.active IS NOT NULL' : '';
         $sql = "
             SELECT 
-                p.id, p.name, p.articul, p.quantity, p.quantity_from, p.quantity_to, p.discount,  p.views,
+                p.id, p.name, p.articul, p.quantity, p.discount,  p.views,
                 p.is_hit, p.is_new, p.is_action, p.is_recommend,
                 p.preview_image, p.preview_text, p.preview_text_type_id, ptt.name preview_text_type, 
                 p.detail_image, p.detail_text, p.detail_text_type_id, dtt.name detail_text_type, 
@@ -102,7 +100,7 @@ class Product extends Model
         $activity = !empty($active) ? 'WHERE p.active IS NOT NULL AND g.active IS NOT NULL AND v.active IS NOT NULL' : '';
         $sql = "
             SELECT 
-                p.id, p.name, p.articul, p.quantity, p.quantity_from, p.quantity_to, p.discount,  p.views,
+                p.id, p.name, p.articul, p.quantity, p.discount,  p.views,
                 p.is_hit, p.is_new, p.is_action, p.is_recommend,
                 p.preview_image, p.preview_text, p.preview_text_type_id, ptt.name preview_text_type, 
                 p.detail_image, p.detail_text, p.detail_text_type_id, dtt.name detail_text_type, 
@@ -137,6 +135,7 @@ class Product extends Model
     /**
      * Возвращает список товаров по id группы
      * @param array $group - массив групп товаров (пустой массив - все товары)
+     * @param int $price_type_id - основной тип цены для пользователя
      * @param string $order - поле сортировки
      * @param string $sort - порядок сортировки
      * @param bool $active - активность
@@ -145,6 +144,7 @@ class Product extends Model
      */
     public static function getListByGroup(
         array $group = [],
+        int $price_type_id = 2,
         int $page_number = null,
         int $page_count = null,
         string $order = 'sort',
@@ -157,39 +157,36 @@ class Product extends Model
         $offset = !empty($page_number) && !empty($page_count) ? $page_count * ($page_number - 1) : null;
         $limit = isset($offset) && !empty($page_count) ? "LIMIT {$offset}, {$page_count}" : '';
         $activity = !empty($active) ? ((!empty($groups) ? 'AND ' : '') . 'p.active IS NOT NULL AND g.active IS NOT NULL AND v.active IS NOT NULL') : '';
-
+        if ($order !== 'price') $order =  'p.' . $order;
+        $params = ['price_type_id' => $price_type_id];
         $sql = "
             SELECT 
-                p.id, p.name, p.articul, p.quantity, p.quantity_from, p.quantity_to, p.discount,  p.views,
-                p.is_hit, p.is_new, p.is_action, p.is_recommend,
+                p.id, p.name, p.articul, p.quantity, p.discount, 
+                ROUND(pp.price * cr.rate * (100 - COALESCE(p.discount, 0)) / 100) price, 
+                p.views, p.is_hit, p.is_new, p.is_action, p.is_recommend, 
                 p.preview_image, p.preview_text, p.preview_text_type_id, ptt.name preview_text_type, 
                 p.detail_image, p.detail_text, p.detail_text_type_id, dtt.name detail_text_type, 
                 p.unit_id, u.name unit_name, u.sign unit, 
-                p.warranty, p.warranty_period_id, wp.name warranty_name,
-                p.group_id, g.name group_name, g.link group_link,
-                p.vendor_id, v.name vendor, v.image vendor_image,
+                p.warranty, p.warranty_period_id, wp.name warranty_name, 
+                p.group_id, g.name group_name, g.link group_link, 
+                p.vendor_id, v.name vendor, v.image vendor_image, 
                 p.tax_id, p.tax_included, t.name tax_name, t.value tax_value 
-            FROM products p  
-            LEFT JOIN `groups` g 
-                ON p.group_id = g.id 
-            LEFT JOIN vendors v 
-                ON p.vendor_id = v.id 
-            LEFT JOIN taxes t 
-                ON p.tax_id = t.id 
-            LEFT JOIN units u 
-                ON p.unit_id = u.id 
-            LEFT JOIN warranty_periods wp 
-                ON p.warranty_period_id = wp.id 
-            LEFT JOIN text_types ptt 
-                ON p.preview_text_type_id = ptt.id 
-            LEFT JOIN text_types dtt 
-                ON p.detail_text_type_id = dtt.id 
+            FROM products p 
+            LEFT JOIN `groups` g ON p.group_id = g.id 
+            LEFT JOIN product_prices pp ON p.id = pp.product_id AND pp.price_type_id = :price_type_id
+            LEFT JOIN currency_rates cr ON pp.currency_id = cr.currency_id
+            LEFT JOIN vendors v ON p.vendor_id = v.id 
+            LEFT JOIN taxes t ON p.tax_id = t.id 
+            LEFT JOIN units u ON p.unit_id = u.id 
+            LEFT JOIN warranty_periods wp ON p.warranty_period_id = wp.id 
+            LEFT JOIN text_types ptt ON p.preview_text_type_id = ptt.id 
+            LEFT JOIN text_types dtt ON p.detail_text_type_id = dtt.id 
             WHERE {$groups} {$activity} 
-            ORDER BY p.{$order}, p.created, p.id {$sort} 
+            ORDER BY {$order} {$sort}, p.created {$sort}, p.id {$sort} 
             {$limit}";
 
         $db = Db::getInstance();
-        $items = $db->query($sql, [], $object ? static::class : null);
+        $items = $db->query($sql, $params, $object ? static::class : null);
         return $items ?: false;
     }
 
@@ -240,6 +237,7 @@ class Product extends Model
     /**
      * Возвращает список товаров определенной группы с ценами
      * @param array $group - массив групп товаров (пустой массив - все товары)
+     * @param int $price_type_id - основной тип цены для пользователя
      * @param array $price_types - массив типов цен (пустой массив - все типы цен)
      * @param string $order - поле сортировки
      * @param string $sort - порядок сортировки
@@ -249,16 +247,17 @@ class Product extends Model
      */
     public static function getPriceList(
         array $group = [],
+        int $price_type_id = 2,
         array $price_types = [],
-        $page_number = null,
-        $page_count = null,
+        int $page_number = null,
+        int $page_count = null,
         string $order = 'sort',
         string $sort = 'ASC',
         bool $active = true,
         bool $object = true
     )
     {
-        $items = self::getListByGroup($group, $page_number, $page_count, $order, $sort, $active, $object);
+        $items = self::getListByGroup($group, $price_type_id, $page_number, $page_count, $order, $sort, $active, $object);
         if (!empty($items) && is_array($items)) {
             foreach ($items as $item) {
                 $item->prices = ProductPrice::getPrices($item->id, $price_types, $active);
@@ -274,7 +273,7 @@ class Product extends Model
      */
     public static function addProductView(int $id)
     {
-        $params = [':id' => $id];
+        $params = ['id' => $id];
         $sql = "UPDATE products SET views = views + 1 WHERE products.id = :id";
         $db = Db::getInstance();
         return $db->execute($sql, $params);

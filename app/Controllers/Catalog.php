@@ -38,24 +38,51 @@ class Catalog extends Controller
                 $this->set('group', $group); // категория товаров
                 $this->set('sub_groups', Group::getSubGroups(intval($group->id))); // подкатегории
                 $this->set('total_pages', ceil(Product::getCountByGroup([$group->id]) / $this->page_count)); // всего страниц для пагинации
-                $this->set('items', Product::getPriceList([$group->id], $this->user->price_types, $this->page_current, $this->page_count)); // товары
+                $this->set('items', Product::getPriceList(
+                    [$group->id],
+                    $this->user->price_type_id,
+                    $this->user->price_types,
+                    $this->page_current,
+                    $this->page_count,
+                    !empty(Request::get('order')) && in_array(Request::get('order'), ['views', 'name', 'price']) ? Request::get('order') : 'views',
+                    !empty(Request::get('sort')) && mb_strtolower(Request::get('sort')) === 'desc' ? 'DESC' : 'ASC'
+                )); // товары
                 $this->view->display('catalog/list');
             } else throw new NotFoundException('Категория не найдена');
         }
     }
 
     /**
-     * Добавляет товар в корзину
+     * Быстрый просмотр
      */
     protected function actionFastView()
     {
         if (Request::isPost()) {
             $item = Request::post('id');
             $item = Product::getPrice(intval($item), $this->user->price_types);
-            $this->set('item', $item); // товар
-            echo $this->view->render('product/fast');
-            die;
+
+            if (!empty($item)) {
+                Product::addProductView($item->id); // добавляем просмотр товару
+                $this->set('item', $item); // товар
+                echo $this->view->render('product/fast');
+            }
         }
+    }
+
+    /**
+     * Быстрый просмотр
+     */
+    protected function actionCompare()
+    {
+        echo $this->view->render('product/compare');
+    }
+
+    /**
+     * Быстрый просмотр
+     */
+    protected function actionFavorites()
+    {
+        echo $this->view->render('product/favorites');
     }
 
     /**

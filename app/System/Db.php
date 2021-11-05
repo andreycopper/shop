@@ -50,7 +50,7 @@ class Db
             $sth = $this->dbh->prepare($sql);
             return $sth->execute($params);
         } catch (\PDOException $e) {
-            throw new DbException($e->getMessage(), $e->getCode());
+            throw new DbException('Ошибочный запрос', 10000);
         }
     }
 
@@ -72,7 +72,7 @@ class Db
                 $sth->fetchAll(\PDO::FETCH_ASSOC);
         }
         catch (\PDOException $e) {
-            throw new DbException($e->getMessage(), $e->getCode());
+            throw new DbException('Ошибочный запрос', 10000);
         }
     }
 
@@ -93,7 +93,7 @@ class Db
             $class ? $sth->setFetchMode(\PDO::FETCH_CLASS, $class) : $sth->setFetchMode(\PDO::FETCH_ASSOC);
             while ($row = $sth->fetch()) yield $row;
         } catch (\PDOException $e) {
-            throw new DbException($e->getMessage(), $e->getCode());
+            throw new DbException('Ошибочный запрос', 10000);
         }
     }
 

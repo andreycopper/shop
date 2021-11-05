@@ -21,7 +21,8 @@ use Models\User\User;
     <link rel="stylesheet" href="/css/slick.css" media="all">
     <link rel="stylesheet" href="/css/jquery.mCustomScrollbar.css" media="all">
 
-    <script src="/js/jquery-3.4.1.min.js"></script>
+    <script src="/js/jquery-3.6.0.min.js"></script>
+    <script src="/js/jquery-ui.js"></script>
     <script src="/js/lightbox.min.js"></script>
     <script src="/js/slick.min.js"></script>
     <script src="/js/jquery.cookie.js"></script>
@@ -31,7 +32,6 @@ use Models\User\User;
     <script src="/js/cities.js"></script>
     <script src="/js/functions.js"></script>
     <script src="/js/scripts.js"></script>
-    <script src="https://www.google.com/recaptcha/api.js"></script>
 
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
 </head>
@@ -87,7 +87,7 @@ use Models\User\User;
                 </a>
             </div>
             <div class="header-compare">
-                <a href="/compare/" class="header-compare-link header-action" data-target="compare" title="Сравнение">
+                <a href="/compare/" class="header-compare-link info" data-target="compare" data-url="/catalog/compare/" title="Сравнение">
                     <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21">
                         <path class="header-compare-pic" d="M20,4h0a1,1,0,0,1,1,1V21H19V5A1,1,0,0,1,20,4ZM14,7h0a1,1,0,0,1,1,1V21H13V8A1,1,0,0,1,14,7ZM8,1A1,1,0,0,1,9,2V21H7V2A1,1,0,0,1,8,1ZM2,9H2a1,1,0,0,1,1,1V21H1V10A1,1,0,0,1,2,9ZM0,0H1V1H0V0ZM0,0H1V1H0V0Z"></path>
                     </svg>
@@ -95,7 +95,7 @@ use Models\User\User;
                 </a>
             </div>
             <div class="header-favorite">
-                <a href="/favorite" class="header-favorite-link header-action" data-target="favorites" title="Избранное">
+                <a href="/favorite" class="header-favorite-link info" data-target="favorites" data-url="/catalog/favorites/" title="Избранное">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22.969" height="21" viewBox="0 0 22.969 21">
                         <path class="header-favorite-pic" d="M21.028,10.68L11.721,20H11.339L2.081,10.79A6.19,6.19,0,0,1,6.178,0a6.118,6.118,0,0,1,5.383,3.259A6.081,6.081,0,0,1,23.032,6.147,6.142,6.142,0,0,1,21.028,10.68ZM19.861,9.172h0l-8.176,8.163H11.369L3.278,9.29l0.01-.009A4.276,4.276,0,0,1,6.277,1.986,4.2,4.2,0,0,1,9.632,3.676l0.012-.01,0.064,0.1c0.077,0.107.142,0.22,0.208,0.334l1.692,2.716,1.479-2.462a4.23,4.23,0,0,1,.39-0.65l0.036-.06L13.52,3.653a4.173,4.173,0,0,1,3.326-1.672A4.243,4.243,0,0,1,19.861,9.172ZM22,20h1v1H22V20Zm0,0h1v1H22V20Z" transform="translate(-0.031)"></path>
                     </svg>
@@ -329,7 +329,6 @@ use Models\User\User;
     </div>
 </footer>
 
-<div class="overlay"></div>
 <div class="menu-mobile">
     <div class="close"></div>
     <div class="menu-mobile-scroller" style="">
@@ -492,91 +491,64 @@ use Models\User\User;
 </div>
 
 <div id="search" class="modal">
-    <div class="close"></div>
-    <form action="" method="get">
-        <label>
-            <input type="text" placeholder="Введите запрос и нажмите Enter" autofocus>
-        </label>
-        <button type="submit"></button>
-    </form>
+    <div class="overlay"></div>
+    <div class="modal-content">
+        <div class="close"></div>
+        <form action="" method="get">
+            <label>
+                <input type="text" placeholder="Введите запрос и нажмите Enter" autofocus>
+            </label>
+            <button type="submit"></button>
+        </form>
+    </div>
 </div>
 
 <div id="callback" class="modal modalform">
-    <div class="close"></div>
-    <div class="title">
-        <h2>Заказать звонок</h2>
+    <div class="overlay"></div>
+    <div class="modal-content">
+        <div class="close"></div>
+        <div class="title">
+            <h2>Заказать звонок</h2>
+        </div>
+        <form action="/callBacks/save/" method="post">
+            <label>
+                Имя <span class="red">*</span>
+                <input type="text" name="name" class="required">
+                <span class="tooltip"></span>
+            </label>
+            <label>
+                Телефон <span class="red">*</span>
+                <input type="text" name="phone" class="required">
+                <span class="tooltip"></span>
+            </label>
+            <label class="checkbox">
+                <input type="checkbox" name="agreement" class="required">
+                Я согласен на <a href="">обработку персональных данных</a> <span class="red">*</span>
+            </label>
+            <input type="submit" value="Отправить">
+            <div class="message_error"></div>
+        </form>
+        <div class="message_success"></div>
     </div>
-    <form action="/callBacks/save/" method="post">
-        <label>
-            Имя <span class="red">*</span>
-            <input type="text" name="name" class="required">
-            <span class="tooltip"></span>
-        </label>
-        <label>
-            Телефон <span class="red">*</span>
-            <input type="text" name="phone" class="required">
-            <span class="tooltip"></span>
-        </label>
-        <label class="checkbox">
-            <input type="checkbox" name="agreement" class="required">
-            Я согласен на <a href="">обработку персональных данных</a> <span class="red">*</span>
-        </label>
-        <input type="submit" value="Отправить">
-        <div class="message_error"></div>
-    </form>
-    <div class="message_success"></div>
-</div>
-
-<div id="qorder" class="modal modalform">
-    <div class="close"></div>
-    <div class="title">
-        <h2>Быстрый заказ</h2>
-    </div>
-    <form action="/quickOrders/save/" method="post">
-        <? if (!empty($item->id) && $item instanceof Models\Product\Product): ?>
-            <input type="hidden" name="id" value="<?= $item->id ?>">
-            <input type="hidden" name="count" value="1">
-        <? endif; ?>
-        <label>
-            Имя <span class="red">*</span>
-            <input type="text" name="name" class="required">
-            <span class="tooltip"></span>
-        </label>
-        <label>
-            Телефон <span class="red">*</span>
-            <input type="text" name="phone" class="required">
-            <span class="tooltip"></span>
-        </label>
-        <label class="checkbox">
-            <input type="checkbox" name="agreement" class="required">
-            Я согласен на <a href="">обработку персональных данных</a> <span class="red">*</span>
-        </label>
-        <input type="submit" value="Отправить">
-        <div class="message_error"></div>
-    </form>
-    <div class="message_success"></div>
 </div>
 
 <div id="fast" class="modal">
-    <div class="close"></div>
-    <div class="title">
-        <h2>Быстрый просмотр</h2>
-    </div>
+    <div class="overlay"></div>
     <div class="modal-content">
+        <div class="close"></div>
         <div class="content">
-            <div class="content">
-                Здесь будет быстрый просмотр товара
-            </div>
+            Здесь будет быстрый просмотр товара
         </div>
     </div>
 </div>
 
 <div id="compare" class="modal">
-    <div class="close"></div>
-    <div class="title">
-        <h2>Сравнение товаров</h2>
-    </div>
+    <div class="overlay"></div>
     <div class="modal-content">
+        <div class="close"></div>
+        <div class="title">
+            <h2>Сравнение товаров</h2>
+        </div>
         <div class="content">
             Здесь будет сравнение товаров
         </div>
@@ -584,91 +556,133 @@ use Models\User\User;
 </div>
 
 <div id="favorites" class="modal">
-    <div class="close"></div>
-    <div class="title">
-        <h2>Избранное</h2>
-    </div>
+    <div class="overlay"></div>
     <div class="modal-content">
+        <div class="close"></div>
+        <div class="title">
+            <h2>Избранное</h2>
+        </div>
         <div class="content">
             Здесь будут избранные товары
         </div>
     </div>
 </div>
 
-<div id="auth" class="modal">
-    <div class="close"></div>
-    <div class="title">
-        <h2>Вход</h2>
-    </div>
-    <form action="/auth/" method="post">
-        <label>
-            Email / Телефон <span class="red">*</span>
-            <input type="text" name="login" class="required">
-            <span class="tooltip"></span>
-        </label>
-        <label>
-            Пароль <span class="red">*</span>
-            <input type="password" name="password" class="required">
-            <span class="tooltip"></span>
-        </label>
-<!--        <label class="checkbox">-->
-<!--            <input type="checkbox" name="personal_data" class="required">-->
-<!--            Я согласен на <a href="">обработку персональных данных</a> <span class="red">*</span>-->
-<!--            <span class="tooltip"></span>-->
-<!--        </label>-->
-        <label class="checkbox checked">
-            <input type="checkbox" name="remember" checked>
-            Запомнить меня
-        </label>
-        <input type="submit" name="send" value="Войти">
-        <div class="message_error"></div>
-        <div class="flex-wrap additional">
-            <a href="/auth/restore/" class="textLeft">Забыли пароль?</a>
-            <a href="/auth/registration/" class="textRight">Регистрация</a>
+<div id="qorder" class="modal modalform">
+    <div class="overlay"></div>
+    <div class="modal-content">
+        <div class="close"></div>
+        <div class="title">
+            <h2>Быстрый заказ</h2>
         </div>
-    </form>
+        <form action="/quickOrders/save/" method="post">
+            <? //if (!empty($item->id) && $item instanceof Models\Product\Product): ?>
+                <input type="hidden" name="id" value="<?= $item->id ?? '' ?>">
+                <input type="hidden" name="count" value="1">
+            <? //endif; ?>
+            <label>
+                Имя <span class="red">*</span>
+                <input type="text" name="name" class="required">
+                <span class="tooltip"></span>
+            </label>
+            <label>
+                Телефон <span class="red">*</span>
+                <input type="text" name="phone" class="required">
+                <span class="tooltip"></span>
+            </label>
+            <label class="checkbox">
+                <input type="checkbox" name="agreement" class="required">
+                Я согласен на <a href="">обработку персональных данных</a> <span class="red">*</span>
+            </label>
+            <input type="submit" value="Отправить">
+            <div class="message_error"></div>
+        </form>
+        <div class="message_success"></div>
+    </div>
 </div>
 
-<div id="location" class="modal cities">
-    <div class="close" title="Закрыть"></div>
-    <div class="reset" title="Сбросить"></div>
-
-    <div class="title">
-        <form method="get">
+<div id="auth" class="modal">
+    <div class="overlay"></div>
+    <div class="modal-content">
+        <div class="close"></div>
+        <div class="title">
+            <h2>Вход</h2>
+        </div>
+        <form action="/auth/" method="post">
             <label>
-                Город
-                <input type="text" name="city" id="city" />
+                Email / Телефон <span class="red">*</span>
+                <input type="text" name="login" class="required">
+                <span class="tooltip"></span>
             </label>
-            <span class="example">
-                <a href="">Например, </a>
-            </span>
+            <label>
+                Пароль <span class="red">*</span>
+                <input type="password" name="password" class="required">
+                <span class="tooltip"></span>
+            </label>
+<!--            <label class="checkbox">-->
+<!--                <input type="checkbox" name="personal_data" class="required">-->
+<!--                Я согласен на <a href="">обработку персональных данных</a> <span class="red">*</span>-->
+<!--                <span class="tooltip"></span>-->
+<!--            </label>-->
+            <label class="checkbox checked">
+                <input type="checkbox" name="remember" checked>
+                Запомнить меня
+            </label>
+            <input type="submit" name="send" value="Войти">
+            <div class="message_error"></div>
+            <div class="flex-wrap additional">
+                <a href="/auth/restore/" class="textLeft">Забыли пароль?</a>
+                <a href="/auth/registration/" class="textRight">Регистрация</a>
+            </div>
         </form>
     </div>
 
-    <div class="regions flex-wrap">
-        <div class="region-block district">
-            <span class="main">Федеральный округ</span>
-            <ul>
-                <? if (!empty($this->districts) && is_array($this->districts)):
-                    foreach ($this->districts as $district): ?>
-                        <li>
-                            <a href="#" data-id="<?= $district->id ?>"><?= $district->name ?></a>
-                        </li>
-                    <? endforeach;
-                endif; ?>
-            </ul>
+</div>
+
+<div id="location" class="modal cities">
+    <div class="overlay"></div>
+    <div class="modal-content">
+        <div class="close" title="Закрыть"></div>
+        <div class="reset" title="Сбросить"></div>
+
+        <div class="title">
+            <form method="get">
+                <label>
+                    Город
+                    <input type="text" name="city" id="city" />
+                </label>
+                <span class="example">
+                <a href="">Например, </a>
+            </span>
+            </form>
         </div>
 
-        <div class="region-block region">
-            <span class="main">Регион</span>
-            <ul></ul>
-        </div>
+        <div class="regions flex-wrap">
+            <div class="region-block district">
+                <span class="main">Федеральный округ</span>
+                <ul>
+                    <? if (!empty($this->districts) && is_array($this->districts)):
+                        foreach ($this->districts as $district): ?>
+                            <li>
+                                <a href="#" data-id="<?= $district->id ?>"><?= $district->name ?></a>
+                            </li>
+                        <? endforeach;
+                    endif; ?>
+                </ul>
+            </div>
 
-        <div class="region-block city">
-            <span class="main">Город</span>
-            <ul></ul>
+            <div class="region-block region">
+                <span class="main">Регион</span>
+                <ul></ul>
+            </div>
+
+            <div class="region-block city">
+                <span class="main">Город</span>
+                <ul></ul>
+            </div>
         </div>
     </div>
+
 </div>
 
 <div id="loader">

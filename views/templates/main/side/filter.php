@@ -8,27 +8,18 @@
         <div class="catalog-left-filter-body">
             <div class="catalog-left-inputrange">
                 <label>
-                    <input type="text" placeholder="1 300">
+                    <input type="text" name="price_min" placeholder="1 300">
                 </label>
                 <span class="divider"></span>
                 <label>
-                    <input type="text" placeholder="20 000">
+                    <input type="text" name="price_max" placeholder="20 000">
                 </label>
 
-                <div class="catalog-left-filter-values">
-                    <div class="catalog-left-filter-valueleft">1 300</div>
-                    <div class="catalog-left-filter-valueright">22 000</div>
-                </div>
-
-                <div class="catalog-left-range">
-                    <div class="catalog-left-range-line inactive"></div>
-                    <div class="catalog-left-range-line active"></div>
-                    <a href="" class="catalog-left-range-handle handle-left"></a>
-                    <a href="" class="catalog-left-range-handle handle-right"></a>
-                </div>
+                <div id="slider-range"></div>
             </div>
         </div>
     </div>
+
     <div class="catalog-left-filter-item">
         <a href="" class="catalog-left-filter-title active">Наши предложения</a>
         <div class="catalog-left-filter-body">
@@ -116,3 +107,23 @@
         </div>
     </div>
 </div>
+
+<script>
+    $(function () {
+        let range = $('#slider-range');
+
+        range.slider({
+            range: true,
+            min: 0,
+            max: 500,
+            values: [75, 300],
+            slide: function(e, data) {
+                $('.catalog-left-inputrange input[name=price_min]').val(data.values[0]);
+                $('.catalog-left-inputrange input[name=price_max]').val(data.values[1] );
+            }
+        });
+
+        $('.catalog-left-inputrange input[name=price_min]').val(range.slider( "values", 0 ));
+        $('.catalog-left-inputrange input[name=price_max]').val(range.slider( "values", 1 ));
+    });
+</script>

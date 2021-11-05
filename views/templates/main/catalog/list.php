@@ -1,8 +1,8 @@
 <?php
 use System\Request;
-$order = Request::get('order');
-$sort = Request::get('sort');
-$display = $_COOKIE['display'] ?? null;
+$order = Request::get('order') ?? 'views';
+$sort = Request::get('sort') ?? 'asc';
+$display = $_COOKIE['display'] ?? 'blocks';
 ?>
 
 <div class="catalog-container">
@@ -41,23 +41,23 @@ $display = $_COOKIE['display'] ?? null;
             <div class="product-sort-view">
                 <div class="product-sort">
                     <div class="sort-product show
-                        <?= (empty($order) || $order === 'view') ? 'active' : '' ?>
-                        <?= (empty($order) || $order === 'view') && !empty($sort) && $sort === 'desc' ? 'desc' : '' ?>">
-                        <a href="?order=view<?=(((empty($order) || $order === 'view') && empty($sort)) ? '&sort=desc' : '')?>">
+                        <?= ($order === 'views') ? 'active' : '' ?>
+                        <?= ($order === 'views' && $sort === 'desc') ? 'desc' : '' ?>">
+                        <a href="?order=views<?= ($order === 'views' && $sort === 'asc') ? '&sort=desc' : '' ?>">
                             По популярности
                         </a>
                     </div>
                     <div class="sort-product name
-                        <?=(!empty($order) && $order === 'name' ? 'active' : '')?>
-                        <?=(!empty($order) && $order === 'name' && !empty($sort) && $sort === 'desc' ? 'desc' : '')?>">
-                        <a href="?order=name<?=((!empty($order) && $order === 'name' && empty($sort)) ? '&sort=desc' : '')?>">
+                        <?= ($order === 'name') ? 'active' : '' ?>
+                        <?= ($order === 'name' && $sort === 'desc') ? 'desc' : '' ?>">
+                        <a href="?order=name<?= ($order === 'name' && $sort === 'asc') ? '&sort=desc' : '' ?>">
                             По алфавиту
                         </a>
                     </div>
                     <div class="sort-product price
-                        <?=(!empty($order) && $order === 'price' ? 'active' : '')?>
-                        <?=(!empty($order) && $order === 'price' && !empty($sort) && $sort === 'desc' ? 'desc' : '')?>">
-                        <a href="?order=price<?=((!empty($order) && $order === 'price' && empty($sort)) ? '&sort=desc' : '')?>">
+                        <?= ($order === 'price') ? 'active' : '' ?>
+                        <?= ($order === 'price' && $sort === 'desc') ? 'desc' : '' ?>">
+                        <a href="?order=price<?= ($order === 'price' && $sort === 'asc') ? '&sort=desc' : '' ?>">
                             По цене
                         </a>
                     </div>
@@ -65,18 +65,18 @@ $display = $_COOKIE['display'] ?? null;
 
                 <div class="product-filter-view">
                     <a href="" data-view="blocks" title="плитки"
-                       class="view-filter-product blocks <?=((empty($display) || $display === 'blocks') ? 'active' : '')?>"><i></i>
+                       class="view-filter-product blocks <?= $display === 'blocks' ? 'active' : ''?>"><i></i>
                     </a>
                     <a href="" data-view="list" title="список"
-                       class="view-filter-product list <?=((!empty($display) && $display === 'list') ? 'active' : '')?>"><i></i>
+                       class="view-filter-product list <?= $display === 'list' ? 'active' : '' ?>"><i></i>
                     </a>
                     <a href="" data-view="table" title="таблица"
-                       class="view-filter-product table <?=((!empty($display) && $display === 'table') ? 'active' : '')?>"><i></i>
+                       class="view-filter-product table <?= $display === 'table' ? 'active' : '' ?>"><i></i>
                     </a>
                 </div>
             </div>
 
-            <?= $this->render('catalog/view_' . ($display ?? 'blocks')) ?>
+            <?= $this->render("catalog/view_{$display}") ?>
         <?php else: ?>
             <div class="product-container">
                 <p class="required">Товары не найдены</p>
@@ -86,3 +86,14 @@ $display = $_COOKIE['display'] ?? null;
         <?= $this->render('pagination') ?>
     </div>
 </div>
+
+<script>
+    $(function () {
+        /* смена режима просмотра каталога */
+        $('.view-filter-product').on('click', function (e) {
+            $('.view-filter-product').removeClass('active');
+            $(this).addClass('active');
+            $.cookie('display', $(this).attr('data-view'), {expires: 1, path: '/'});
+        });
+    });
+</script>

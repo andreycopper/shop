@@ -3,7 +3,7 @@
         <div class="product-itemlist">
             <div class="product-itemlist-image">
                 <a href="<?=$item->id?>/"><img src="/uploads/catalog/<?=$item->id?>/<?=$item->preview_image?>" alt=""></a>
-                <a class="product-itemlist-fastview" data-target="fast">Быстрый просмотр</a>
+                <a class="product-itemlist-fastview info" data-target="fast" data-url="/catalog/fastView/">Быстрый просмотр</a>
                 <div class="product-item-stickers">
                     <? if (!empty($item->hit)): ?>
                         <span class="stickers sticker-hit">Хит</span>
@@ -109,3 +109,14 @@
         </div>
     <? endforeach; ?>
 </div>
+
+<script>
+    $(function () {
+        /* раскрытие характеристик товара в каталоге при отображении списком */
+        $('.product-itemlist-moreprops a').on('click', function (e){
+            e.preventDefault();
+            $(this).toggleClass('active').parents('.product-itemlist-moreprops').next().slideToggle();
+
+        });
+    });
+</script>

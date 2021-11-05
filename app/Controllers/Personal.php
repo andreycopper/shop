@@ -11,9 +11,7 @@ class Personal extends Controller
 {
     protected function before()
     {
-        if (!User::isAuthorized() &&
-            (empty(ROUTE[1]) || !in_array(ROUTE[1], ['Change', 'ChangeAjax']))
-        ) {
+        if (!User::isAuthorized() && (empty(ROUTE[1]) || !in_array(ROUTE[1], ['Change', 'ChangeAjax']))) {
             header('Location: /');
             die;
         }
@@ -50,6 +48,5 @@ class Personal extends Controller
         }
 
         $this->view->display('personal/change');
-        die;
     }
 }

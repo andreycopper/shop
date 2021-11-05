@@ -172,3 +172,15 @@
 </div>
 
 <?= $this->render('product/views') ?>
+
+<script>
+    $(function () {
+        /* переключение табов на карточке товара */
+        $('.product-tab').on('click', function (e) {
+            e.preventDefault();
+            $('.product-content, .product-tab').removeClass('active');
+            $(this).addClass('active');
+            $(' #' + $(this).data('target')).addClass('active');
+        });
+    });
+</script>

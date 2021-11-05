@@ -73,7 +73,7 @@ class OrderItem extends Model
                 }
 
                 $outdated = str_replace('-', '', explode(' ', $item->updated ?: $item->created)[0]) < date('Ymd');
-                var_dump(str_replace('-', '', explode(' ', $item->updated ?: $item->created)[0]));var_dump(date('Ymd'));
+
                 if ($outdated) { // товар в корзине больше суток
                     $message = 'Цены товаров, добавленных в корзину более суток назад обновлены';
                     $price = ProductPrice::getPrice($item->product_id, $item->price_type_id); // актуальные цены товара

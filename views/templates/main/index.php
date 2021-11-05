@@ -9,17 +9,17 @@
         <div class="main-direct-block container">
             <div class="main-direct-item">
                 <a href="/">
-                    <img src="/uploads/baner/1.jpg" alt="">
+                    <img src="/uploads/widgets/1.jpg" alt="">
                 </a>
             </div>
             <div class="main-direct-item">
                 <a href="/">
-                    <img src="/uploads/baner/2.jpg" alt="">
+                    <img src="/uploads/widgets/2.jpg" alt="">
                 </a>
             </div>
             <div class="main-direct-item">
                 <a href="/">
-                    <img src="/uploads/baner/3.jpg" alt="">
+                    <img src="/uploads/widgets/3.jpg" alt="">
                 </a>
             </div>
         </div>

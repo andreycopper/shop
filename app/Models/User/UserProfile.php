@@ -44,7 +44,6 @@ class UserProfile extends Model
      * @param bool $active
      * @param bool $object
      * @return array|false
-     * @throws DbException
      */
     public static function getListByUser(int $user_id, string $user_hash, bool $active = true, $object = true)
     {
@@ -98,14 +97,11 @@ class UserProfile extends Model
      * @param array $form - форма с данными
      * @param User $user - пользователь
      * @return bool|int
-     * @throws DbException
      */
     protected function savePhisicalProfile(array $form, User $user)
     {
         $user_profile =
-            (Request::post('p_profile') === '0') ?
-                (new UserProfile()) :
-                self::getByIdUserId(Request::post('p_profile'), $user->id);
+            ($form['p_profile'] === '0') ? (new UserProfile()) : self::getByIdUserId($form['p_profile'], $user->id);
 
         $user_profile->active       = 1;
         $user_profile->user_id      = $user->id;
@@ -114,8 +110,7 @@ class UserProfile extends Model
         $user_profile->phone        = trim($form['p_phone']);
         $user_profile->email        = trim($form['p_email']);
         $user_profile->name         = (new RSA($user->private_key))->encrypt(trim($form['p_name']));
-        $user_profile->created      = $user_profile->created ?? date('Y-m-d');
-        $user_profile->updated      = $user_profile->id ? date('Y-m-d') : null;
+        $user_profile->updated      = $user_profile->id ? date('Y-m-d H:i:s') : null;
 
         if (intval($form['delivery']) !== 1) {
             $user_profile->city_id   = intval($form['city_id']);
@@ -135,14 +130,11 @@ class UserProfile extends Model
      * @param $form - форма с данными
      * @param $user - пользователь
      * @return bool|int
-     * @throws DbException
      */
     protected function saveJuridicalProfile($form, $user)
     {
         $user_profile =
-            (Request::post('j_profile') === '0') ?
-                (new UserProfile()) :
-                self::getByIdUserId(Request::post('j_profile'), $user->id);
+            ($form['j_profile'] === '0') ? (new UserProfile()) : self::getByIdUserId($form['j_profile'], $user->id);
 
         $user_profile->active = 1;
         $user_profile->user_id = $user->id;
@@ -155,8 +147,7 @@ class UserProfile extends Model
         $user_profile->address_legal = trim($form['j_address']);
         $user_profile->inn = trim($form['inn']);
         $user_profile->kpp = trim($form['kpp']);
-        $user_profile->created = $user_profile->created ?? date('Y-m-d');
-        $user_profile->updated = $user_profile->id ? date('Y-m-d') : null;
+        $user_profile->updated = $user_profile->id ? date('Y-m-d H:i:s') : null;
 
         if (intval($form['delivery']) !== 1) {
             $user_profile->city_id   = intval($form['city_id']);
@@ -178,7 +169,6 @@ class UserProfile extends Model
      * @param bool $active - активность
      * @param bool $object - возвращать объект/массив
      * @return false|mixed
-     * @throws DbException
      */
     public static function getByIdUserId(int $id, int $user_id, bool $active = true, bool $object = true)
     {

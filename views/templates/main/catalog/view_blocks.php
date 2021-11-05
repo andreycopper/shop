@@ -27,7 +27,10 @@
 
             <div class="product-item-image">
                 <a href="<?= $item->id ?>/"><img src="/uploads/catalog/<?= $item->id ?>/<?= $item->preview_image ?>" alt=""></a>
-                <a href="<?= $item->id ?>/" class="product-item-fastview" data-target="fast" data-id="<?= $item->id ?>">Быстрый просмотр</a>
+                <a href="<?= $item->id ?>/" class="product-item-fastview info"
+                   data-id="<?= $item->id ?>" data-target="fast" data-url="/catalog/fastView/">
+                    Быстрый просмотр
+                </a>
             </div>
             <div class="product-item-title">
                 <a href="<?= $item->id ?>/"><?= $item->name ?></a>
