@@ -44,11 +44,11 @@ abstract class Controller
         $this->set('location', $_SESSION['location'] ?? User::getLocation()); // текущее местоположение
         $this->set('districts', District::getList()); // список федеральных округов
 
-        $this->set('page', Page::getPageInfo(ROUTE)); // информация о странице
+        $this->set('page', Page::getPageInfo(URL)); // информация о странице
         $this->set('breadcrumbs', Page::getBreadCrumbs()); // breadcrumbs
         $this->set('page_current', $this->page_current);
 
-        $this->set('menu', $_SESSION['menu'] ?? Page::getMenuTree(true)); // меню
+        $this->set('menu', $_SESSION['menu'] ?? Page::getMenuTree()); // меню
         $this->set('groups', $_SESSION['groups'] ?? Group::getCatalog()); // каталог товаров
         $this->set('cartCount', OrderItem::getCount()); // количество товаров в корзине
     }

@@ -5,9 +5,7 @@ $(function () {
         }),
         cityKey = Math.floor( Math.random() * (Object.keys(citiesArray).length));
 
-    setCheckboxCondition($('.catalog-left-check > input'));
-    checkFilterState();
-    // setLeftSubMenuWidth(); // установка ширины подменю каталога
+    //setLeftSubMenuWidth(); // установка ширины подменю каталога
 
     /* Маска для ввода телефона */
     $('input[name=phone]').inputmask({'mask': '+7 (999) 999-99-99'});
@@ -74,14 +72,6 @@ $(function () {
         }
     });
 
-    /* переключение стилизованных чекбоксов */
-    $('.checkbox').on('click', function (e) {
-        e.preventDefault();
-        $(this).hasClass('checked') ?
-            $(this).removeClass('checked').find('input[type=checkbox]').prop('checked', false) :
-            $(this).toggleClass('checked').find('input[type=checkbox]').prop('checked', true);
-    });
-
     /* проверка радиокнопок при загрузке страницы */
     $('label.radio').each(function () {
         let $this = $(this),
@@ -97,21 +87,21 @@ $(function () {
     });
 
     /* переключение стилизованных радиокнопок */
-    $('input[type=radio]').on('change', function () {
-        let name = $(this).attr('name');
-        $('input[name=' + name + ']').parents('.radio-container').find('label.radio').removeClass('checked');
-        $(this).parent('label.radio').addClass('checked');
-
-        let target = $(this).attr('data-target');
-        $(this).parents('.order-item').find('.order-item-slider').hide();
-        $(this).parents('.order-item').find('.' + target).show();
+    $('.radio').on('click', function (e) {
+        e.preventDefault();
+        if (!$(this).find('input[type=radio]').prop('checked')) {
+            $(this).parent().find('.radio').removeClass('checked');
+            $(this).parent().find('input[type=radio]').prop('checked', false);
+            $(this).addClass('checked').find('input[type=radio]').prop('checked', true);
+        }
     });
 
-    /* раскрытие/закрытие описания вакансии */
-    $('.vacancy-header').on('click', function (e) {
+    /* переключение стилизованных чекбоксов */
+    $('.checkbox').on('click', function (e) {
         e.preventDefault();
-        $(this).next().slideToggle();
-        $(this).parent().toggleClass('active');
+        $(this).hasClass('checked') ?
+            $(this).removeClass('checked').find('input[type=checkbox]').prop('checked', false) :
+            $(this).toggleClass('checked').find('input[type=checkbox]').prop('checked', true);
     });
 
     /* закрытие подсказки по клику */
@@ -236,32 +226,6 @@ $(function () {
     });
     /**************************** !MODAL ****************************/
     /**************************** CATALOG ****************************/
-    /* проверка всех чекбоксов при загрузке и установка их оформления */
-    // $('input[type=radio]').each(function () {
-    //     if ($(this).prop('checked')) $(this).parent('label').addClass('checked');
-    // });
-
-    /* переключение стилизованных чекбоксов в фильтре каталога */
-    $('.catalog-left-check label').on('click', function () {
-        let input = $(this).prev(),
-            span = $(this).find('span');
-        input.prop('checked') ? span.removeClass('checked') : span.addClass('checked');
-    });
-
-    /* переключение стилизованных радиокнопок в фильтре каталога */
-    $('.catalog-left-radio label').on('click', function () {
-        $(this).parent('.catalog-left-radio').find('span').removeClass('checked');
-        $(this).find('span').addClass('checked');
-    });
-
-    /* разворачивание/сворачивание пунктов в фильтре товаров */
-    $('.catalog-left-filter-title').on('click', function (e) {
-        e.preventDefault();
-        let next = $(this).next();
-        $(this).toggleClass('active');
-        next.slideToggle();
-    });
-
     /* кнопка минус количества товаров */
     $('.product-item-minus, .product-itemlist-minus, .product-minus').on('click', function (e) {
         e.preventDefault();
@@ -303,8 +267,7 @@ $(function () {
         }
         else $('#qorder input[name=count]').val(val);
     });
-    /**************************** !CATALOG ****************************/
-    /**************************** CART ****************************/
+
     /* добавление товара в корзину */
     $('.buy').on('click', function () {
         let count = $('.header-cart-count, .menu-mobile-basket .menu-mobile-count'),
@@ -334,21 +297,7 @@ $(function () {
             }
         });
     });
-    /**************************** !CART ****************************/
-    /**************************** ORDER ****************************/
-    /* сворачивание/разворачивание подробного описания заказа в истории заказов */
-    $('.personal-orders-title').on('click', function (e) {
-        e.preventDefault();
-        $('.personal-orders-container').not($(this).next()).slideUp();
-        $(this).next().slideToggle();
-    });
-    /**************************** !ORDER ****************************/
-    /**************************** PERSONAL ****************************/
-    /* выбор суммы пополнения баланса */
-    $('.personal-bill-add > span').on('click', function (e) {
-        $('.personal-bill-add input').val($(this).html());
-    });
-    /**************************** !PERSONAL ****************************/
+    /**************************** !CATALOG ****************************/
     /**************************** AUTH ****************************/
     /* авторизация */
     $('#auth form, .auth form').on('submit', function (e) {
@@ -425,129 +374,6 @@ $(function () {
         }
     });
     /*************************** !AUTH ****************************/
-    /*************************** REGISTER ****************************/
-    $('#register input[type=submit]').on('click', function (e) {
-        e.preventDefault();
-        let form = $(this).parent('form'),
-            tooltip = form.find('.tooltip'),
-            message_error = form.find('.message_error'),
-            error = [];
-        tooltip.removeClass('active');
-
-        form.find('input.required').each(function () {
-            if ($(this).val()) {
-                if (-1 !== $(this).attr('name').indexOf('name') && !checkUserData($(this).val(), 'rus_eng')) {
-                    error.push(true);
-                    $(this).addClass('error');
-                    $(this).parent().find('.tooltip').html('Проверьте введенные данные').addClass('active');
-                }
-                else if ('email' === $(this).attr('name') && !checkUserData($(this).val(), 'email')) {
-                    error.push(true);
-                    $(this).addClass('error');
-                    $(this).parent().find('.tooltip').html('Проверьте введенный email').addClass('active');
-                }
-                else if ('phone' === $(this).attr('name') && !checkUserData($(this).val(), 'phone')) {
-                    error.push(true);
-                    $(this).addClass('error');
-                    $(this).parent().find('.tooltip').html('Проверьте введенный телефон').addClass('active');
-                }
-                else if (('password' === $(this).attr('name') || 'password_confirm' === $(this).attr('name')) && !checkUserData($(this).val(), 'pass')) {
-                    error.push(true);
-                    $(this).addClass('error');
-                    $(this).parent().find('.tooltip').html('Недостаточная сложность пароля').addClass('active');
-                }
-                else if ('checkbox' === $(this).attr('type') && !$(this).prop('checked')) {
-                    error.push(true);
-                    $(this).parent().addClass('error');
-                    $(this).parent().find('.tooltip').html('Не получено согласие на обработку персональных данных').addClass('active');
-                }
-                else {
-                    error.push(false);
-                    $(this).removeClass('error');
-                }
-            } else {
-                error.push(true);
-                $(this).addClass('error');
-            }
-        });
-
-        if (-1 === error.indexOf(true)) {
-            let $data = {
-                last_name:        form.find('input[name=last_name]').val(),
-                name:             form.find('input[name=name]').val(),
-                second_name:      form.find('input[name=second_name]').val(),
-                email:            form.find('input[name=email]').val(),
-                phone:            form.find('input[name=phone]').val(),
-                password:         form.find('input[name=password]').val(),
-                password_confirm: form.find('input[name=password_confirm]').val(),
-                personal_data:    form.find('input[name=personal_data]').prop('checked') ? 1 : 0,
-            };
-
-            $.ajax({
-                method: "POST",
-                dataType: 'json',
-                url: "/auth/registration/",
-                data: $data,
-                beforeSend: function() {
-                    message_error.html('').hide();
-                    loader.show();
-                },
-                success: function(data){console.log(data);
-                    loader.hide();
-
-                    if (!data.result) {
-                        message_error.html(data.message).show();
-                    } else {
-                        form.hide();
-                        $('.success_message').show();
-                    }
-                }
-            });
-        }
-    });
-    /*************************** !REGISTER ****************************/
-    /*************************** RESTORE ****************************/
-    $('.restore form').on('submit', function (e) {
-        e.preventDefault();
-        let form = $(this),
-            input = form.find('input[name=login]'),
-            login = input.val(),
-            tooltip = form.find('.tooltip');
-        tooltip.removeClass('active');
-
-        if (login && (checkUserData(login, 'phone') || checkUserData(login, 'email'))) {
-            $.ajax({
-                method: "POST",
-                dataType: 'json',
-                url: "/auth/restore/",
-                data: {'login': login},
-                beforeSend: function() {
-                    loader.show();
-                },
-                success: function(data){console.log(data);
-                    loader.hide();
-
-                    if (!data.result) {
-                        if (data.message) {
-                            input.addClass('error');
-                            tooltip.html(data.message).addClass('active');
-                        } else {
-                            form.hide();
-                            $('.error_message').show();
-                        }
-                    } else {
-                        form.hide();
-                        $('.success_message').show();
-                    }
-                }
-            });
-        }
-        else {
-            input.addClass('error');
-            tooltip.html('Введите номер телефона или e-mail').addClass('active');
-        }
-    });
-    /*************************** !RESTORE ****************************/
     /*************************** LOCATION ****************************/
     /* очистка списка выбранного округа и региона */
     $('#location .reset').on('click', function () {

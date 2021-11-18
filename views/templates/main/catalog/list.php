@@ -1,7 +1,8 @@
 <?php
 use System\Request;
-$order = Request::get('order') ?? 'views';
-$sort = Request::get('sort') ?? 'asc';
+
+$sort = Request::get('sort') ?? 'views';
+$order = Request::get('order') ?? 'asc';
 $display = $_COOKIE['display'] ?? 'blocks';
 ?>
 
@@ -38,26 +39,32 @@ $display = $_COOKIE['display'] ?? 'blocks';
         <?php endif; ?>
 
         <?php if (!empty($items) && is_array($items)): ?>
+            <?php
+                $get = Request::get() ?: [];
+                if (!empty($get['sort'])) unset($get['sort']);
+                if (!empty($get['order'])) unset($get['order']);
+                $url = http_build_query($get);
+            ?>
             <div class="product-sort-view">
                 <div class="product-sort">
                     <div class="sort-product show
-                        <?= ($order === 'views') ? 'active' : '' ?>
-                        <?= ($order === 'views' && $sort === 'desc') ? 'desc' : '' ?>">
-                        <a href="?order=views<?= ($order === 'views' && $sort === 'asc') ? '&sort=desc' : '' ?>">
+                        <?= ($sort === 'views') ? 'active' : '' ?>
+                        <?= ($sort === 'views' && $order === 'desc') ? 'desc' : '' ?>">
+                        <a href="?<?= $url . ($url ? '&' : '') ?>sort=views<?= ($sort === 'views' && $order === 'asc') ? '&order=desc' : '' ?>">
                             По популярности
                         </a>
                     </div>
                     <div class="sort-product name
-                        <?= ($order === 'name') ? 'active' : '' ?>
-                        <?= ($order === 'name' && $sort === 'desc') ? 'desc' : '' ?>">
-                        <a href="?order=name<?= ($order === 'name' && $sort === 'asc') ? '&sort=desc' : '' ?>">
+                        <?= ($sort === 'name') ? 'active' : '' ?>
+                        <?= ($sort === 'name' && $order === 'desc') ? 'desc' : '' ?>">
+                        <a href="?<?= $url . ($url ? '&' : '') ?>sort=name<?= ($sort === 'name' && $order === 'asc') ? '&order=desc' : '' ?>">
                             По алфавиту
                         </a>
                     </div>
                     <div class="sort-product price
-                        <?= ($order === 'price') ? 'active' : '' ?>
-                        <?= ($order === 'price' && $sort === 'desc') ? 'desc' : '' ?>">
-                        <a href="?order=price<?= ($order === 'price' && $sort === 'asc') ? '&sort=desc' : '' ?>">
+                        <?= ($sort === 'price') ? 'active' : '' ?>
+                        <?= ($sort === 'price' && $order === 'desc') ? 'desc' : '' ?>">
+                        <a href="?<?= $url . ($url ? '&' : '') ?>sort=price<?= ($sort === 'price' && $order === 'asc') ? '&order=desc' : '' ?>">
                             По цене
                         </a>
                     </div>

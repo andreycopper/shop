@@ -6,6 +6,6 @@ class Help extends Controller
 {
     protected function actionDefault()
     {
-        $this->view->display('help');
+        $this->view->display('help/index');
     }
 }

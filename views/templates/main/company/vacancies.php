@@ -328,3 +328,14 @@
         </div>
     </div>
 </div>
+
+<script>
+    $(function () {
+        /* раскрытие/закрытие описания вакансии */
+        $('.vacancy-header').on('click', function (e) {
+            e.preventDefault();
+            $(this).next().slideToggle();
+            $(this).parent().toggleClass('active');
+        });
+    });
+</script>

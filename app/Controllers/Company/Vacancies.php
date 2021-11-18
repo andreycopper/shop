@@ -11,6 +11,6 @@ class Vacancies extends Controller
      */
     protected function actionDefault()
     {
-        $this->view->display('vacancies');
+        $this->view->display('company/vacancies');
     }
 }

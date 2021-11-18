@@ -11,6 +11,6 @@ class Staff extends Controller
      */
     protected function actionDefault()
     {
-        $this->view->display('staff');
+        $this->view->display('company/staff');
     }
 }

@@ -11,7 +11,7 @@
 
 
     <div class="personal restore">
-        <? if (empty($this->restore)): ?>
+        <?php if (empty($this->restore)): ?>
             <form action="/auth/restore/" method="post">
                 Введите номер телефона или e-mail. Контрольная строка для смены пароля будет выслана вам на e-mail.
                 <label>
@@ -32,10 +32,55 @@
             <div class="error_message">
                 Произошел сбой во время создания запроса на изменение пароля. Повторите попытку позднее.
             </div>
-        <? else: ?>
+        <?php else: ?>
             <div class="success_message block">
                 Вам отправлено сообщение со ссылкой для смены пароля. Либо введите код из сообщения на странице <a href="/personal/change/">"Изменение пароля"</a>
             </div>
-        <? endif; ?>
+        <?php endif; ?>
     </div>
 </div>
+
+<script>
+    $(function () {
+        $('.restore form').on('submit', function (e) {
+            e.preventDefault();
+            let form = $(this),
+                input = form.find('input[name=login]'),
+                login = input.val(),
+                tooltip = form.find('.tooltip');
+            tooltip.removeClass('active');
+
+            if (login && (checkUserData(login, 'phone') || checkUserData(login, 'email'))) {
+                $.ajax({
+                    method: "POST",
+                    dataType: 'json',
+                    url: "/auth/restore/",
+                    data: {'login': login},
+                    beforeSend: function() {
+                        $('#loader').show();
+                    },
+                    success: function(data){console.log(data);
+                        $('#loader').hide();
+
+                        if (!data.result) {
+                            if (data.message) {
+                                input.addClass('error');
+                                tooltip.html(data.message).addClass('active');
+                            } else {
+                                form.hide();
+                                $('.error_message').show();
+                            }
+                        } else {
+                            form.hide();
+                            $('.success_message').show();
+                        }
+                    }
+                });
+            }
+            else {
+                input.addClass('error');
+                tooltip.html('Введите номер телефона или e-mail').addClass('active');
+            }
+        });
+    });
+</script>

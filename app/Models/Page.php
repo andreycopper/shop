@@ -12,21 +12,20 @@ class Page extends Model
 
     /**
      * Находит и возвращает активные записи из БД и формирует иерархическое меню
-     * @param bool $active
-     * @param bool $object
-     * @param string $orderBy
-     * @param string $order
+     * @param string $sort - сортировка
+     * @param string $order - направление сортировки
+     * @param bool $active - активность
+     * @param bool $object - возвращать объект/массив
      * @return array|bool
-     * @throws DbException
      */
-    public static function getMenuTree($active = false, $object = false, $orderBy = 'sort', $order = 'ASC')
+    public static function getMenuTree(string $sort = 'sort', string $order = 'ASC', bool $active = true, bool $object = false)
     {
         $activity = !empty($active) ? 'AND p.active IS NOT NULL' : '';
         $sql = "
             SELECT p.id, p.menu, p.footer, p.parent_id, p.name, p.link, p.description, p.meta_d, p.meta_k, p.sort 
             FROM pages p 
             WHERE p.menu IS NOT NULL {$activity} 
-            ORDER BY {$orderBy} {$order}";
+            ORDER BY {$sort} {$order}";
         $db = Db::getInstance();
         $data = $db->query($sql, [],$object ? static::class : null);
         $res = [];
@@ -38,32 +37,52 @@ class Page extends Model
             }
         }
         if (!empty($res)) $_SESSION['menu'] = $res;
-        return $res ?? false;
+        return $res ?: false;
+    }
+
+    /**
+     * @param string $sort - сортировка
+     * @param string $order - направление сортировки
+     * @param bool $active - активность
+     * @param bool $object - возвращать объект/массив
+     * @return false
+     */
+    public static function getProfileMenu(string $sort = 'sort', string $order = 'ASC', bool $active = true, bool $object = true)
+    {
+        $activity = !empty($active) ? 'AND p.active IS NOT NULL' : '';
+        $sql = "
+            SELECT p.id, p.parent_id, p.name, p.link, p.description, p.meta_d, p.meta_k, p.sort 
+            FROM pages p 
+            WHERE p.personal IS NOT NULL {$activity} 
+            ORDER BY {$sort} {$order}";
+        $db = Db::getInstance();
+        $data = $db->query($sql, [],$object ? static::class : null);
+
+        if (!empty($data)) $_SESSION['menu_personal'] = $data;
+        return $data ?: false;
     }
 
     /**
      * Получает информацию по текущей странице
-     * @param array $routes
+     * @param array $url
      * @return false|mixed
-     * @throws DbException
      */
-    public static function getPageInfo(array $routes)
+    public static function getPageInfo(array $url)
     {
-        if (!empty($routes) && is_array($routes)) {
-            $last = array_pop($routes);
+        if (!empty($url) && is_array($url)) {
+            $last = array_pop($url);
 
-            if (is_numeric($last)) {
-                $page =
-                    in_array('Catalog', $routes) ?
-                        Product::getById($last) :
-                        '';
-            }
-            else {
-                $page =
-                    in_array('Catalog', $routes) ?
-                        Group::getByField('link', mb_strtolower($last)) :
-                        Page::getByField('link', $last);
-            }
+            $page =
+                !empty($url[0]['name']) && $url[0]['name'] === 'Catalog' ?
+
+                    (is_numeric($last['name']) ?
+                        Product::getById($last['name']) :
+                        Group::getByField('link', mb_strtolower($last['name']))) :
+
+                    (is_numeric($last['name']) ?
+                        '' :
+                        Page::getByField('link', $last['link'])
+                    );
         }
 
         return $page ?? false;
@@ -72,32 +91,40 @@ class Page extends Model
     /**
      * Возвращает "хлебные крошки"
      * @return array|false
-     * @throws DbException
      */
     public static function getBreadCrumbs()
     {
-        if (!empty(ROUTE) && is_array(ROUTE)) {
+        if (!empty(URL) && is_array(URL)) {
             $result = [];
-            $link = '/';
+            $url = '';
+            $url_group = '/';
 
-            for ($i = 0; $i < count(ROUTE); $i++) {
+            for ($i = 0; $i < count(URL); $i++) {
+                $url .= ($url ? '/' : '') . mb_strtolower(URL[$i]['name']);
+
                 $page =
-                    in_array('Catalog', ROUTE) && $i > 0 ?
+                    $i > 0 && !empty(URL[0]['name']) && URL[0]['name'] === 'Catalog' ?
 
-                        (is_numeric(ROUTE[$i]) ?
-                            Product::getById(ROUTE[$i], true, false) :
-                            Group::getByField('link', mb_strtolower(ROUTE[$i]), true, false)) :
+                        (is_numeric(URL[$i]['name']) ?
+                            Product::getById(URL[$i]['name']) :
+                            Group::getByField('link', mb_strtolower(URL[$i]['name']))) :
 
-                        (is_numeric(ROUTE[$i]) ?
+                        (is_numeric(URL[$i]['name']) ?
                             '' :
-                            Page::getByField('link', ROUTE[$i], true, false)
+                            Page::getByField('link', $url)
                             );
 
                 if (!empty($page)) {
-                    if (!empty($page['link'])) $link .= ($page['link'] . '/');
+                    $result[$i]['name'] = $page->name;
 
-                    $result[$i]['name'] = $page['name'];
-                    if (isset(ROUTE[$i+1]) && !is_numeric(ROUTE[$i])) $result[$i]['link'] = $link;
+                    if (isset(URL[$i+1]) && !is_numeric(URL[$i]['name'])) {
+                        if (!empty(URL[0]['name']) && URL[0]['name'] !== 'Catalog') {
+                            $result[$i]['link'] =  '/' . $page->link . '/';
+                        } else {
+                            $url_group .= ($page->link . '/');
+                            $result[$i]['link'] =  $url_group;
+                        }
+                    }
                 }
             }
         }

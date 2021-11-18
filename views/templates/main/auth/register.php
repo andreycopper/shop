@@ -84,3 +84,87 @@
         <? endif; ?>
     </div>
 </div>
+
+<script>
+    $(function () {
+        $('#register input[type=submit]').on('click', function (e) {
+            e.preventDefault();
+            let form = $(this).parent('form'),
+                tooltip = form.find('.tooltip'),
+                message_error = form.find('.message_error'),
+                error = [];
+            tooltip.removeClass('active');
+
+            form.find('input.required').each(function () {
+                if ($(this).val()) {
+                    if (-1 !== $(this).attr('name').indexOf('name') && !checkUserData($(this).val(), 'rus_eng')) {
+                        error.push(true);
+                        $(this).addClass('error');
+                        $(this).parent().find('.tooltip').html('Проверьте введенные данные').addClass('active');
+                    }
+                    else if ('email' === $(this).attr('name') && !checkUserData($(this).val(), 'email')) {
+                        error.push(true);
+                        $(this).addClass('error');
+                        $(this).parent().find('.tooltip').html('Проверьте введенный email').addClass('active');
+                    }
+                    else if ('phone' === $(this).attr('name') && !checkUserData($(this).val(), 'phone')) {
+                        error.push(true);
+                        $(this).addClass('error');
+                        $(this).parent().find('.tooltip').html('Проверьте введенный телефон').addClass('active');
+                    }
+                    else if (('password' === $(this).attr('name') || 'password_confirm' === $(this).attr('name')) && !checkUserData($(this).val(), 'pass')) {
+                        error.push(true);
+                        $(this).addClass('error');
+                        $(this).parent().find('.tooltip').html('Недостаточная сложность пароля').addClass('active');
+                    }
+                    else if ('checkbox' === $(this).attr('type') && !$(this).prop('checked')) {
+                        error.push(true);
+                        $(this).parent().addClass('error');
+                        $(this).parent().find('.tooltip').html('Не получено согласие на обработку персональных данных').addClass('active');
+                    }
+                    else {
+                        error.push(false);
+                        $(this).removeClass('error');
+                    }
+                } else {
+                    error.push(true);
+                    $(this).addClass('error');
+                }
+            });
+
+            if (-1 === error.indexOf(true)) {
+                let $data = {
+                    last_name:        form.find('input[name=last_name]').val(),
+                    name:             form.find('input[name=name]').val(),
+                    second_name:      form.find('input[name=second_name]').val(),
+                    email:            form.find('input[name=email]').val(),
+                    phone:            form.find('input[name=phone]').val(),
+                    password:         form.find('input[name=password]').val(),
+                    password_confirm: form.find('input[name=password_confirm]').val(),
+                    personal_data:    form.find('input[name=personal_data]').prop('checked') ? 1 : 0,
+                };
+
+                $.ajax({
+                    method: "POST",
+                    dataType: 'json',
+                    url: "/auth/registration/",
+                    data: $data,
+                    beforeSend: function() {
+                        message_error.html('').hide();
+                        $('#loader').show();
+                    },
+                    success: function(data){console.log(data);
+                        $('#loader').hide();
+
+                        if (!data.result) {
+                            message_error.html(data.message).show();
+                        } else {
+                            form.hide();
+                            $('.success_message').show();
+                        }
+                    }
+                });
+            }
+        });
+    });
+</script>

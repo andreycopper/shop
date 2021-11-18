@@ -2292,19 +2292,20 @@ section.main {
     content: "\f107";
     font: 14px/ 16px 'FontAwesome';
 }
-.catalog-left-filter-title.active:after {
-    position: absolute;
+.catalog-left-filter-item.active .catalog-left-filter-title:after {
     content: "\f106";
-    font: 14px/ 16px 'FontAwesome';
 }
 .catalog-left-filter-body {
     display: none;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     overflow: visible;
 }
-.catalog-left-filter-body.active  {
-    display: block;
-}
+/*.catalog-left-filter-item.active .catalog-left-filter-body {*/
+/*    display: block;*/
+/*}*/
+/*.catalog-left-filter-body.active  {*/
+/*    display: block;*/
+/*}*/
 .catalog-left-inputrange {
     position: relative;
     text-align: center;
@@ -2397,88 +2398,28 @@ section.main {
     font: 12px/15px 'OpenSansRegular';
 }
 .catalog-left-check {}
-.catalog-left-check label {
+.catalog-left-check .checkbox {
     display: block;
     margin-bottom: 3px;
     font: 13px/13px 'OpenSansRegular';
     height: 20px;
     cursor: pointer;
 }
-.catalog-left-check input {
-    position: absolute;
-    visibility: hidden;
-    z-index: -1;
-}
-.catalog-left-check span {
-    position: relative;
-    top: 3px;
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    margin-right: 10px;
-    color: #ffffff;
-    font-size: 0;
-    border: 1px solid #555555;
-    border-radius: 2px;
-    -moz-border-radius: 2px;
-    -webkit-border-radius: 2px;
-    box-shadow: 0 0 0 1px #ccc inset;
-    -moz-box-shadow: 0 0 0 1px #ccc inset;
-    -webkit-box-shadow: 0 0 0 1px #ccc inset;
-    background: #ffffff;
-}
-.catalog-left-check span.checked,
-.catalog-left-check label:hover span.checked {
-    border: none;
-    background: #d9002a url(/images/input.svg) no-repeat;
-}
-.catalog-left-check label:hover span {
-    border: none;
-    background: #d9002a;
+.catalog-left-check .checkbox::before,
+.catalog-left-check .checkbox::after {
+    top: -2px;
 }
 .catalog-left-radio {}
-.catalog-left-radio input {
-    position: absolute;
-    visibility: hidden;
-    z-index: -1;
-}
 .catalog-left-radio label {
     display: block;
-    margin-bottom: 3px;
-    font: 13px/13px 'OpenSansRegular';
     height: 20px;
-    cursor: pointer;
+    margin-bottom: 3px;
+    font: 13px/20px 'OpenSansRegular';
+
 }
-.catalog-left-radio span {
-    position: relative;
-    top: 3px;
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    margin-right: 10px;
-    font-size: 0;
-    content: ".";
-    color: #ffffff;
-    background: #ffffff;
-    border: 1px solid #555555;
-    z-index: 2;
-    border-radius: 100%;
-    -moz-border-radius: 100%;
-    -webkit-border-radius: 100%;
-    box-shadow: 0 0 0 1px #ccc inset;
-    -moz-box-shadow: 0 0 0 1px #ccc inset;
-    -webkit-box-shadow: 0 0 0 1px #ccc inset;
-}
-.catalog-left-radio span.checked,
-.catalog-left-radio label:hover span.checked {
-    color: #ffffff;
-    border: 5px solid #d9002a;
-    background: #ffffff;
-}
-.catalog-left-radio label:hover span {
-    color: #d9002a;
-    border: none;
-    background: #d9002a;
+.catalog-left-filter-submit {
+    margin: 20px 0 10px;
+    text-align: center;
 }
 /* SIDE MENU FEEDBACK */
 .sidemenu-feedback {
@@ -4616,7 +4557,6 @@ section.main {
 }
 .leftsubmenu-item {
     position: relative;
-    padding: 13px 15px;
     border: 1px solid #f2f2f2;
     background-color: #f7f7f7;
 }
@@ -4641,8 +4581,9 @@ section.main {
 }
 .leftsubmenu-title {
     display: block;
+    padding: 0 15px;
     color: #1d2029;
-    font: 14px/19px 'OpenSansRegular';
+    font: 14px/47px 'OpenSansRegular';
 }
 .leftsubmenu-item.current .leftsubmenu-title,
 .leftsubmenu-item.current:hover .leftsubmenu-title {
@@ -5944,10 +5885,13 @@ label.radio:hover .order-item-name {
     content: "";
     background: #de002b url("/images/personal.svg") 0 0 no-repeat;
 }
-.personal-item.bill:before {
+.personal-item.history:before {
+    background-position: 0 0;
+}
+.personal-item.accounts:before {
     background-position: -50px 0;
 }
-.personal-item.data:before {
+.personal-item.profile:before {
     background-position: -100px 0;
 }
 .personal-item.password:before {

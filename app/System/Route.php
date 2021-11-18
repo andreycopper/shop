@@ -20,14 +20,25 @@ class Route
         $uri    = mb_substr(trim($uri), 1);
         $parts  = explode('/', $uri);
         $routes = [];
+        $urls = [];
+        $link = '';
 
         foreach ($parts as $part) {
             $elem = ucfirst(str_replace('-', '_', $part));
+            $link .= ($link ? '/' : '') . str_replace('-', '_', $part);
 
-            if (!empty($elem) && mb_substr($part, 0, 1) !== '?') $routes[] = $elem;
+            if (!empty($elem) && mb_substr($part, 0, 1) !== '?') {
+                $routes[] = $elem;
+
+                $urls[] = [
+                    'name' => $elem,
+                    'link' => $link
+                ];
+            }
         }
 
-        define('ROUTE', $routes);
+        define('ROUTE', $routes); // ['Catalog', 'Conditioners', 'Mobile', '335']
+        define('URL', $urls); // [['name' => 'Personal', 'link' => 'personal'], ['name' => 'Subscriptions', 'link' => 'personal/subscriptions']]
     }
 
     /**

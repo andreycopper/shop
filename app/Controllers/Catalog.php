@@ -34,22 +34,45 @@ class Catalog extends Controller
         }
         else { // список товаров категории
             $group = Group::getByField('link', $elem, true);
+
             if (!empty($group->id)) {
+                $filters = $this->getFilterParams();
                 $this->set('group', $group); // категория товаров
                 $this->set('sub_groups', Group::getSubGroups(intval($group->id))); // подкатегории
-                $this->set('total_pages', ceil(Product::getCountByGroup([$group->id]) / $this->page_count)); // всего страниц для пагинации
+                $this->set('total_pages', ceil(Product::getCountByGroup([$group->id], $this->user->price_type_id, $filters) / $this->page_count)); // всего страниц для пагинации
+                $this->set('range', Product::getRange($group->id, $this->user->price_type_id)); // min и max цена для фильтра
+                $this->set('vendors', Product::getVendors($group->id)); // производители для фильтра
+                $this->set('filters', $filters); // производители для фильтра
                 $this->set('items', Product::getPriceList(
-                    [$group->id],
+                    $group->id,
                     $this->user->price_type_id,
                     $this->user->price_types,
                     $this->page_current,
                     $this->page_count,
-                    !empty(Request::get('order')) && in_array(Request::get('order'), ['views', 'name', 'price']) ? Request::get('order') : 'views',
-                    !empty(Request::get('sort')) && mb_strtolower(Request::get('sort')) === 'desc' ? 'DESC' : 'ASC'
+                    $filters,
+                    !empty(Request::get('sort')) && in_array(Request::get('sort'), ['views', 'name', 'price']) ? Request::get('sort') : 'views',
+                    !empty(Request::get('order')) && mb_strtolower(Request::get('order')) === 'desc' ? 'DESC' : 'ASC'
                 )); // товары
                 $this->view->display('catalog/list');
             } else throw new NotFoundException('Категория не найдена');
         }
+    }
+
+    /**
+     * Формирует массив фильтров для выборки
+     * @return array
+     */
+    private function getFilterParams()
+    {
+        $params = Request::get();
+        $res = [];
+        if (!empty($params) && is_array($params)) {
+            foreach ($params as $key => $param) {
+                if (in_array($key, ['page', 'sort', 'order'])) continue;
+                $res[$key] = is_array($param) ? $param : explode('-', $param);
+            }
+        }
+        return $res;
     }
 
     /**

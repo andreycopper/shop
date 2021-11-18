@@ -9,7 +9,9 @@ use Models\User\User;
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
-    <title>Shop Modern</title>
+    <title><?= SITENAME ?> | <?= $page->name ?? '' ?></title>
+    <meta name="keywords" content="<?= $page->meta_k ?? SLOGAN ?>" />
+    <meta name="description" content="<?= $page->meta_d ?? SLOGAN ?>" />
 
     <link rel="stylesheet" href="/css/styles.css?style=<?= microtime() ?>" media="all">
     <link rel="stylesheet" href="/css/media.css" media="all">
@@ -111,19 +113,19 @@ use Models\User\User;
                 </a>
             </div>
             <div class="header-user">
-                <? if (User::isAuthorized()): ?>
+                <?php if (User::isAuthorized()): ?>
                     <a href="/personal/" class="header-user-link" title="Личный кабинет">
                         <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21">
                             <path class="header-user-pic" d="M13.969,16a1,1,0,1,1-2,0H11.927C11.578,14.307,9.518,13,7,13s-4.575,1.3-4.924,3H2.031a1,1,0,0,1-2,0,0.983,0.983,0,0,1,.1-0.424C0.7,12.984,3.54,11,7,11S13.332,13,13.882,15.6a1.023,1.023,0,0,1,.038.158c0.014,0.082.048,0.159,0.058,0.243H13.969ZM7,10a5,5,0,1,1,5-5A5,5,0,0,1,7,10ZM7,2a3,3,0,1,0,3,3A3,3,0,0,0,7,2Z"></path>
                         </svg>
                     </a>
-                <? else: ?>
+                <?php else: ?>
                     <a href="/personal/" class="header-user-link header-action" data-target="auth" title="Личный кабинет">
                         <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21">
                             <path class="header-user-pic" d="M1433,132h-15a3,3,0,0,1-3-3v-7a3,3,0,0,1,3-3h1v-2a6,6,0,0,1,6-6h1a6,6,0,0,1,6,6v2h1a3,3,0,0,1,3,3v7A3,3,0,0,1,1433,132Zm-3-15a4,4,0,0,0-4-4h-1a4,4,0,0,0-4,4v2h9v-2Zm4,5a1,1,0,0,0-1-1h-15a1,1,0,0,0-1,1v7a1,1,0,0,0,1,1h15a1,1,0,0,0,1-1v-7Zm-8,3.9v1.6a0.5,0.5,0,1,1-1,0v-1.6A1.5,1.5,0,1,1,1426,125.9Z" transform="translate(-1415 -111)"></path>
                         </svg>
                     </a>
-                <? endif; ?>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -136,76 +138,65 @@ use Models\User\User;
                 </a>
                 <div class="nav-catalog-menu">
                     <ul class="nav-catalog-container">
-                        <? if (!empty($this->groups) && is_array($this->groups)): ?>
-                            <? foreach ($this->groups[0] as $group1): ?>
+                        <?php if (!empty($this->groups) && is_array($this->groups)): ?>
+                            <?php foreach ($this->groups[0] as $group1): ?>
                                 <li>
                                     <a href="/catalog/<?= $group1->link ?>/" class="nav-catalog-image">
                                         <img src="/uploads/groups/<?= $group1->id ?>/<?=$group1->image?>" alt="">
                                     </a>
                                     <a href="/catalog/<?=$group1->link?>/" class="nav-catalog-title"><?=$group1->name?></a>
-                                    <? if (!empty($this->groups[$group1->id]) && is_array($this->groups[$group1->id])): ?>
+                                    <?php if (!empty($this->groups[$group1->id]) && is_array($this->groups[$group1->id])): ?>
                                         <ul class="nav-catalog-submenu">
-                                            <? foreach ($this->groups[$group1->id] as $group2): ?>
+                                            <?php foreach ($this->groups[$group1->id] as $group2): ?>
                                                 <li>
                                                     <a href="/catalog/<?=$group1->link?>/<?=$group2->link?>/"><?=$group2->name?></a>
-                                                    <? if (!empty($this->groups[$group2->id]) && is_array($this->groups[$group2->id])): ?>
+                                                    <?php if (!empty($this->groups[$group2->id]) && is_array($this->groups[$group2->id])): ?>
                                                         <ul class="nav-catalog-submenu">
-                                                            <? foreach ($this->groups[$group2->id] as $group3): ?>
+                                                            <?php foreach ($this->groups[$group2->id] as $group3): ?>
                                                                 <li><a href="/catalog/<?=$group1->link?>/<?=$group2->link?>/<?=$group3->link?>/"><?=$group3->name?></a></li>
-                                                            <? endforeach; ?>
+                                                            <?php endforeach; ?>
                                                         </ul>
-                                                    <? endif; ?>
+                                                    <?php endif; ?>
                                                 </li>
-                                            <? endforeach; ?>
+                                            <?php endforeach; ?>
                                         </ul>
-                                    <? endif; ?>
+                                    <?php endif; ?>
                                 </li>
-                            <? endforeach; ?>
-                        <? endif; ?>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </ul>
                 </div>
             </div>
 
-            <? if (!empty($this->menu) && is_array($this->menu)): ?>
-                <? foreach ($this->menu[0] as $menuItem): ?>
+            <?php if (!empty($this->menu) && is_array($this->menu)): ?>
+                <?php foreach ($this->menu[0] as $menuItem): ?>
                     <div class="nav-item nav-wrap">
                         <a href="/<?=$menuItem['link']?>/" class="nav-item-link <?=!empty($this->menu[$menuItem['id']]) ? 'dropdown' : '';?>">
                             <?=$menuItem['name']?>
                             <span class="nav-item-bottom"></span>
                         </a>
 
-                        <? if (!empty($this->menu[$menuItem['id']])) : ?>
+                        <?php if (!empty($this->menu[$menuItem['id']])) : ?>
                             <ul class="dropdown-menu">
-                                <? foreach ($this->menu[$menuItem['id']] as $subMenuItem): ?>
+                                <?php foreach ($this->menu[$menuItem['id']] as $subMenuItem): ?>
                                     <li><a href="/<?=$menuItem['link']?>/<?=$subMenuItem['link']?>/"><?=$subMenuItem['name']?></a></li>
-                                <? endforeach; ?>
+                                <?php endforeach; ?>
                             </ul>
-                        <? endif; ?>
+                        <?php endif; ?>
                     </div>
-                <? endforeach; ?>
-            <? endif; ?>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </div>
     </nav>
 </header>
 
 <section class="main">
     <div class="container">
-        <? if (!empty($breadcrumbs) && is_array($breadcrumbs)): ?>
-            <div class="main-header">
-                <div class="breadcrumbs">
-                    <a href="/">Главная</a>
-                    <? foreach ($breadcrumbs as $breadcrumb): ?>
-                        <? if (!empty($breadcrumb['link'])): ?>
-                            <a href="<?= $breadcrumb['link'] ?>" class="breadcrumbs-link"><?= $breadcrumb['name'] ?></a>
-                        <? else: ?>
-                            <span class="breadcrumbs-span"><?= $breadcrumb['name'] ?></span>
-                        <? endif; ?>
-                    <? endforeach; ?>
-                </div>
+        <div class="main-header">
+            <?= $this->render('breadcrumbs') ?>
 
-                <h1><?= $item->name ?? $page->name ?? '' ?></h1>
-            </div>
-        <? endif; ?>
+            <h1><?= $item->name ?? $page->name ?? '' ?></h1>
+        </div>
 
     <?php echo $view ?? null; ?>
 
@@ -248,27 +239,27 @@ use Models\User\User;
         <div class="container">
             <div class="footer-middle-container">
                 <!-- FOOTER MENU -->
-                <? if (!empty($this->menu[0])): ?>
-                    <? foreach ($this->menu[0] as $footerMenuItem): ?>
-                        <? if (!empty($footerMenuItem['footer'])): ?>
+                <?php if (!empty($this->menu[0])): ?>
+                    <?php foreach ($this->menu[0] as $footerMenuItem): ?>
+                        <?php if (!empty($footerMenuItem['footer'])): ?>
                             <div class="footer-menu">
                                 <a href="/<?=$footerMenuItem['link']?>/" class="footer-title"><?=$footerMenuItem['name']?></a>
 
-                                <? if (!empty($this->menu[$footerMenuItem['id']])): ?>
+                                <?php if (!empty($this->menu[$footerMenuItem['id']])): ?>
                                     <ul>
-                                        <? foreach ($this->menu[$footerMenuItem['id']] as $footerSubMenuItem): ?>
-                                            <? if (!empty($footerSubMenuItem['footer'])): ?>
+                                        <?php foreach ($this->menu[$footerMenuItem['id']] as $footerSubMenuItem): ?>
+                                            <?php if (!empty($footerSubMenuItem['footer'])): ?>
                                                 <li>
                                                     <a href="/<?=$footerMenuItem['link']?>/<?=$footerSubMenuItem['link']?>/" class="footer-link"><?=$footerSubMenuItem['name']?></a>
                                                 </li>
-                                            <? endif; ?>
-                                        <? endforeach; ?>
+                                            <?php endif; ?>
+                                        <?php endforeach; ?>
                                     </ul>
-                                <? endif; ?>
+                                <?php endif; ?>
                             </div>
-                        <? endif; ?>
-                    <? endforeach; ?>
-                <? endif; ?>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                <?php endif; ?>
                 <!-- FOOTER MENU -->
 
                 <!-- FOOTER CONTACTS -->
@@ -341,18 +332,18 @@ use Models\User\User;
                     <span class="menu-mobile-arrow"><i class="svg-triangle-right"></i></span>
                 </li>
 
-                <? if (!empty($this->menu) && is_array($this->menu)): ?>
-                    <? foreach ($this->menu[0] as $menuItem): ?>
+                <?php if (!empty($this->menu) && is_array($this->menu)): ?>
+                    <?php foreach ($this->menu[0] as $menuItem): ?>
                         <li class="menu-mobile-item">
                             <a href="/<?=$menuItem['link']?>/" class="menu-mobile-link <?=!empty($this->menu[$menuItem['id']]) ? 'parent' : '';?>" title="<?=$menuItem['name']?>">
                                 <span><?=$menuItem['name']?></span>
                             </a>
-                            <? if (!empty($this->menu[$menuItem['id']])): ?>
+                            <?php if (!empty($this->menu[$menuItem['id']])): ?>
                                 <span class="menu-mobile-arrow"><i class="svg-triangle-right"></i></span>
-                            <? endif; ?>
+                            <?php endif; ?>
                         </li>
-                    <? endforeach; ?>
-                <? endif; ?>
+                    <?php endforeach; ?>
+                <?php endif; ?>
 
                 <li class="menu-mobile-item">
                     <a href="" class="menu-mobile-link menu-mobile-location parent mobile-action" rel="nofollow" data-target="location">
@@ -576,10 +567,10 @@ use Models\User\User;
             <h2>Быстрый заказ</h2>
         </div>
         <form action="/quickOrders/save/" method="post">
-            <? //if (!empty($item->id) && $item instanceof Models\Product\Product): ?>
+            <?php //if (!empty($item->id) && $item instanceof Models\Product\Product): ?>
                 <input type="hidden" name="id" value="<?= $item->id ?? '' ?>">
                 <input type="hidden" name="count" value="1">
-            <? //endif; ?>
+            <?php //endif; ?>
             <label>
                 Имя <span class="red">*</span>
                 <input type="text" name="name" class="required">
@@ -661,12 +652,12 @@ use Models\User\User;
             <div class="region-block district">
                 <span class="main">Федеральный округ</span>
                 <ul>
-                    <? if (!empty($this->districts) && is_array($this->districts)):
+                    <?php if (!empty($this->districts) && is_array($this->districts)):
                         foreach ($this->districts as $district): ?>
                             <li>
                                 <a href="#" data-id="<?= $district->id ?>"><?= $district->name ?></a>
                             </li>
-                        <? endforeach;
+                        <?php endforeach;
                     endif; ?>
                 </ul>
             </div>

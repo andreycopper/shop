@@ -15,7 +15,7 @@ use System\Request;
 
     <div class="personal change">
         <?php if (!empty($this->form)): ?>
-            <form action="/personal/change/" method="post" id="change">
+            <form action="/personal/password/" method="post" id="change">
                 Введите новый пароль и подтвердите его.
                 <label>
                     Пароль <span class="red">*</span>
@@ -39,7 +39,7 @@ use System\Request;
             <div class="success_message"></div>
         <?php else: ?>
             <?php if (empty($this->success)): ?>
-                <form action="/personal/change/" method="get">
+                <form action="/personal/password/" method="get">
                     Введите код из письма в поле.
                     <label>
                         Код <span class="red">*</span>
@@ -107,13 +107,13 @@ use System\Request;
             $.ajax({
                 method: "POST",
                 dataType: 'json',
-                url: "/personal/change/",
+                url: "/personal/password/",
                 data: $data,
                 beforeSend: function() {
-                    loader.show();
+                    $('#loader').show();
                 },
                 success: function(data){console.log(data);
-                    loader.hide();
+                    $('#loader').hide();
 
                     if (!data.result) {
                         if (1 === data.error) input_password.parent().find('.tooltip').html(data.message).addClass('active');

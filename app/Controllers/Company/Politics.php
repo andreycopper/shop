@@ -11,6 +11,6 @@ class Politics extends Controller
      */
     protected function actionDefault()
     {
-        $this->view->display('politics');
+        $this->view->display('company/politics');
     }
 }

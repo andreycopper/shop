@@ -11,6 +11,6 @@ class Index extends Controller
      */
     protected function actionDefault()
     {
-        $this->view->display('company');
+        $this->view->display('company/index');
     }
 }

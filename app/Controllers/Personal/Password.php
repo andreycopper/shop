@@ -1,34 +1,20 @@
 <?php
 
-namespace Controllers;
+namespace Controllers\Personal;
 
 use System\Request;
 use Models\User\User;
 use Exceptions\DbException;
 use Exceptions\UserException;
 
-class Personal extends Controller
+class Password extends Index
 {
-    protected function before()
-    {
-        if (!User::isAuthorized() && (empty(ROUTE[1]) || !in_array(ROUTE[1], ['Change', 'ChangeAjax']))) {
-            header('Location: /');
-            die;
-        }
-    }
-
-    protected function actionDefault()
-    {
-        var_dump('personal');
-        die;
-    }
-
     /**
      * Смена пароля
      * @throws DbException
      * @throws UserException
      */
-    protected function actionChange()
+    protected function actionDefault()
     {
         if (Request::isPost()) {
             $this->view->success = User::changePassword(Request::post(), Request::isAjax());
@@ -41,12 +27,12 @@ class Personal extends Controller
                 if (!empty($hash)) {
                     $user = User::getByRestoreHash($hash, true);
 
-                    if (!empty($user->id))  $this->view->form = true;
+                    if (!empty($user->id)) $this->view->form = true;
                     else $this->view->error = true;
                 }
             }
         }
 
-        $this->view->display('personal/change');
+        $this->view->display('personal/password');
     }
 }

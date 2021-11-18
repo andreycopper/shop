@@ -11,6 +11,6 @@ class Licenses extends Controller
      */
     protected function actionDefault()
     {
-        $this->view->display('licenses');
+        $this->view->display('company/licenses');
     }
 }
