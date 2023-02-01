@@ -8,12 +8,21 @@ use Models\Model;
 class ProductPrice extends Model
 {
     protected static $table = 'product_prices';
-    public $product_id;
-    public $price_type_id;
-    public $price;
-    public $currency_id;
-    public $created;
-    public $updated;
+
+    public int $product_id;
+    public int $price_type_id;
+    public string $price_type;
+    public float $price;
+    public string $currency;
+    public ?float $discount;
+    public bool $tax_included;
+    public string $tax_name;
+    public float $tax_value;
+    public float $rate;
+    public string $iso;
+    public string $logo;
+    public ?string $created;
+    public ?string $updated;
 
     /**
      * Возвращает цену определенного типа по id товара
@@ -30,13 +39,13 @@ class ProductPrice extends Model
         ];
         $sql = "
             SELECT 
-                pp.price_type_id, 
+                pp. product_id, pp.price_type_id, 
                 pt.name price_type, 
                 ROUND(pp.price * cr.rate) price,
                 IF(pp.price_type_id = 2, p.discount, 0) AS discount, 
-                t.value tax_value, p.tax_included, t.name tax_name, 
-                cr.rate, 
-                c.iso, c.logo, c.sign currency 
+                p.tax_included, t.value tax_value, t.name tax_name, 
+                c.iso, c.logo, c.sign currency,
+                pp.created, pp.updated 
             FROM product_prices pp 
             LEFT JOIN shop.products p on p.id = pp.product_id
             LEFT JOIN currency_rates cr ON pp.currency_id = cr.currency_id 
@@ -59,18 +68,19 @@ class ProductPrice extends Model
      */
     public static function getPrices(int $product_id, array $price_types = [], bool $object = true)
     {
-        $price_type = !empty($price_type) ? ('AND pp.price_type_id IN (' . implode(',', $price_types) . ')') : '';
+        $price_type = !empty($price_types) ? ('AND pp.price_type_id IN (' . implode(',', $price_types) . ')') : '';
 
         $params = ['product_id' => $product_id];
         $sql = "
             SELECT 
-                pp.price_type_id, 
+                pp. product_id, pp.price_type_id, 
                 pt.name price_type, 
-                ROUND(pp.price * cr.rate) price,
+                ROUND(pp.price * cr.rate * (100 - COALESCE(IF(pp.price_type_id = 2, p.discount, 0), 0)) / 100) price,
                 IF(pp.price_type_id = 2, p.discount, 0) AS discount, 
-                t.value tax, p.tax_included, t.name tax_name, 
+                p.tax_included, t.value tax_value, t.name tax_name, 
                 cr.rate, 
-                c.iso, c.logo, c.sign currency 
+                c.iso, c.logo, c.sign currency,
+                pp.created, pp.updated 
             FROM product_prices pp 
             LEFT JOIN shop.products p on p.id = pp.product_id
             LEFT JOIN currency_rates cr ON pp.currency_id = cr.currency_id 

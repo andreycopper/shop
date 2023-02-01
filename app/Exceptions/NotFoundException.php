@@ -3,6 +3,7 @@
 namespace Exceptions;
 
 use Throwable;
+use System\Logger;
 
 /**
  * Class NotFoundException

@@ -3,51 +3,86 @@
 namespace Models;
 
 use System\Db;
+use System\Cache;
 
 class Group extends Model
 {
     protected static $table = 'groups';
 
-    public $id;
-    public $active;
-    public $parent_id;
-    public $link;
-    public $name;
-    public $image;
-    public $description;
-    public $description_type_id;
-    public $sort;
-    public $created;
-    public $updated;
+    public int $id;
+    public ?bool $active;
+    public ?int $parent_id;
+    public string $link;
+    public string $name;
+    public ?string $image;
+    public ?string $description;
+    public int $description_type_id;
+    public string $description_type;
+    public ?int $count;
+    public int $sort;
+    public ?string $created;
+    public ?string $updated;
+
+    /**
+     * Возвращает категорию товаров (+)
+     * @param string $name - название категории
+     * @return array|false|object
+     */
+    public static function get(string $name)
+    {
+        if ($data = Cache::getGroup($name)) return $data;
+        return self::getByField('link', $name);
+    }
+
+    /**
+     * Возвращает список подкатегорий (+)
+     * @param int $group_id - id родительской категории
+     * @return array
+     */
+    public static function getSubGroups(int $group_id)
+    {
+        if ($data = Cache::getSubGroups($group_id)) return $data;
+        return self::getListSubGroups($group_id);
+    }
+
+    /**
+     * Получает главное меню из сессии, кэша и БД по порядку в случае отсутствия (+)
+     * @return array|bool|mixed
+     */
+    public static function getCatalogMenu()
+    {
+        if (!empty($_SESSION['menu']['groups']) &&
+            !empty($_SESSION['menu']['groups_expiration']) &&
+            $_SESSION['menu']['groups_expiration'] > time())
+        {
+            return $_SESSION['menu']['groups'];
+        }
+        elseif ($data = Cache::getMenu('groups')) return $data;
+
+        $time = time();
+        $time += 60 * 60 * 24;
+        $data = self::getCatalog();
+
+        if (!empty($data)) {
+            $_SESSION['menu']['groups_expiration'] = $time;
+            $_SESSION['menu']['groups'] = $data;
+        }
+        return $data;
+    }
 
     /**
      * Находит и возвращает активные записи с количеством товаров из БД и формирует иерархическое меню
+     * @param string $order - сортировка
+     * @param string $sort - направление сортировки
      * @param bool $active - возвращать активные/неактивные записи
      * @param bool $object - возвращать объект/массив
-     * @param string $orderBy - сортировка
-     * @param string $order - направление сортировки
      * @return array|bool
      */
-    public static function getCatalog(bool $active = true, bool $object = true, string $orderBy = 'sort', string $order = 'ASC')
+    public static function getCatalog(string $order = 'created', string $sort = 'ASC', bool $active = true, bool $object = true)
     {
-        $activity = !empty($active) ? 'WHERE g.active IS NOT NULL' : '';
-        $sql = "
-            SELECT 
-                g.id, g.parent_id, g.name, g.link, g.image, g.description, 
-                tt.id as description_type_id, tt.name as description_type, 
-                g.sort, count(p.id) count 
-            FROM `groups` g 
-            LEFT JOIN text_types tt ON g.description_type_id = tt.id 
-            LEFT JOIN shop.products p on g.id = p.group_id 
-            {$activity} 
-            GROUP BY g.id 
-            ORDER BY g.{$orderBy} {$order}, g.created DESC
-        ";
+        $data = self::getList();
 
-        $db = Db::getInstance();
-        $data = $db->query($sql, [],$object ? static::class : null);
-
-        if (!empty($data)) {
+        if (!empty($data) && is_array($data)) {
             $res = [];
             foreach ($data as $item) {
                 $item->link = str_replace('_', '-', $item->link);
@@ -59,29 +94,70 @@ class Group extends Model
         return $res ?? false;
     }
 
-    /**
-     * Возвращает список подкатегорий
-     * @param int $group_id
-     * @param bool $active
-     * @param string $order
-     * @param string $sort
-     * @return array|bool
-     */
-    public static function getSubGroups(int $group_id, bool $active = true, string $order = 'sort', string $sort = 'ASC')
+    public static function getByName(string $name, string $order = 'created', string $sort = 'ASC', bool $active = true, bool $object = true)
     {
         $activity = !empty($active) ? 'AND g.active IS NOT NULL' : '';
-        $params = [':group_id'   => $group_id];
+        $params = ['name'   => $name];
         $sql = "
-            SELECT g.id, g.name, g.link, g.image 
+            SELECT 
+                g.id, g.active, g.parent_id, g.name, g.link, g.image, g.description, 
+                g.description_type_id, tt.name as description_type, 
+                g.sort, count(p.id) count, g.created, g.updated 
             FROM `groups` g 
-            WHERE g.parent_id = :group_id 
-            {$activity} 
-            ORDER BY g.{$order}, g.created, g.id {$sort}";
+            LEFT JOIN text_types tt ON g.description_type_id = tt.id 
+            LEFT JOIN shop.products p on g.id = p.group_id 
+            WHERE g.link = :name {$activity} 
+            GROUP BY g.id 
+            ORDER BY g.{$order} {$sort}, g.created DESC
+        ";
 
         $db = Db::getInstance();
-        $res = $db->query($sql, $params, static::class);
-        return $res ?? false;
+        $res = $db->query($sql, $params,$object ? static::class : null);
+        return $res ? array_shift($res) : false;
     }
+
+    public static function getList(string $order = 'created', string $sort = 'ASC', bool $active = true, bool $object = true)
+    {
+        $activity = !empty($active) ? 'WHERE g.active IS NOT NULL' : '';
+        $sql = "
+            SELECT 
+                g.id, g.active, g.parent_id, g.name, g.link, g.image, g.description, 
+                g.description_type_id, tt.name as description_type, 
+                g.sort, count(p.id) count, g.created, g.updated 
+            FROM `groups` g 
+            LEFT JOIN text_types tt ON g.description_type_id = tt.id 
+            LEFT JOIN shop.products p on g.id = p.group_id 
+            {$activity} 
+            GROUP BY g.id 
+            ORDER BY g.{$order} {$sort}, g.created DESC
+        ";
+
+        $db = Db::getInstance();
+        return $db->query($sql, [],$object ? static::class : null);
+    }
+
+    public static function getListSubGroups($parent_id, string $order = 'created', string $sort = 'ASC', bool $active = true, bool $object = true)
+    {
+        $activity = !empty($active) ? 'AND g.active IS NOT NULL' : '';
+        $params = ['parent_id'   => $parent_id];
+        $sql = "
+            SELECT 
+                g.id, g.active, g.parent_id, g.name, g.link, g.image, g.description, 
+                g.description_type_id, tt.name as description_type, 
+                g.sort, count(p.id) count, g.created, g.updated 
+            FROM `groups` g 
+            LEFT JOIN text_types tt ON g.description_type_id = tt.id 
+            LEFT JOIN shop.products p on g.id = p.group_id 
+            WHERE g.parent_id = :parent_id {$activity} 
+            GROUP BY g.id 
+            ORDER BY g.{$order} {$sort}, g.created DESC
+        ";
+
+        $db = Db::getInstance();
+        return $db->query($sql, $params,$object ? static::class : null);
+    }
+
+
 
 
 

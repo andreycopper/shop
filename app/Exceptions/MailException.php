@@ -2,6 +2,9 @@
 
 namespace Exceptions;
 
+use Throwable;
+use System\Logger;
+
 /**
  * Class MailException
  * @package App\Exceptions

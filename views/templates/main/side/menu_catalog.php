@@ -7,7 +7,7 @@
                 <a href="/catalog/<?= $group1->link ?>/" class="catalog-leftmenu-link"><?= $group1->name ?></a>
                 <i class="fa fa-angle-right" aria-hidden="true"></i>
 
-                <?php if (!empty($groups[$group1->id]) && is_array($groups[$group1->id])): ?>
+                <?php if (!empty($groups[$group1->id])): ?>
                     <ul class="catalog-leftsubmenu">
                         <?php foreach ($groups[$group1->id] as $group2): ?>
                             <li class="catalog-leftsubmenu-item">
@@ -20,7 +20,7 @@
                                 <div class="catalog-leftsubmenu-main">
                                     <a href="/catalog/<?= $group1->link ?>/<?= $group2->link ?>/"><?= $group2->name ?></a>
 
-                                    <?php if (!empty($groups[$group2->id]) && is_array($groups[$group2->id])): ?>
+                                    <?php if (!empty($groups[$group2->id])): ?>
                                         <div class="catalog-leftsubmenu-subitems">
                                             <?php foreach ($groups[$group2->id] as $group3): ?>
                                                 <a href="/catalog/<?= $group1->link ?>/<?= $group2->link ?>/<?= $group3->link ?>/"><?= $group3->name ?></a>

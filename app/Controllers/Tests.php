@@ -17,6 +17,16 @@ class Tests extends Controller
         var_dump(1);
     }
 
+    protected function actionCache()
+    {
+        file_put_contents(_CACHE . '/test1', 222);
+    }
+
+    protected function actionCache3()
+    {
+        echo 444;
+    }
+
     protected function actionStores()
     {
         Test::stores();
@@ -103,5 +113,15 @@ class Tests extends Controller
     protected function actionImages()
     {
         Test::images();
+    }
+
+    protected function actionProperties()
+    {
+        if ($handle = fopen(_PUBLIC . "/files/1.csv", "r")) {
+            while (($data = fgetcsv($handle, 5000, ";")) !== false) {
+                var_dump($data);
+            }
+        }
+        die;
     }
 }

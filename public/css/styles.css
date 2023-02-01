@@ -2022,11 +2022,11 @@ section.main {
     top: 25%;
     left: 50%;
     width: 420px;
-    height: 400px;
+    height: 430px;
     margin-left: -210px;
 }
 #auth .additional {
-    margin-top: 20px;
+    margin-top: 15px;
 }
 #auth input {
     font: 14px/34px 'OpenSansRegular';
@@ -2048,7 +2048,9 @@ section.main {
 }
 #auth .message_error,
 .auth .message_error {
-    margin: 15px 0 0;
+    padding: 10px;
+    margin: 0;
+    outline: 1px solid #222222;
 }
 .auth {
     margin-bottom: 30px;

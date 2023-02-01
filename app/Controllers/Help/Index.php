@@ -1,8 +1,10 @@
 <?php
 
-namespace Controllers;
+namespace Controllers\Help;
 
-class Help extends Controller
+use Controllers\Controller;
+
+class Index extends Controller
 {
     protected function actionDefault()
     {

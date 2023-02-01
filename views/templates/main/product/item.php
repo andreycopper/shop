@@ -63,7 +63,7 @@
                     <div class="product-articul">Артикул: <?= $item->articul ?></div>
                     <?php if (!empty($item->vendor_image)): ?>
                         <div class="product-vendor">
-                            <a href="/vendors/<?=mb_strtolower($item->vendor)?>">
+                            <a href="/vendors/<?=mb_strtolower($item->vendor_name)?>">
                                 <img src="/uploads/vendor/<?= $item->vendor_image ?>" alt="">
                             </a>
                         </div>
@@ -75,47 +75,13 @@
                         (('text' === $item->detail_text_type) ?
                             ('<pre>' . $item->preview_text . '</pre>') :
                             $item->preview_text) :
-                        mb_substr(strip_tags($item->detail_text), 0, mb_strpos(strip_tags($item->detail_text), '.', 100) + 1))?>
+                        mb_substr(strip_tags($item->detail_text), 0, mb_strpos(strip_tags($item->detail_text), '.', (mb_strlen($item->detail_text) > 100 ? 100 : mb_strlen($item->detail_text))) + 1))?>
                     <div class="product-info-more relative">
                         <a href="" class="product-more">Подробнее</a>
                     </div>
                 </div>
 
-                <?php if (!empty($item->prices) && is_array($item->prices)): ?>
-                    <?php foreach ($item->prices as $price): ?>
-                        <?php $price_discount = round($price->price * (100 - $price->discount) / 100); ?>
-
-                        <div class="product-info-price">
-                            <?php if (count($item->prices) > 1): ?>
-                                <div class="product-info-price-title"><?= $price->price_type ?></div>
-                            <?php endif; ?>
-                            <?php if (!empty($price->discount)): ?>
-                                <div class="product-oldprice <?= $price->price_type_id !== $user->price_type_id ? 'inactive' : '' ?>">
-                                    <span class="product-value">
-                                        <?= number_format($price->price, 0, '.', ' ') ?>
-                                    </span>
-                                    <span class="product-currency"><?=$price->currency?></span>
-                                    <span class="product-measure">/<?=$item->unit?></span>
-                                    <div class="product-priceline"></div>
-                                </div>
-                            <?php endif; ?>
-                            <div class="product-price <?= $price->price_type_id !== $user->price_type_id ? 'inactive' : '' ?>">
-                                <span class="product-value">
-                                    <?= number_format($price_discount, 0, '.', ' ') ?>
-                                </span>
-                                <span class="product-currency"><?= $price->currency ?></span>
-                                <span class="product-measure">/<?= $item->unit ?></span>
-                                <?php if (!empty($item->tax_value)): ?>
-                                    <span class="product-nds">
-                                        (в т.ч. <?= $item->tax_name ?>
-                                        <?= number_format(round($price_discount * $item->tax_value / (100 + $item->tax_value), 2), 2, '.', ' ') ?>
-                                        <?= $price->currency ?>)
-                                    </span>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                <?= $this->render('product/item_price') ?>
 
                 <div class="product-info-count">
                     <span class="icon <?= (($item->quantity > 0) ? 'ok' : 'no') ?>"></span>

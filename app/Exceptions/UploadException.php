@@ -2,6 +2,9 @@
 
 namespace Exceptions;
 
+use Throwable;
+use System\Logger;
+
 /**
  * Class UploaderException
  * @package App\Exceptions

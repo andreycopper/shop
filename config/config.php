@@ -8,11 +8,11 @@ return [
         'password' => 'root'
     ],
     'log' => [
-        'error'    => __DIR__ . '/../logs/' . date('Y-m-d') . '_errors.log',
-        'access'    => __DIR__ . '/../logs/' . date('Y-m-d') . '_access.log'
+        'error'    => _LOGS . DIRECTORY_SEPARATOR . date('Y-m-d') . '_errors.log',
+        'access'    => _LOGS . DIRECTORY_SEPARATOR . date('Y-m-d') . '_access.log'
     ],
     'image' => [
-        'images'     => __DIR__ . '/../public/images/',
-        'uploads'     => __DIR__ . '/../public/uploads/'
+        'images'     => _IMAGES,
+        'uploads'     => _UPLOADS
     ]
 ];

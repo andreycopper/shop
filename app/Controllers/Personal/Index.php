@@ -16,7 +16,7 @@ class Index extends Controller
             die;
         }
 
-        $this->set('menu_personal', $_SESSION['menu_personal'] ?? Page::getProfileMenu()); // боковое меню
+        $this->set('menu_personal', Page::getMenu('personal')); // боковое меню
     }
 
     protected function actionDefault()

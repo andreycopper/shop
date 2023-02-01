@@ -12,6 +12,10 @@ class Catalog extends Controller
 {
     protected $page_count = 20;
 
+    /**
+     * Показ категорий каталога (+)
+     * @return void
+     */
     protected function actionDefault()
     {
         $this->view->display('catalog/catalog');
@@ -25,20 +29,20 @@ class Catalog extends Controller
     protected function actionShow($elem)
     {
         if (is_numeric($elem)) { // показ конкретного товара
-            $item = Product::getPrice(intval($elem), $this->user->price_types);
+            $item = Product::get(intval($elem), $this->user->price_type_id);
             if (!empty($item)) {
                 Product::addProductView($item->id); // добавляем просмотр товару
-                $this->set('item', $item); // товар
+                $this->set('item', $item);
                 $this->view->display('product/item');
             } else throw new NotFoundException('Товар не найден');
         }
         else { // список товаров категории
-            $group = Group::getByField('link', $elem, true);
+            $group = Group::get($elem);
 
             if (!empty($group->id)) {
                 $filters = $this->getFilterParams();
                 $this->set('group', $group); // категория товаров
-                $this->set('sub_groups', Group::getSubGroups(intval($group->id))); // подкатегории
+                $this->set('sub_groups', Group::getSubGroups($group->id)); // подкатегории
                 $this->set('total_pages', ceil(Product::getCountByGroup([$group->id], $this->user->price_type_id, $filters) / $this->page_count)); // всего страниц для пагинации
                 $this->set('range', Product::getRange($group->id, $this->user->price_type_id)); // min и max цена для фильтра
                 $this->set('vendors', Product::getVendors($group->id)); // производители для фильтра
@@ -46,7 +50,7 @@ class Catalog extends Controller
                 $this->set('items', Product::getPriceList(
                     $group->id,
                     $this->user->price_type_id,
-                    $this->user->price_types,
+                    [],
                     $this->page_current,
                     $this->page_count,
                     $filters,
@@ -82,7 +86,7 @@ class Catalog extends Controller
     {
         if (Request::isPost()) {
             $item = Request::post('id');
-            $item = Product::getPrice(intval($item), $this->user->price_types);
+            $item = Product::getPrice(intval($item), $this->user->price_type_id);
 
             if (!empty($item)) {
                 Product::addProductView($item->id); // добавляем просмотр товару
@@ -93,7 +97,7 @@ class Catalog extends Controller
     }
 
     /**
-     * Быстрый просмотр
+     * Сравнение товаров
      */
     protected function actionCompare()
     {
@@ -101,7 +105,7 @@ class Catalog extends Controller
     }
 
     /**
-     * Быстрый просмотр
+     * Избранные товары
      */
     protected function actionFavorites()
     {

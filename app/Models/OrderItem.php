@@ -38,6 +38,43 @@ class OrderItem extends Model
     public $updated;            // дата создания записи
 
     /**
+     * Получает количество товаров в корзине (+)
+     * @return false|mixed
+     * @throws DbException
+     */
+    public static function getCount($user)
+    {
+        if (empty($_COOKIE['user'])) return 0;
+
+        $params = [':user_id' => $user->id ];
+        $where = ($user->id === 2) ? 'AND user_hash = :user_hash' : '';
+        if ($user->id === 2) $params[':user_hash'] = $_COOKIE['user'];
+        $sql = "
+            SELECT sum(count) AS count 
+            FROM shop.order_items 
+            WHERE user_id = :user_id {$where} AND order_id IS NULL AND qorder_id IS NULL";
+
+        $db = Db::getInstance();
+        $data = $db->query($sql, $params ?? []);
+        return !empty($data) ? array_shift($data)['count'] : false;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
      * Проверяет добавляется новый элемент или редактируется существующий
      * @return bool
      */
@@ -126,27 +163,6 @@ class OrderItem extends Model
         }
 
         return $result ?? false;
-    }
-
-    /**
-     * Получает количество товаров в корзине
-     * @return false|mixed
-     * @throws DbException
-     */
-    public static function getCount()
-    {
-        $user = User::getCurrent();
-        $where = $user->id === '2' ? 'AND user_hash = :user_hash' : '';
-        $params = [':user_id' => $user->id ];
-        if ($user->id === '2') $params[':user_hash'] = $_COOKIE['user'];
-        $sql = "
-            SELECT sum(count) AS count 
-            FROM shop.order_items 
-            WHERE user_id = :user_id {$where} AND order_id IS NULL AND qorder_id IS NULL";
-
-        $db = Db::getInstance();
-        $data = $db->query($sql, $params ?? []);
-        return !empty($data) ? array_shift($data)['count'] : false;
     }
 
     /**

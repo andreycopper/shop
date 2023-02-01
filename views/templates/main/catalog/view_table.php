@@ -22,36 +22,11 @@
                     <span class="product-itemtable-articul">Артикул: <?= $item->articul ?></span>
                 </div>
                 <div class="product-itemtable-text">
-                    <?= ($item->preview_text ?? mb_substr(strip_tags($item->detail_text), 0, mb_strpos(strip_tags($item->detail_text), '.', 150) + 1)) ?>
+                    <?= ($item->preview_text ?? mb_substr(strip_tags($item->detail_text), 0, mb_strpos(strip_tags($item->detail_text), '.', (mb_strlen($item->detail_text) > 150 ? 150 : mb_strlen($item->detail_text))) + 1)) ?>
                 </div>
             </td>
             <td class="product-itemtable-prices">
-                <?php if (!empty($item->prices) && is_array($item->prices)): ?>
-                    <?php foreach ($item->prices as $price): ?>
-                        <?php if (count($item->prices) > 1): ?>
-                            <div class="product-price-title"><?= $price->price_type ?></div>
-                        <?php endif; ?>
-
-                        <div class="product-itemtable-priceblock <?= $price->price_type_id !== $user->price_type_id ? 'inactive' : '' ?>">
-                            <div class="product-itemtable-price">
-                                <span class="product-itemtable-value">
-                                    <?= number_format(round($price->price * (100 - $price->discount) / 100), 0, '.', ' ') ?>
-                                </span>
-                                <span class="product-itemtable-currency"><?= $price->currency ?></span>
-                                <span class="product-itemtable-measure">/<?= $item->unit ?></span>
-                            </div>
-
-                            <?php if (!empty($price->discount)): ?>
-                                <div class="product-itemtable-oldprice <?= $price->price_type_id !== $user->price_type_id ? 'inactive' : '' ?>">
-                                    <span class="product-itemtable-value"><?= number_format($price->price, 0, '.', ' ') ?></span>
-                                    <span class="product-itemtable-currency"><?= $price->currency ?></span>
-                                    <span class="product-itemtable-measure">/<?= $item->unit ?></span>
-                                    <div class="product-itemtable-priceline"></div>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                <?= $this->render("catalog/view_price_table", ['item' => $item]) ?>
             </td>
             <td class="product-itemtable-buy">
                 <div class="product-itemtable-buygroup">

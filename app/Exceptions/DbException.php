@@ -2,6 +2,9 @@
 
 namespace Exceptions;
 
+use Throwable;
+use System\Logger;
+
 /**
  * Class DbException
  * @package App\Exceptions

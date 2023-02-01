@@ -5,7 +5,7 @@ namespace System;
 class Geo
 {
     /**
-     * Получает ip-адрес пользователя
+     * Получает ip-адрес пользователя (+)
      * @return false|mixed
      */
     public static function GetUserIP()
@@ -36,8 +36,8 @@ class Geo
     }
 
     /**
-     * Получает местоположение пользоваетеля (страна, регион, город, координаты)
-     * @param $ip
+     * Получает местоположение пользоваетеля (страна, регион, город, координаты) (+)
+     * @param string $ip
      * @return array|false
      */
     public static function GetLocationFromIP($ip)

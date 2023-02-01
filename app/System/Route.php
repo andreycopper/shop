@@ -4,6 +4,9 @@ namespace System;
 
 use Exceptions\NotFoundException;
 use Exceptions\ForbiddenException;
+use Models\Group;
+use Models\Page;
+use Models\Product\Product;
 
 /**
  * Class Route
@@ -17,7 +20,8 @@ class Route
      */
     public static function parseUrl($uri)
     {
-        $uri    = mb_substr(trim($uri), 1);
+        $uri = explode('?', $uri)[0];
+        $uri = mb_substr(trim($uri), 1, mb_strlen($uri) - 2);
         $parts  = explode('/', $uri);
         $routes = [];
         $urls = [];
@@ -27,12 +31,18 @@ class Route
             $elem = ucfirst(str_replace('-', '_', $part));
             $link .= ($link ? '/' : '') . str_replace('-', '_', $part);
 
-            if (!empty($elem) && mb_substr($part, 0, 1) !== '?') {
+            if (!empty($elem)) {
                 $routes[] = $elem;
 
                 $urls[] = [
                     'name' => $elem,
-                    'link' => $link
+                    'link' => $link,
+                    'title' =>
+                        (!empty($parts[0]) && $parts[0] === 'catalog' && $part !== 'catalog') ?
+                            is_numeric($part) ?
+                                Product::getName('id', intval($elem)) :
+                                Group::getName('link', mb_strtolower($elem)) :
+                            Page::getName('link', mb_strtolower($elem))
                 ];
             }
         }

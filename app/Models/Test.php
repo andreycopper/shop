@@ -8,6 +8,10 @@ class Test extends Model
 {
     protected static $table = 'test';
 
+    public static function cache($object = null)
+    {
+
+    }
     /**
      * Генерируем количество на складах
      * @param null $object

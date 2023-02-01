@@ -53,7 +53,7 @@
             <div class="product-articul">Артикул: <?= $item->articul ?></div>
             <?php if (!empty($item->vendor_image)): ?>
                 <div class="product-vendor">
-                    <a href="/vendors/<?=mb_strtolower($item->vendor)?>">
+                    <a href="/vendors/<?=mb_strtolower($item->vendor_name)?>">
                         <img src="/uploads/vendor/<?= $item->vendor_image ?>" alt="">
                     </a>
                 </div>

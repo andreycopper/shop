@@ -9,13 +9,14 @@ use Exceptions\DbException;
 class City extends Model
 {
     protected static $table = 'fias.cities';
-    public $id;
-    public $active;
+    public int $id;
+    public ?bool $active;
     public $region_id;
+    public string $region;
     public $aoid;
     public $aoguid;
     public $parentguid;
-    public $name;
+    public string $name;
     public $formalname;
     public $shortname_id;
     public $postalcode;
@@ -42,7 +43,7 @@ class City extends Model
     {
         $activity = !empty($active) ? ' AND c.active IS NOT NULL AND r.active IS NOT NULL' : '';
         $sql = "
-            SELECT c.id, c.name AS city, r.name AS region, s.shortname 
+            SELECT c.id, c.active, c.name, r.name AS region, s.shortname 
             FROM fias.cities c 
             LEFT JOIN fias.regions r 
                 ON c.region_id = r.id 
@@ -50,7 +51,7 @@ class City extends Model
                 ON c.shortname_id = s.id 
             WHERE c.name = :city {$activity} 
             UNION ALL 
-            SELECT c.id, c.name AS city, r.name AS region, s.shortname 
+            SELECT c.id, c.active, c.name, r.name AS region, s.shortname 
             FROM fias.cities c 
             LEFT JOIN fias.regions r 
                 ON c.region_id = r.id 

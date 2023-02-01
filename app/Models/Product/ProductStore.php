@@ -8,11 +8,13 @@ use Models\Model;
 class ProductStore extends Model
 {
     protected static $table = 'product_stores';
-    public $product_id;
-    public $store_id;
-    public $quantity;
-    public $created;
-    public $updated;
+
+    public int $product_id;
+    public int $store_id;
+    public int $quantity;
+    public string $address;
+    public ?string $created;
+    public ?string $updated;
 
     /**
      * Возвращает количество товаров на складах

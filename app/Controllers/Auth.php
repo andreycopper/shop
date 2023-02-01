@@ -25,12 +25,7 @@ class Auth extends Controller
     protected function actionDefault()
     {
         if (Request::isPost()) {
-            if (User::authorization(
-                Request::post('login'),
-                Request::post('password'),
-                Request::post('remember') ? true : false,
-                Request::isAjax()))
-            {
+            if (User::authorization(Request::post('login'), Request::post('password'), (bool)Request::post('remember'))) {
                 header('Location: /');
                 die;
             }

@@ -28,33 +28,33 @@ abstract class Controller
     protected $view;
 
     /**
-     * Controller constructor.
+     * Controller constructor (+)
      * @throws DbException
      */
     public function __construct()
     {
         $this->view = new View();
 
-        $this->user        = $_SESSION['user'] ?? User::getCurrent();
-        $this->publicKey   = $_SESSION['public_key'] ?? User::generatePublicKey();
-        $this->page_current = intval(Request::get('page') ?? 1);
+        $this->user        = $_SESSION['user'] ?? User::getCurrent();              // текущий пользователь
+        $this->publicKey   = $_SESSION['public_key'] ?? User::generatePublicKey(); // публичный ключ шифрования
+        $this->page_current = intval(Request::get('page') ?? 1);              // текущая страница пагинации
 
         $this->set('user', $this->user);
         $this->set('publicKey', $this->publicKey);
         $this->set('location', $_SESSION['location'] ?? User::getLocation()); // текущее местоположение
-        $this->set('districts', District::getList()); // список федеральных округов
+        $this->set('districts', District::get()); // список федеральных округов
 
         $this->set('page', Page::getPageInfo(URL)); // информация о странице
-        $this->set('breadcrumbs', Page::getBreadCrumbs()); // breadcrumbs
+        $this->set('breadcrumbs', URL); // breadcrumbs
         $this->set('page_current', $this->page_current);
 
-        $this->set('menu', $_SESSION['menu'] ?? Page::getMenuTree()); // меню
-        $this->set('groups', $_SESSION['groups'] ?? Group::getCatalog()); // каталог товаров
-        $this->set('cartCount', OrderItem::getCount()); // количество товаров в корзине
+        $this->set('menu', Page::getMenu('main')); // меню
+        $this->set('groups', Group::getCatalogMenu()); // каталог товаров
+        $this->set('cartCount', OrderItem::getCount($this->user)); // количество товаров в корзине
     }
 
     /**
-     * Проверяет доступ и формирует полное имя action
+     * Проверяет доступ и формирует полное имя action (+)
      * @param string $action
      * @param null $param
      * @throws ForbiddenException|NotFoundException
@@ -65,13 +65,14 @@ abstract class Controller
             if ($this->access($action)) {
                 if (method_exists($this, 'before')) $this->before();
                 $this->$action($param ?? null);
+                if (method_exists($this, 'after')) $this->after();
                 die;
             } else throw new ForbiddenException();
         } else throw new NotFoundException();
     }
 
     /**
-     * Объявляет переменную для View
+     * Объявляет переменную для View (+)
      * @param $var
      * @param $value
      */
@@ -81,7 +82,7 @@ abstract class Controller
     }
 
     /**
-     * Проверяет доступ к методу в классе $this
+     * Проверяет доступ к методу в классе $this (+)
      * @param $action - метод, доступ к которому проверяется
      * @return bool
      */
@@ -92,6 +93,7 @@ abstract class Controller
 
     /**
      * Возвращает результат в зависимости от запроса
+     * TODO перекинуть все ответы на респонз
      * @param bool $result - результат запроса
      * @param string $message - сообщение
      * @param array $data - данные

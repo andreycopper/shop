@@ -8,12 +8,18 @@ use Exceptions\DbException;
 const _ROOT = __DIR__ . '/..';
 const _APP = __DIR__ . '/../app';
 const _CONFIG = __DIR__ . '/../config';
+const _CACHE = __DIR__ . '/../cache';
 const _VENDOR = __DIR__ . '/../vendor';
 const _LOGS = __DIR__ . '/../logs';
+const _IMAGES = __DIR__ . '/../public/images';
+const _UPLOADS = __DIR__ . '/../public/uploads';
 const _PUBLIC = __DIR__ . '/../public';
 const _VIEWS = __DIR__ . '/../views';
 const _TEMPLATES = __DIR__ . '/../views/templates';
 define("_TABLE", Config::getInstance()->data['db']['dbname']);
+
+if (!is_dir(_CACHE)) mkdir(_CACHE);
+if (!is_dir(_LOGS)) mkdir(_LOGS);
 
 try {
     $constants = Setting::getList();

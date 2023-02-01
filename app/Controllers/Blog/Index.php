@@ -1,8 +1,10 @@
 <?php
 
-namespace Controllers;
+namespace Controllers\Blog;
 
-class Blog extends Controller
+use Controllers\Controller;
+
+class Index extends Controller
 {
     protected function actionDefault()
     {

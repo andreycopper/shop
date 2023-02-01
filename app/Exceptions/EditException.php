@@ -2,6 +2,9 @@
 
 namespace Exceptions;
 
+use Throwable;
+use System\Logger;
+
 /**
  * Class EditException
  * @package App\Exceptions

@@ -192,7 +192,7 @@ $second_name = !empty($this->user->second_name) ? $rsa->decrypt($this->user->sec
                             <label for="delivery_city">Населенный пункт <span class="red">*</span></label>
                             <input type="hidden" name="city_id" value="<?= $this->location->id ?? '' ?>" class="required">
                             <input type="text" name="city" id="delivery_city" class="required"
-                                   value="<?= $this->location->id ? ($this->location->region . ', ' . $this->location->city . ' ' . $this->location->shortname) : '' ?>">
+                                   value="<?= $this->location->id ? ($this->location->region . ', ' . $this->location->name . ' ' . $this->location->shortname) : '' ?>">
                             <ul class="order-item-search-result"></ul>
                             <div class="message_error"></div>
                         </div>
@@ -269,7 +269,7 @@ $second_name = !empty($this->user->second_name) ? $rsa->decrypt($this->user->sec
                                     </div>
                                     <div class="order-product-cell order-product-title">
                                         <a href=""><?= $cart_item->name ?></a>
-                                        <span>Производитель <?= $cart_item->vendor ?></span>
+                                        <span>Производитель <?= $cart_item->vendor_name ?></span>
                                     </div>
                                     <div class="order-product-cell order-product-weight">
                                         <i>Вес</i>

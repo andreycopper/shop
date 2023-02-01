@@ -5,9 +5,11 @@ require __DIR__ . '/../config/constants.php';
 
 session_start();
 
-use Models\QuickOrder;
+use System\Request;
+use System\Response;
 use System\Route;
 use System\Logger;
+use System\Security;
 use Controllers\Errors;
 use Exceptions\DbException;
 use Exceptions\EditException;
@@ -19,23 +21,26 @@ use Exceptions\NotFoundException;
 use Exceptions\ForbiddenException;
 
 try {
+//    Security::array_xss_clean($_GET);
+//    Security::array_xss_clean($_POST);
+
     Route::start();
 }
 catch (DbException $e) {
-    Logger::getInstance()->error($e);
-    (new Errors($e))->action('action500');
+    if(Request::isAjax()) Response::result(false, $e->getMessage());
+    else (new Errors($e))->action('action500');
 }
 catch (NotFoundException $e) {
-    Logger::getInstance()->error($e);
-    (new Errors($e))->action('action404');
+    if(Request::isAjax()) Response::result(false, $e->getMessage());
+    else (new Errors($e))->action('action404');
 }
 catch (ForbiddenException $e) {
-    Logger::getInstance()->error($e);
-    (new Errors($e))->action('action403');
+    if(Request::isAjax()) Response::result(false, $e->getMessage());
+    else (new Errors($e))->action('action403');
 }
 catch (DeleteException | EditException | MailException | UploadException | UserException $e) {
-    Logger::getInstance()->error($e);
-    (new Errors($e))->action('action400');
+    if(Request::isAjax()) Response::result(false, $e->getMessage());
+    else (new Errors($e))->action('action400');
 }
 
 session_destroy();

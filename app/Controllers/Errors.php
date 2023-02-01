@@ -12,7 +12,7 @@ class Errors extends Controller
 {
     public function __construct($e)
     {
-        $this->view = new View();
+        parent::__construct();
         $this->view->code    = $e->getCode();
         $this->view->error   = $e->getError();
         $this->view->message = $e->getMessage();

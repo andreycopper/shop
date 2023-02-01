@@ -2,6 +2,9 @@
 
 namespace Models;
 
+use Models\Product\ProductImage;
+use Models\Product\ProductPrice;
+use Models\Product\ProductStore;
 use System\Db;
 use Traits\Magic;
 use Traits\CastableToArray;
@@ -19,21 +22,55 @@ abstract class Model
 
     /**
      * Создает объект вызвавшего класса и заполняет его свойства
-     * @param Model $item
-     * @return Model|null
+     * @param object|array $data
+     * @return array|object|false
      */
-    public static function factory(self $item)
+    public static function factory(object|array $data)
+    {
+        if (!empty($data)) {
+            if (is_array($data)) {
+                $res = [];
+                foreach ($data as $item) {
+                    $res[] = self::init($item);
+                }
+                return $res;
+            } elseif (is_object($data)) {
+                return self::init($data);
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Инициализирует свойства вызвавшего класса значениями
+     * @param object $item
+     * @return object|false
+     */
+    private static function init(object $item)
     {
         if (!empty($item) && is_object($item)) {
             $object = new static();
             foreach (get_class_vars(get_called_class()) as $key => $field) {
                 if ($key === 'table') continue;
-                if (empty($item->$key)) continue;
+                if (!isset($item->$key)) $object->$key = null;
 
-                $object->$key = $item->$key ?? null;
+                switch ($key) {
+                    case 'prices':
+                        $object->$key = !$item->$key ? $item->$key : ProductPrice::factory($item->$key);
+                        break;
+                    case 'images':
+                        $object->$key = !$item->$key ? $item->$key : ProductImage::factory($item->$key);
+                        break;
+                    case 'stores':
+                        $object->$key = !$item->$key ? $item->$key : ProductStore::factory($item->$key);
+                        break;
+                    default:
+                        $object->$key = $item->$key ?? null;
+                }
             }
         }
-        return $object ?? null;
+        return $object ?? false;
     }
 
     /**
@@ -70,6 +107,26 @@ abstract class Model
         $db = Db::getInstance();
         $data = $db->query($sql, $params, $object ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
+    }
+
+    /**
+     * Возвращает имя страницы по любому полю (+)
+     * @param string $field
+     * @param string $value
+     * @param bool $active
+     * @param bool $object
+     * @return false
+     */
+    public static function getName(string $field, string $value, bool $active = true, bool $object = true)
+    {
+        $activity = !empty($active) ? ' AND active IS NOT NULL' : '';
+        $sql = "SELECT name FROM shop." . static::$table . " WHERE {$field} = :value {$activity}";
+        $params = [
+            'value' => $value
+        ];
+        $db = Db::getInstance();
+        $data = $db->query($sql, $params, $object ? static::class : null);
+        return !empty($data) ? array_shift($data)->name : false;
     }
 
     /**

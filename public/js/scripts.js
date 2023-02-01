@@ -361,9 +361,9 @@ $(function () {
                 success: function(data){console.log(data);
                     if (!data.result) {
                         loader.hide();
-                        if (1 === data.error) form.find('input[name=login]').parent().find('.tooltip').html(data.message).addClass('active');
-                        else if (2 === data.error) form.find('input[name=password]').parent().find('.tooltip').html(data.message).addClass('active');
-                        else message_error.html(data.message).show();
+                        // if (1 === data.error) form.find('input[name=login]').parent().find('.tooltip').html(data.message).addClass('active');
+                        // else if (2 === data.error) form.find('input[name=password]').parent().find('.tooltip').html(data.message).addClass('active');
+                        message_error.html(data.message).show();
                     } else {
                         (-1 !== window.location.href.indexOf('/auth/')) ?
                             window.location.href = '/' :

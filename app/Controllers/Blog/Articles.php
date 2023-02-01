@@ -8,7 +8,7 @@ class Articles extends Controller
 {
     protected function actionDefault()
     {
-        var_dump('index');
+        var_dump('articles');
     }
 
     protected function actionShow($id)
