@@ -29,19 +29,20 @@ class Catalog extends Controller
     protected function actionShow($elem)
     {
         if (is_numeric($elem)) { // показ конкретного товара
-            $item = Product::get(intval($elem), ['price_type_id' => $this->user->priceTypeId, 'price_types' => $this->user->priceTypes]); // TODO очистить id регуляркой
+            $item = Product::get(
+                intval(preg_replace('/[^0-9]/', '', $elem)),
+                ['price_type_id' => $this->user->priceTypeId, 'price_types' => $this->user->priceTypes]
+            );
 
             if (!empty($item->id)) {
                 ModelProduct::addView($item->id);
                 $this->set('item', $item);
-
                 $this->display('product/item');
             }
             else throw new NotFoundException('Товар не найден');
         }
-
         else { // список товаров категории
-            $category = Category::getByName($elem);
+            $category = Category::getByName(preg_replace('/[^a-zA-Z-_]/', '', $elem));
 
             if (!empty($category->id)) {
                 //$filters = $this->getFilterParams();
