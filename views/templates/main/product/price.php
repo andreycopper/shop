@@ -26,7 +26,7 @@ if (defined(SHOW_ALL_PRICES_CATALOG) && !empty($item->prices) && is_array($item-
                         <?= number_format($price->price, 0, '.', ' ') ?>
                     </span>
 
-                    <span class="product-currency"><?= $price->currency ?></span>
+                    <span class="product-currency"><?= $price->currencySign ?></span>
                     <span class="product-measure">/<?= $item->unit ?></span>
 
                     <div class="product-priceline"></div>
@@ -38,14 +38,14 @@ if (defined(SHOW_ALL_PRICES_CATALOG) && !empty($item->prices) && is_array($item-
                     <?= number_format($price_discount, 0, '.', ' ') ?>
                 </span>
 
-                <span class="product-currency"><?= $price->currency ?></span>
+                <span class="product-currency"><?= $price->currencySign ?></span>
                 <span class="product-measure">/<?= $item->unit ?></span>
 
                 <?php if (!empty($item->taxValue)): ?>
                     <span class="product-nds">
                         (в т.ч. <?= $item->tax ?>
                         <?= number_format(round($price_discount * $item->taxValue / (100 + $item->taxValue), 2), 2, '.', ' ') ?>
-                        <?= $price->currency ?>)
+                        <?= $price->currencySign ?>)
                         </span>
                 <?php endif; ?>
             </div>
@@ -65,8 +65,8 @@ if (defined(SHOW_ALL_PRICES_CATALOG) && !empty($item->prices) && is_array($item-
                     <?= number_format($item->price, 0, '.', ' ') ?>
                 </span>
 
-                <span class="product-currency"><?=$item->currency?></span>
-                <span class="product-measure">/<?=$item->unit?></span>
+                <span class="product-currency"><?= $item->currencySign ?></span>
+                <span class="product-measure">/<?= $item->unit ?></span>
 
                 <div class="product-priceline"></div>
             </div>
@@ -77,14 +77,14 @@ if (defined(SHOW_ALL_PRICES_CATALOG) && !empty($item->prices) && is_array($item-
                 <?= number_format($price_discount, 0, '.', ' ') ?>
             </span>
 
-            <span class="product-currency"><?= $item->currency ?></span>
+            <span class="product-currency"><?= $item->currencySign ?></span>
             <span class="product-measure">/<?= $item->unit ?></span>
 
             <?php if (!empty($item->taxValue)): ?>
                 <span class="product-nds">
                     (в т.ч. <?= $item->tax ?>
                     <?= number_format(round($price_discount * $item->taxValue / (100 + $item->taxValue), 2), 2, '.', ' ') ?>
-                    <?= $item->currency ?>)
+                    <?= $item->currencySign ?>)
                 </span>
             <?php endif; ?>
         </div>
