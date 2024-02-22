@@ -2,6 +2,7 @@
 
 namespace Controllers;
 
+use Models\User\User;
 use System\RSA;
 use Models\Test;
 use Models\Product\Product;
@@ -14,12 +15,22 @@ class Tests extends Controller
 
     protected function actionDefault()
     {
-        var_dump(1);
+        $users = User::getList();var_dump($users);
+
+//        foreach ($users as $user) {
+//            $rsa  = new RSA($user['private_key']);
+//
+//            var_dump($rsa->decrypt($user['last_name']));
+//            var_dump($rsa->decrypt($user['name']));
+//            var_dump($rsa->decrypt($user['second_name']));
+//        }
+
+        die;
     }
 
     protected function actionCache()
     {
-        file_put_contents(_CACHE . '/test1', 222);
+        file_put_contents(DIR_CACHE . '/test1', 222);
     }
 
     protected function actionCache3()
@@ -117,7 +128,7 @@ class Tests extends Controller
 
     protected function actionProperties()
     {
-        if ($handle = fopen(_PUBLIC . "/files/1.csv", "r")) {
+        if ($handle = fopen(DIR_PUBLIC . "/files/1.csv", "r")) {
             while (($data = fgetcsv($handle, 5000, ";")) !== false) {
                 var_dump($data);
             }

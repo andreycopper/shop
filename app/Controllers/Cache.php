@@ -2,9 +2,9 @@
 
 namespace Controllers;
 
+use Models\Category;
 use Models\Fias\District;
 use Models\Page;
-use Models\Group;
 use Models\PriceType;
 use Models\Product\Product;
 use Models\Product\ProductImage;
@@ -38,7 +38,7 @@ class Cache extends Controller
                 $data = Page::getPersonalMenu();
                 break;
             case 'groups':
-                $data = Group::getCatalog();
+                $data = Category::getList();
                 break;
         }
 
@@ -47,8 +47,8 @@ class Cache extends Controller
                 'expiration' => $time,
                 'data' => $data
             ];
-            if (!is_dir(_CACHE . "/menu")) mkdir(_CACHE . "/menu");
-            file_put_contents(_CACHE . "/menu/{$type}", json_encode($result, JSON_UNESCAPED_UNICODE));
+            if (!is_dir(DIR_CACHE . "/menu")) mkdir(DIR_CACHE . "/menu");
+            file_put_contents(DIR_CACHE . "/menu/{$type}", json_encode($result, JSON_UNESCAPED_UNICODE));
         }
     }
 
@@ -67,8 +67,8 @@ class Cache extends Controller
                 'expiration' => $time,
                 'data' => $data
             ];
-            if (!is_dir(_CACHE . "/location")) mkdir(_CACHE . "/location");
-            file_put_contents(_CACHE . "/location/districts", json_encode($result, JSON_UNESCAPED_UNICODE));
+            if (!is_dir(DIR_CACHE . "/location")) mkdir(DIR_CACHE . "/location");
+            file_put_contents(DIR_CACHE . "/location/districts", json_encode($result, JSON_UNESCAPED_UNICODE));
         }
     }
 
@@ -90,9 +90,9 @@ class Cache extends Controller
                         'expiration' => $time,
                         'data' => $item
                     ];
-                    if (!is_dir(_CACHE . "/product")) mkdir(_CACHE . "/product");
-                    if (!is_dir(_CACHE . "/product/{$item->id}")) mkdir(_CACHE . "/product/{$item->id}");
-                    file_put_contents(_CACHE . "/product/{$item->id}/{$item->id}_$price_type", json_encode($result, JSON_UNESCAPED_UNICODE));
+                    if (!is_dir(DIR_CACHE . "/product")) mkdir(DIR_CACHE . "/product");
+                    if (!is_dir(DIR_CACHE . "/product/{$item->id}")) mkdir(DIR_CACHE . "/product/{$item->id}");
+                    file_put_contents(DIR_CACHE . "/product/{$item->id}/{$item->id}_$price_type", json_encode($result, JSON_UNESCAPED_UNICODE));
                 }
             }
         }
@@ -112,9 +112,9 @@ class Cache extends Controller
                     'expiration' => $time,
                     'data' => $data
                 ];
-                if (!is_dir(_CACHE . "/product")) mkdir(_CACHE . "/product");
-                if (!is_dir(_CACHE . "/product/{$id}")) mkdir(_CACHE . "/product/{$id}");
-                file_put_contents(_CACHE . "/product/{$id}/{$id}_{$price_type}", json_encode($result, JSON_UNESCAPED_UNICODE));
+                if (!is_dir(DIR_CACHE . "/product")) mkdir(DIR_CACHE . "/product");
+                if (!is_dir(DIR_CACHE . "/product/{$id}")) mkdir(DIR_CACHE . "/product/{$id}");
+                file_put_contents(DIR_CACHE . "/product/{$id}/{$id}_{$price_type}", json_encode($result, JSON_UNESCAPED_UNICODE));
             }
         }
     }
@@ -123,7 +123,7 @@ class Cache extends Controller
     {
         $time = time();
         $time += 60 * 60 * 24 * 7;
-        $data = Group::getList();
+        $data = Category::getList();
 
         if (!empty($data) && is_array($data)) {
             foreach ($data as $item) {
@@ -131,12 +131,12 @@ class Cache extends Controller
                     'expiration' => $time,
                     'data' => $item
                 ];
-                if (!is_dir(_CACHE . "/group")) mkdir(_CACHE . "/group");
-                file_put_contents(_CACHE . "/group/{$item->link}", json_encode($result, JSON_UNESCAPED_UNICODE));
+                if (!is_dir(DIR_CACHE . "/group")) mkdir(DIR_CACHE . "/group");
+                file_put_contents(DIR_CACHE . "/group/{$item->link}", json_encode($result, JSON_UNESCAPED_UNICODE));
 
                 if (!empty($item->parent_id)) {
-                    if (!is_dir(_CACHE . "/group/{$item->parent_id}")) mkdir(_CACHE . "/group/{$item->parent_id}");
-                    file_put_contents(_CACHE . "/group/{$item->parent_id}/{$item->id}", json_encode($result, JSON_UNESCAPED_UNICODE));
+                    if (!is_dir(DIR_CACHE . "/group/{$item->parent_id}")) mkdir(DIR_CACHE . "/group/{$item->parent_id}");
+                    file_put_contents(DIR_CACHE . "/group/{$item->parent_id}/{$item->id}", json_encode($result, JSON_UNESCAPED_UNICODE));
                 }
             }
         }
@@ -154,8 +154,8 @@ class Cache extends Controller
                     'expiration' => $time,
                     'data' => $item
                 ];
-                if (!is_dir(_CACHE . "/page")) mkdir(_CACHE . "/page");
-                file_put_contents(_CACHE . "/page/{$item->link}", json_encode($result, JSON_UNESCAPED_UNICODE));
+                if (!is_dir(DIR_CACHE . "/page")) mkdir(DIR_CACHE . "/page");
+                file_put_contents(DIR_CACHE . "/page/{$item->link}", json_encode($result, JSON_UNESCAPED_UNICODE));
             }
         }
     }

@@ -1,13 +1,14 @@
 <?php
-
 namespace Controllers;
 
+use Entity\User;
+use Models\Model;
+use System\Crypt;
 use Views\View;
 use Models\Page;
-use Models\Group;
 use System\Logger;
 use System\Request;
-use Models\User\User;
+use Models\User\User as ModelUser;
 use Models\OrderItem;
 use Models\Fias\District;
 use Exceptions\DbException;
@@ -21,50 +22,60 @@ use Exceptions\ForbiddenException;
  */
 abstract class Controller
 {
-    protected $user;            // текущий пользователь
-    protected $publicKey;       // публичный ключ шифрования
-    protected $page_current;    // текущая страница
-    protected $page_count = 10; // элементов на странице
-    protected $view;
+    protected View $view;
+    protected User $user;
+    protected ?Model $model = null;
+    protected int $currentPage;
+    protected int $elementsPerPage = 10;
 
-    /**
-     * Controller constructor (+)
-     * @throws DbException
-     */
+    //protected ?Crypt $crypt; // объект шифрования
+    //protected string $csrf;
+    //protected $publicKey;       // публичный ключ шифрования
+
     public function __construct()
     {
         $this->view = new View();
 
-        $this->user        = $_SESSION['user'] ?? User::getCurrent();              // текущий пользователь
-        $this->publicKey   = $_SESSION['public_key'] ?? User::generatePublicKey(); // публичный ключ шифрования
-        $this->page_current = intval(Request::get('page') ?? 1);              // текущая страница пагинации
+        $this->user = User::getCurrent();
+        $this->currentPage = intval(Request::get('page') ?? 1);
+
 
         $this->set('user', $this->user);
-        $this->set('publicKey', $this->publicKey);
-        $this->set('location', $_SESSION['location'] ?? User::getLocation()); // текущее местоположение
-        $this->set('districts', District::get()); // список федеральных округов
+        $this->set('currentPage', $this->currentPage);
+        $this->set('elementsPerPage', $this->elementsPerPage);
 
-        $this->set('page', Page::getPageInfo(URL)); // информация о странице
-        $this->set('breadcrumbs', URL); // breadcrumbs
-        $this->set('page_current', $this->page_current);
+        $this->set('menuMain', Page::getMenu('main'));
+        $this->set('menuPersonal', Page::getMenu('personal'));
+        $this->set('menuCatalog', Page::getMenu('catalog'));
 
-        $this->set('menu', Page::getMenu('main')); // меню
-        $this->set('groups', Group::getCatalogMenu()); // каталог товаров
-        $this->set('cartCount', OrderItem::getCount($this->user)); // количество товаров в корзине
+        $this->set('cartCount', OrderItem::getCount($this->user));
+
+//        $this->set('location', $_SESSION['location'] ?? User::getLocation()); // текущее местоположение
+//        $this->set('districts', District::get()); // список федеральных округов
+//        $this->set('page', Page::getPageInfo(URL)); // информация о странице
+//        $this->set('breadcrumbs', URL); // breadcrumbs
     }
 
     /**
-     * Проверяет доступ и формирует полное имя action (+)
+     * Проверяет доступ и формирует полное имя action
      * @param string $action
-     * @param null $param
-     * @throws ForbiddenException|NotFoundException
+     * @param null $param1
+     * @param null $param2
+     * @param null $param3
+     * @throws ForbiddenException
+     * @throws NotFoundException
      */
-    public function action(string $action, $param = null)
+    public function action(string $action, $param1 = null, $param2 = null, $param3 = null)
     {
         if (method_exists($this, $action)) {
             if ($this->access($action)) {
                 if (method_exists($this, 'before')) $this->before();
-                $this->$action($param ?? null);
+
+                if (!is_null($param1) && !is_null($param2) && !is_null($param3)) $this->$action($param1, $param2, $param3);
+                if (!is_null($param1) && !is_null($param2)) $this->$action($param1, $param2);
+                elseif (!is_null($param1)) $this->$action($param1);
+                else $this->$action();
+
                 if (method_exists($this, 'after')) $this->after();
                 die;
             } else throw new ForbiddenException();
@@ -72,7 +83,7 @@ abstract class Controller
     }
 
     /**
-     * Объявляет переменную для View (+)
+     * Объявляет переменную для View
      * @param $var
      * @param $value
      */
@@ -82,7 +93,45 @@ abstract class Controller
     }
 
     /**
-     * Проверяет доступ к методу в классе $this (+)
+     * Устанавливает директорию шаблона
+     * @param $template - имя директории шаблона
+     */
+    protected function setTemplate(string $template)
+    {
+        $this->view->setTemplate($template);
+    }
+
+    /**
+     * Возвращает отрендеренный файл
+     * @param $file
+     * @param array $vars
+     * @return false|string|null
+     */
+    protected function render($file, $vars = [])
+    {
+        return $this->view->render($file, $vars = []);
+    }
+
+    /**
+     * Отображает HTML-код шаблона
+     * @param $file
+     */
+    protected function display($file)
+    {
+        $this->view->display($file);
+    }
+
+    /**
+     * Отображает HTML-код файла
+     * @param $file
+     */
+    protected function display_element($file)
+    {
+        $this->view->display_element($file);
+    }
+
+    /**
+     * Проверяет доступ к методу в классе $this
      * @param $action - метод, доступ к которому проверяется
      * @return bool
      */
