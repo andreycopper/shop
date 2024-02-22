@@ -1,4 +1,11 @@
-<?php if (!empty($item->stores)): ?>
+<?php
+use Entity\Product;
+
+/**
+ * @var Product $item
+ */
+
+if (!empty($item->stores)): ?>
     <?php foreach ($item->stores as $store): ?>
         <?php if (!empty($store->quantity)): ?>
             <div class="product-quantity-item relative">
@@ -7,4 +14,4 @@
             </div>
         <?php endif; ?>
     <?php endforeach; ?>
-<?php endif; ?>
+<?php endif;

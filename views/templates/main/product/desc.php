@@ -1,9 +1,12 @@
-<?php if ($item->detail_text_type === 'text'): ?>
-    <pre>
-<?php endif; ?>
+<?php
+use Entity\Product;
 
-<?=$item->detail_text?>
+/**
+ * @var Product $item
+ */
 
-<?php if ($item->detail_text_type === 'text'): ?>
-    </pre>
-<?php endif; ?>
+if ($item->detailTextType === 'text'): ?><pre><?php endif; ?>
+
+<?= $item->detailText ?>
+
+<?php if ($item->detailTextType === 'text'): ?></pre><?php endif; ?>

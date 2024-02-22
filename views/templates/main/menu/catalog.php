@@ -5,24 +5,30 @@
     </a>
     <div class="nav-catalog-menu">
         <ul class="nav-catalog-container">
-            <?php if (!empty($groups) && is_array($groups)): ?>
-                <?php foreach ($groups[0] as $group1): ?>
+            <?php if (!empty($menuCatalog[0]) && is_array($menuCatalog[0])): ?>
+                <?php foreach ($menuCatalog[0] as $group1): ?>
                     <li>
-                        <a href="/catalog/<?= $group1->link ?>/" class="nav-catalog-image">
-                            <img src="/uploads/groups/<?= $group1->id ?>/<?=$group1->image?>" alt="">
+                        <a href="/catalog/<?= $group1['link'] ?>/" class="nav-catalog-image">
+                            <img src="/uploads/groups/<?= $group1['id'] ?>/<?= $group1['image'] ?>" alt="">
                         </a>
-                        <a href="/catalog/<?=$group1->link?>/" class="nav-catalog-title"><?=$group1->name?></a>
+                        <a href="/catalog/<?= $group1['link'] ?>/" class="nav-catalog-title"><?=$group1['name']?></a>
 
-                        <?php if (!empty($this->groups[$group1->id])): ?>
+                        <?php if (!empty($menuCatalog[$group1['id']]) && is_array($menuCatalog[$group1['id']])): ?>
                             <ul class="nav-catalog-submenu">
-                                <?php foreach ($this->groups[$group1->id] as $group2): ?>
+                                <?php foreach ($menuCatalog[$group1['id']] as $group2): ?>
                                     <li>
-                                        <a href="/catalog/<?=$group1->link?>/<?=$group2->link?>/"><?=$group2->name?></a>
+                                        <a href="/catalog/<?= $group1['link'] ?>/<?= $group2['link'] ?>/">
+                                            <?= $group2['name'] ?>
+                                        </a>
 
-                                        <?php if (!empty($this->groups[$group2->id])): ?>
+                                        <?php if (!empty($menuCatalog[$group2['id']]) && is_array($menuCatalog[$group2['id']])): ?>
                                             <ul class="nav-catalog-submenu">
-                                                <?php foreach ($this->groups[$group2->id] as $group3): ?>
-                                                    <li><a href="/catalog/<?=$group1->link?>/<?=$group2->link?>/<?=$group3->link?>/"><?=$group3->name?></a></li>
+                                                <?php foreach ($menuCatalog[$group2['id']] as $group3): ?>
+                                                    <li>
+                                                        <a href="/catalog/<?= $group1['link'] ?>/<?= $group2['link'] ?>/<?= $group3['link'] ?>/">
+                                                            <?= $group3['name'] ?>
+                                                        </a>
+                                                    </li>
                                                 <?php endforeach; ?>
                                             </ul>
                                         <?php endif; ?>

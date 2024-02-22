@@ -1,5 +1,10 @@
 <?php
 use System\Request;
+use Entity\Category;
+
+/**
+ * @var Category $category
+ */
 
 $sort = Request::get('sort') ?? 'views';
 $order = Request::get('order') ?? 'asc';
@@ -8,34 +13,32 @@ $display = $_COOKIE['display'] ?? 'blocks';
 
 <div class="catalog-container">
     <div class="catalog-leftmenu">
-        <?= $this->render('side/menu_catalog') ?>
-        <?= $this->render('side/filter') ?>
-        <?= $this->render('side/marketing') ?>
-        <?= $this->render('side/subscribe') ?>
-        <?= $this->render('side/news') ?>
-        <?= $this->render('side/articles') ?>
+        <?= $this->render('menu/catalog_side') ?>
+        <?= $this->render('side/filter') // TODO ?>
+        <?= $this->render('side/marketing') // TODO ?>
+        <?= $this->render('side/subscribe') // TODO ?>
+        <?= $this->render('side/news') // TODO ?>
+        <?= $this->render('side/articles') // TODO ?>
     </div>
 
     <div class="catalog-main">
-        <?php if (!empty($this->sub_groups) && is_array($this->sub_groups)): ?>
+        <?php if (!empty($category->subCategories) && is_array($category->subCategories)): ?>
             <div class="subcategories-container">
-                <?php foreach ($this->sub_groups as $sub_group): ?>
+                <?php foreach ($category->subCategories as $subCategory): ?>
                     <div class="subcategories-item">
-                        <a href="<?=$sub_group->link?>/">
+                        <a href="<?=$subCategory['link']?>/">
                             <div class="subcategories-image">
-                                <img src="/uploads/groups/<?=$sub_group->id?>/<?=$sub_group->image?>" alt="">
+                                <img src="/uploads/groups/<?=$subCategory['id']?>/<?=$subCategory['image']?>" alt="">
                             </div>
-                            <div class="subcategories-title"><?=$sub_group->name?></div>
+                            <div class="subcategories-title"><?=$subCategory['name']?></div>
                         </a>
                     </div>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
 
-        <?php if (!empty($group->description)): ?>
-            <div class="category-description">
-                <?= $group->description ?>
-            </div>
+        <?php if (!empty($category->description)): ?>
+            <div class="category-description"><?= $category->description ?></div>
         <?php endif; ?>
 
         <?php if (!empty($items) && is_array($items)): ?>

@@ -1,6 +1,6 @@
 <div class="catalog-container">
     <div class="leftmenu">
-        <?= $this->render('side/menu_personal') ?>
+        <?= $this->render('menu/personal') ?>
         <?= $this->render('side/marketing') ?>
         <?= $this->render('side/subscribe') ?>
         <?= $this->render('side/news') ?>

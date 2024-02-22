@@ -1,12 +1,11 @@
 <?php
-use Models\User\User;
+use Models\User\User as ModelUser;
 ?>
 <!doctype html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
     <title>
@@ -46,6 +45,7 @@ use Models\User\User;
             <button class="hamburger hamburger--htx">
                 <span>toggle menu</span>
             </button>
+
             <div class="header-logo">
                 <a href="/">
                     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 190 40">
@@ -57,15 +57,14 @@ use Models\User\User;
                     </svg>
                 </a>
             </div>
+
             <div class="header-slogan">
-                <div class="header-slogan-container">
-                    <?= SLOGAN ?>
-                </div>
+                <div class="header-slogan-container"><?= SLOGAN ?></div>
             </div>
+
             <div class="header-city">
-                <div class="header-city-title">
-                    Ваш город
-                </div>
+                <div class="header-city-title">Ваш город</div>
+
                 <div class="header-city-choice">
                     <a class="header-city-link header-action" data-target="location">
                         <?= $this->location->name ?? 'Москва' ?>
@@ -73,15 +72,18 @@ use Models\User\User;
                     <span></span>
                 </div>
             </div>
+
             <div class="header-phone">
                 <div class="header-phone-block">
                     <i class="header-phone-pic"></i>
                     <a href="tel:<?= PHONE ?>" class="header-phone-link" rel="nofollow"><?= PHONE ?></a>
                 </div>
+
                 <div class="header-callback">
                     <a href="" class="header-callback-link header-action" data-target="callback">Заказать звонок</a>
                 </div>
             </div>
+
             <div class="header-search">
                 <a href="/search/" class="header-search-link header-action" data-target="search">
                     <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 17 17">
@@ -90,32 +92,41 @@ use Models\User\User;
                     </svg>
                 </a>
             </div>
+
             <div class="header-compare">
                 <a href="/compare/" class="header-compare-link info" data-target="compare" data-url="/catalog/compare/" title="Сравнение">
                     <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21">
                         <path class="header-compare-pic" d="M20,4h0a1,1,0,0,1,1,1V21H19V5A1,1,0,0,1,20,4ZM14,7h0a1,1,0,0,1,1,1V21H13V8A1,1,0,0,1,14,7ZM8,1A1,1,0,0,1,9,2V21H7V2A1,1,0,0,1,8,1ZM2,9H2a1,1,0,0,1,1,1V21H1V10A1,1,0,0,1,2,9ZM0,0H1V1H0V0ZM0,0H1V1H0V0Z"></path>
                     </svg>
+
                     <span class="header-compare-count empty">0</span>
                 </a>
             </div>
+
             <div class="header-favorite">
                 <a href="/favorite" class="header-favorite-link info" data-target="favorites" data-url="/catalog/favorites/" title="Избранное">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22.969" height="21" viewBox="0 0 22.969 21">
                         <path class="header-favorite-pic" d="M21.028,10.68L11.721,20H11.339L2.081,10.79A6.19,6.19,0,0,1,6.178,0a6.118,6.118,0,0,1,5.383,3.259A6.081,6.081,0,0,1,23.032,6.147,6.142,6.142,0,0,1,21.028,10.68ZM19.861,9.172h0l-8.176,8.163H11.369L3.278,9.29l0.01-.009A4.276,4.276,0,0,1,6.277,1.986,4.2,4.2,0,0,1,9.632,3.676l0.012-.01,0.064,0.1c0.077,0.107.142,0.22,0.208,0.334l1.692,2.716,1.479-2.462a4.23,4.23,0,0,1,.39-0.65l0.036-.06L13.52,3.653a4.173,4.173,0,0,1,3.326-1.672A4.243,4.243,0,0,1,19.861,9.172ZM22,20h1v1H22V20Zm0,0h1v1H22V20Z" transform="translate(-0.031)"></path>
                     </svg>
+
                     <span class="header-favorite-count empty">0</span>
                 </a>
             </div>
+
             <div class="header-cart">
                 <a href="/cart/" class="header-cart-link" title="Корзина">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="21" viewBox="0 0 22 21">
                         <path class="header-cart-pic" d="M1507,122l-0.99,1.009L1492,123l-1-1-1-9h-3a0.88,0.88,0,0,1-1-1,1.059,1.059,0,0,1,1.22-1h2.45c0.31,0,.63.006,0.63,0.006a1.272,1.272,0,0,1,1.4.917l0.41,3.077H1507l1,1v1ZM1492.24,117l0.43,3.995h12.69l0.82-4Zm2.27,7.989a3.5,3.5,0,1,1-3.5,3.5A3.495,3.495,0,0,1,1494.51,124.993Zm8.99,0a3.5,3.5,0,1,1-3.49,3.5A3.5,3.5,0,0,1,1503.5,124.993Zm-9,2.006a1.5,1.5,0,1,1-1.5,1.5A1.5,1.5,0,0,1,1494.5,127Zm9,0a1.5,1.5,0,1,1-1.5,1.5A1.5,1.5,0,0,1,1503.5,127Z" transform="translate(-1486 -111)"></path>
                     </svg>
-                    <span class="header-cart-count <?= intval($this->cartCount) > 0 ? '' : 'empty' ?>"><?= $this->cartCount ?: 0 ?></span>
+
+                    <span class="header-cart-count <?= isset($this->cartCount) && $this->cartCount > 0 ? '' : 'empty' ?>">
+                        <?= $this->cartCount ?: 0 ?>
+                    </span>
                 </a>
             </div>
+
             <div class="header-user">
-                <?php if (User::isAuthorized()): ?>
+                <?php if (ModelUser::isAuthorized()): ?>
                     <a href="/personal/" class="header-user-link" title="Личный кабинет">
                         <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21">
                             <path class="header-user-pic" d="M13.969,16a1,1,0,1,1-2,0H11.927C11.578,14.307,9.518,13,7,13s-4.575,1.3-4.924,3H2.031a1,1,0,0,1-2,0,0.983,0.983,0,0,1,.1-0.424C0.7,12.984,3.54,11,7,11S13.332,13,13.882,15.6a1.023,1.023,0,0,1,.038.158c0.014,0.082.048,0.159,0.058,0.243H13.969ZM7,10a5,5,0,1,1,5-5A5,5,0,0,1,7,10ZM7,2a3,3,0,1,0,3,3A3,3,0,0,0,7,2Z"></path>
@@ -131,6 +142,7 @@ use Models\User\User;
             </div>
         </div>
     </div>
+
     <nav>
         <div class="nav container">
             <?= $this->render('menu/catalog') ?>
@@ -142,15 +154,15 @@ use Models\User\User;
 
 <section class="main">
     <div class="container">
-        <?php if (!empty(URL)): ?>
+        <?php //if (!empty(URL)): ?>
             <div class="main-header">
                 <?= $this->render('breadcrumbs') ?>
 
                 <h1><?= $item->name ?? $page->name ?? '' ?></h1>
             </div>
-        <?php endif; ?>
+        <?php //endif; ?>
 
-        <?= $view ?? ''; ?>
+        <?= $view ?? '' ?>
     </div>
 </section>
 
@@ -169,10 +181,12 @@ use Models\User\User;
                         </svg>
                     </a>
                 </div>
+
                 <div class="footer-subscribe">
                     <div class="footer-subscribe-description">
                         Будьте в курсе новостей и акций. Подпишитесь на нашу рассылку
                     </div>
+
                     <div class="footer-subscribe-field">
                         <form action="" class="footer-subscribe-form">
                             <label for="footer-subscribe" class="footer-subscribe-label">Введите Email</label>
@@ -181,7 +195,6 @@ use Models\User\User;
                         </form>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
@@ -191,59 +204,46 @@ use Models\User\User;
             <div class="footer-middle-container">
                 <?= $this->render('menu/footer') ?>
 
-                <!-- FOOTER CONTACTS -->
                 <div class="footer-contacts">
                     <a href="/contacts/" class="footer-title">Наши контакты</a>
+
                     <ul>
                         <li>
-                            <a href="tel:+78002001010" class="footer-phone" rel="nofollow">8 (800) 200-10-10</a>
+                            <a href="tel:<?= PHONE ?>" class="footer-phone" rel="nofollow"><?= PHONE ?></a>
                         </li>
                         <li>
-                            <a href="mailto:info@shop.ru" class="footer-mail">info@shop.ru</a>
+                            <a href="mailto:<?= EMAIL ?>" class="footer-mail"><?= EMAIL ?></a>
                         </li>
                         <li>
-                            <div class="footer-address">Новосибирск, ул. Гоголя 1а, 2 этаж, офис 14</div>
+                            <div class="footer-address"><?= ADDRESS ?></div>
                         </li>
                     </ul>
+
                     <ul class="footer-social-icons">
-                        <li class="vk">
-                            <a href=""></a>
-                        </li>
-                        <li class="facebook">
-                            <a href=""></a>
-                        </li>
-                        <li class="twitter">
-                            <a href=""></a>
-                        </li>
-                        <li class="instagram">
-                            <a href=""></a>
-                        </li>
-                        <li class="youtube">
-                            <a href=""></a>
-                        </li>
-                        <li class="odkl">
-                            <a href=""></a>
-                        </li>
+                        <li class="vk"><a href="<?= VK ?>"></a></li>
+
+                        <li class="facebook"><a href="<?= FACEBOOK ?>"></a></li>
+
+                        <li class="twitter"><a href="<?= TWITTER ?>"></a></li>
+
+                        <li class="instagram"><a href="<?= INSTAGRAM ?>"></a></li>
+
+                        <li class="youtube"><a href="<?= YOUTUBE ?>"></a></li>
+
+                        <li class="odkl"><a href="<?= OK ?>"></a></li>
                     </ul>
                 </div>
-                <!-- FOOTER CONTACTS -->
             </div>
         </div>
     </div>
     <div class="footer-bottom">
         <div class="container">
             <div class="footer-bottom-container">
-                <div class="footer-copyright">
-                    &copy; 2019 Next Shop
-                </div>
+                <div class="footer-copyright">&copy; <?= date('Y') ?> <?= SITENAME ?></div>
 
-                <div class="footer-counters">
-                    COUNTERS
-                </div>
+                <div class="footer-counters">COUNTERS</div>
 
-                <div class="footer-develop">
-                    Разработано - <a href="/" class="footer-develop-link">Art Studio</a>
-                </div>
+                <div class="footer-develop">Разработано - <a href="/" class="footer-develop-link">Art Studio</a></div>
             </div>
         </div>
     </div>
