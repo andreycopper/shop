@@ -6,7 +6,7 @@ use System\Db;
 
 class PriceType extends Model
 {
-    protected static $table = 'price_types';
+    protected static $db_table = 'price_types';
 
     public int $id;          // id
     public $active;      // активность

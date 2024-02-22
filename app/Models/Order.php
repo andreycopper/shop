@@ -8,7 +8,7 @@ use Exceptions\DbException;
 
 class Order extends Model
 {
-    protected static $table = 'orders';
+    protected static $db_table = 'orders';
     public $id;           // id
     public $status_id;    // статус
     public $profile_id;   // профиль

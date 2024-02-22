@@ -1,63 +1,115 @@
 <?php
-
 namespace Models;
 
 use System\Db;
+use Entity\User;
 use System\Logger;
-use Models\User\User;
 use Exceptions\DbException;
 use Exceptions\EditException;
 use Exceptions\UserException;
 use Models\Product\ProductPrice;
+use Models\User\User as ModelUser;
 
 class OrderItem extends Model
 {
-    protected static $table = 'order_items';
-    public $id;                 // id записи
-    public $order_id;           // id заказа
-    public $qorder_id;          // id быстрого заказа
-    public $user_id;            // id пользователя
-    public $user_hash;          // hash пользователя
-    public $product_id;         // id товара
-    public $price_type_id;      // id типа цен
-    public $count;              // количество
-    public $coupon_id;          // id купона
-    public $discount;           // скидка
-    public $tax;                // размер налога
-    public $price;              // цена
-    public $price_nds;          // НДС цены
-    public $price_discount;     // цена со скидкой
-    public $price_discount_nds; // НДС цены со скидкой
-    public $sum;                // сумма
-    public $sum_nds;            // НДС суммы
-    public $sum_discount;       // сумма со скидкой
-    public $sum_discount_nds;   // НДС суммы со скидкой
-    public $delivery;           // сумма доставки
-    public $delivery_nds;       // НДС суммы доставки
-    public $created;            // дата создания записи
-    public $updated;            // дата создания записи
+    protected static $db_table = 'shop.order_items';
+
+    public int $id;                // id записи
+    public ?int $order_id = null;  // id заказа
+    public ?int $qorder_id = null; // id быстрого заказа
+    public int $user_id = 2;       // id пользователя
+    public string $user_hash;      // hash пользователя
+
+    public int $product_id;        // id товара
+    public int $price_type_id = 2; // id типа цен
+    public ?int $coupon_id = null; // id купона
+
+    public int $count; // количество
+
+    public ?float $discount = null; // скидка в %
+    public ?float $tax = null;      // размер налога в %
+
+    public float $price;                      // цена
+    public ?float $price_nds = null;          // НДС цены
+    public ?float $price_discount = null;     // цена со скидкой
+    public ?float $price_discount_nds = null; // НДС цены со скидкой
+
+    public float $sum;                      // сумма
+    public ?float $sum_nds = null;          // НДС суммы
+    public ?float $sum_discount = null;     // сумма со скидкой
+    public ?float $sum_discount_nds = null; // НДС суммы со скидкой
+
+    public ?float $delivery = null;     // сумма доставки
+    public ?float $delivery_nds = null; // НДС суммы доставки
+
+    public \DateTime $created;         // дата создания записи
+    public ?\DateTime $updated = null; // дата создания записи
 
     /**
-     * Получает количество товаров в корзине (+)
-     * @return false|mixed
-     * @throws DbException
+     * Получает количество товаров в корзине
+     * @param User $user - покупатель
+     * @return int
      */
-    public static function getCount($user)
+    public static function getCount(User $user)
     {
         if (empty($_COOKIE['user'])) return 0;
 
-        $params = [':user_id' => $user->id ];
+        $db = Db::getInstance();
+        $db->params = ['user_id' => $user->id];
+
         $where = ($user->id === 2) ? 'AND user_hash = :user_hash' : '';
-        if ($user->id === 2) $params[':user_hash'] = $_COOKIE['user'];
-        $sql = "
+        if ($user->id === 2) $db->params['user_hash'] = $_COOKIE['user'];
+
+        $db->sql = "
             SELECT sum(count) AS count 
             FROM shop.order_items 
             WHERE user_id = :user_id {$where} AND order_id IS NULL AND qorder_id IS NULL";
 
-        $db = Db::getInstance();
-        $data = $db->query($sql, $params ?? []);
-        return !empty($data) ? array_shift($data)['count'] : false;
+        $data = $db->query();
+        return !empty($data[0]['count']) ? $data[0]['count'] : 0;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -251,12 +303,12 @@ class OrderItem extends Model
 
     /**
      * Добавляет товар в корзину
-     * @param User $user - пользователь
+     * @param ModelUser $user - пользователь
      * @param int $product_id - id товара
      * @param int $count - количество товара
      * @return bool|int
      */
-    public static function add(User $user, int $product_id, int $count)
+    public static function add(ModelUser $user, int $product_id, int $count)
     {
         $price = ProductPrice::getPrice($product_id, $user->price_type_id);
         if (empty($price)) return false;
@@ -381,7 +433,7 @@ class OrderItem extends Model
 
     /**
      * Пересчитывает корзину при изменении количества товара
-     * @param User $user
+     * @param ModelUser $user
      * @param int $product_id
      * @param int $count
      * @param bool $isAjax
@@ -389,7 +441,7 @@ class OrderItem extends Model
      * @throws DbException
      * @throws UserException
      */
-    public static function recalc(User $user, int $product_id, int $count, bool $isAjax = false)
+    public static function recalc(ModelUser $user, int $product_id, int $count, bool $isAjax = false)
     {
         $item = self::getProductByUser($product_id, $user->id, $_COOKIE['cookie_hash']); // товар в корзине пользователя
         $cart = OrderItem::getCart($user->id); // корзина пользователя
@@ -541,7 +593,7 @@ class OrderItem extends Model
         $items = self::getAnonymous($_COOKIE['user']);
 
         if (!empty($items) && is_array($items)) {
-            $user = User::getCurrent();
+            $user = ModelUser::getCurrent();
 
             if (!empty($user->id)) {
                 foreach ($items as $item) {

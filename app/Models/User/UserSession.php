@@ -9,7 +9,7 @@ use Exceptions\DbException;
 
 class UserSession extends Model
 {
-    protected static $table = 'user_sessions';
+    protected static $db_table = 'user_sessions';
 
     public $user_id;
     public $login;

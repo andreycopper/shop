@@ -2,9 +2,12 @@
 
 namespace Models;
 
+use Entity\Entity;
 use Models\Product\ProductImage;
 use Models\Product\ProductPrice;
 use Models\Product\ProductStore;
+use ReflectionClass;
+use ReflectionException;
 use System\Db;
 use Traits\Magic;
 use Traits\CastableToArray;
@@ -15,97 +18,156 @@ use Traits\CastableToArray;
  */
 abstract class Model
 {
-    protected static $table = null;
+    protected static $db_prefix = CONFIG['db']['dbprefix'];
+    protected static $db_table = null;
 
     use Magic;
     use CastableToArray;
 
+//    /**
+//     * Создает объект вызвавшего класса и заполняет его свойства
+//     * @param object|array $data
+//     * @return array|object|false
+//     */
+//    public static function factory(object|array $data)
+//    {
+//        if (!empty($data)) {
+//            if (is_array($data)) {
+//                $res = [];
+//                foreach ($data as $item) {
+//                    $res[] = self::init($item);
+//                }
+//                return $res;
+//            } elseif (is_object($data)) {
+//                return self::init($data);
+//            }
+//        }
+//
+//        return false;
+//    }
+
     /**
-     * Создает объект вызвавшего класса и заполняет его свойства
-     * @param object|array $data
-     * @return array|object|false
+     * Инициализиурет model из entity
+     * @param Entity|null $data - объект entity
+     * @return $this|null
+     * @throws ReflectionException
      */
-    public static function factory(object|array $data)
+    public function init(?Entity $data)
     {
-        if (!empty($data)) {
-            if (is_array($data)) {
-                $res = [];
-                foreach ($data as $item) {
-                    $res[] = self::init($item);
-                }
-                return $res;
-            } elseif (is_object($data)) {
-                return self::init($data);
+        if (empty($data)) return null;
+
+        $fields = $data->getFields();
+        $class = new ReflectionClass($data);
+
+        foreach ($fields as $key => $field) {
+            if (!property_exists($this, $key)) continue;
+
+            $prop = $field['field'];
+
+            $property = $class->getProperty($prop);
+            $property->setAccessible(true);
+
+            switch ($field['type']) {
+                case 'int':
+                    $this->$key = (int) $property->getValue($data);
+                    //$this->$key = (int) $data->$prop;
+                    break;
+                case 'float':
+                    $this->$key = (float) $property->getValue($data);
+                    //$this->$key = (float) $data->$prop;
+                    break;
+                case 'string':
+                    $this->$key = (string) $property->getValue($data);
+                    //$this->$key = (string) $data->$prop;
+                    break;
+                case 'bool':
+                    $value = $property->getValue($data);
+                    $this->$key = !empty($value) ? (bool) $value : null;
+                    //$this->$key = !empty($data->$prop) ? (bool) $data->$prop : null;
+                    break;
+                case 'datetime':
+                    $value = $property->getValue($data);
+                    $this->$key =
+                        //!empty($data->$prop) ?
+                        !empty($value) ?
+                            //($data->$prop instanceof \DateTime ?
+                            ($value instanceof \DateTime ?
+                                //$data->$prop->format('Y-m-d H:i:s') :
+                                $value->format('Y-m-d H:i:s') :
+                                //(is_string($data->$prop) ? $data->$prop : null)) :
+                                (is_string($value) ? $value : null)) :
+                            null;
+                    break;
+                default:
+                    $this->$key = $data->$prop;
             }
         }
 
-        return false;
+        return $this;
     }
 
-    /**
-     * Инициализирует свойства вызвавшего класса значениями
-     * @param object $item
-     * @return object|false
-     */
-    private static function init(object $item)
+    public function toArray()
     {
-        if (!empty($item) && is_object($item)) {
-            $object = new static();
-            foreach (get_class_vars(get_called_class()) as $key => $field) {
-                if ($key === 'table') continue;
-                if (!isset($item->$key)) $object->$key = null;
-
-                switch ($key) {
-                    case 'prices':
-                        $object->$key = !$item->$key ? $item->$key : ProductPrice::factory($item->$key);
-                        break;
-                    case 'images':
-                        $object->$key = !$item->$key ? $item->$key : ProductImage::factory($item->$key);
-                        break;
-                    case 'stores':
-                        $object->$key = !$item->$key ? $item->$key : ProductStore::factory($item->$key);
-                        break;
-                    default:
-                        $object->$key = $item->$key ?? null;
-                }
-            }
+        $result = [];
+        foreach ($this as $key => $value) {
+            if ($key === 'data') continue;
+            $result[$key] = $value;
         }
-        return $object ?? false;
+
+        return $result;
     }
 
     /**
      * Находит и возвращает записи из БД
-     * @param string $order
-     * @param string $sort
-     * @param bool $active
-     * @param bool $object
+     * @param $params
+     * $params['active'] - только активные сообщения
+     * $params['sort'] - поле сортировки
+     * $params['order'] - направление сортировки
+     * $params['limit'] - лимит сообщений для выдачи
      * @return array|bool
      */
-    public static function getList(string $order = 'created', string $sort = 'ASC', bool $active = true, bool $object = true)
+    public static function getList(array $params = [])
     {
-        $activity = !empty($active) ? 'WHERE active IS NOT NULL' : '';
-        $sql = "SELECT * FROM " . static::$table . " {$activity} ORDER BY {$order} " . strtoupper($sort);
+        $params += ['active' => true, 'object' => false];
+        $prefix = static::$db_prefix;
+        $table = static::$db_table;
+
         $db = Db::getInstance();
-        $data = $db->query($sql, [], $object ? static::class : null);
+        $active = !empty($params['active']) ? 'WHERE active IS NOT NULL' : '';
+        $sort = !empty($params['sort']) ? $params['sort'] : 'id';
+        $order = !empty($params['order']) ? strtoupper($params['order']) : 'ASC';
+        $limit = !empty($params['limit']) ? "LIMIT {$params['limit']}" : '';
+
+        $db->params = [];
+        $db->sql = "
+            SELECT * 
+            FROM {$prefix}{$table} 
+            {$active} 
+            ORDER BY {$sort} {$order} 
+            {$limit}";
+
+        $data = $db->query(!empty($params['object']) ? static::class : null);
         return $data ?? false;
     }
 
     /**
      * Находит и возвращает одну запись из БД по id
      * @param int $id
-     * @param bool $active
-     * @param bool $object
+     * @param array|null $params
      * @return bool|mixed
      */
-    public static function getById(int $id, bool $active = true, bool $object = true)
+    public static function getById(int $id, array $params = [])
     {
-        $where = !empty($active) ? ' AND active IS NOT NULL' : '';
-        $sql = "SELECT * FROM " . static::$table . " WHERE id = :id {$where}";
-        $params = [
-            'id' => $id
-        ];
+        $params += ['active' => true, 'object' => false];
+        $prefix = static::$db_prefix;
+        $table = static::$db_table;
+
         $db = Db::getInstance();
-        $data = $db->query($sql, $params, $object ? static::class : null);
+        $active = !empty($params['active']) ? ' AND active IS NOT NULL' : '';
+        $db->params = ['id' => $id];
+        $db->sql = "SELECT * FROM {$prefix}{$table} WHERE id = :id {$active}";
+
+        $data = $db->query(!empty($params['object']) ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }
 
@@ -113,39 +175,43 @@ abstract class Model
      * Возвращает имя страницы по любому полю (+)
      * @param string $field
      * @param string $value
-     * @param bool $active
-     * @param bool $object
+     * @param array|null $params
      * @return false
      */
-    public static function getName(string $field, string $value, bool $active = true, bool $object = true)
+    public static function getName(string $field, string $value, array $params = [])
     {
-        $activity = !empty($active) ? ' AND active IS NOT NULL' : '';
-        $sql = "SELECT name FROM shop." . static::$table . " WHERE {$field} = :value {$activity}";
-        $params = [
-            'value' => $value
-        ];
+        $params += ['active' => true, 'object' => false];
+        $prefix = static::$db_prefix;
+        $table = static::$db_table;
+
         $db = Db::getInstance();
-        $data = $db->query($sql, $params, $object ? static::class : null);
-        return !empty($data) ? array_shift($data)->name : false;
+        $active = !empty($params['active']) ? ' AND active IS NOT NULL' : '';
+        $db->params = ['value' => $value];
+        $db->sql = "SELECT name FROM shop." . static::$db_table . " WHERE {$field} = :value {$active}";
+
+        $data = $db->query(!empty($params['object']) ? static::class : null);
+        return !empty($data) ? array_shift($data)['name'] : false;
     }
 
     /**
      * Находит и возвращает одну запись из БД по полю и его значению
      * @param string $field
      * @param string $value
-     * @param bool $active
-     * @param bool $object
      * @return array|false
      */
-    public static function getByField(string $field, string $value, bool $active = true, bool $object = true)
+    public static function getByField(string $field, string $value, array $params = [])
     {
-        $activity = !empty($active) ? ' AND active IS NOT NULL' : '';
-        $sql = "SELECT * FROM `" . static::$table . "` WHERE {$field} = :value {$activity}";
-        $params = [
-            'value' => $value
-        ];
+        $params += ['active' => true, 'object' => false];
+        $prefix = static::$db_prefix;
+        $table = static::$db_table;
+
         $db = Db::getInstance();
-        $data = $db->query($sql, $params, $object ? static::class : null);
+        $active = !empty($params['active']) ? 'AND active IS NOT NULL' : '';
+        $db->params = ['value' => $value];
+
+        $db->sql = "SELECT * FROM shop." . static::$db_table . " WHERE {$field} = :value {$active}";
+
+        $data = $db->query(!empty($params['object']) ? static::class : null);
         return !empty($data) ? array_shift($data) : false;
     }
 
@@ -164,7 +230,7 @@ abstract class Model
      */
     public function isNew(): bool
     {
-        return !(!empty($this->id) && !empty(self::getById($this->id, false)));
+        return !(!empty($this->id) && !empty(self::getById($this->id, ['active' => false])));
     }
 
     /**
@@ -173,16 +239,20 @@ abstract class Model
      */
     public function insert()
     {
+        $db = Db::getInstance();
         $cols = [];
-        $params = [];
+        $db->params = [];
         foreach ($this as $key => $val) {
             if ($val === null) continue;
+            if ($key === 'data') continue;
             $cols[] = $key;
-            $params[':' . $key] = $val;
+            $db->params[$key] = $val;
         }
-        $sql =  'INSERT INTO ' . static::$table . ' (' . implode(', ', $cols) . ') VALUES (' . ':' . implode(', :', $cols) . ')';
-        $db = Db::getInstance();
-        $res = $db->execute($sql, $params);
+        $db->sql =  "
+            INSERT INTO " . self::$db_prefix . static::$db_table . " (" . implode(', ', $cols) . ") 
+            VALUES (" . ":" . implode(', :', $cols) . ")";
+
+        $res = $db->execute();
         return !empty($res) ? $db->lastInsertId() : false;
     }
 
@@ -191,16 +261,18 @@ abstract class Model
      */
     public function update()
     {
-        $binds = [];
-        $params = [];
-        foreach ($this as $key => $val) {
-            if ($val === null) continue;
-            if ('id' !== $key) $binds[] = $key . ' = :' . $key;
-            $params[$key] = $val;
-        }
-        $sql = 'UPDATE ' . static::$table . ' SET ' . implode(', ', $binds) . ' WHERE id = :id';
         $db = Db::getInstance();
-        return $db->execute($sql, $params) ? $this->id : false;
+        $binds = [];
+        $db->params = [];
+        foreach ($this as $key => $val) {
+            //if ($val === null) continue;
+            if ($key === 'data') continue;
+            if ('id' !== $key) $binds[] = $key . ' = :' . $key;
+            $db->params[$key] = $val;
+        }
+        $db->sql = 'UPDATE ' . self::$db_prefix . static::$db_table . ' SET ' . implode(', ', $binds) . ' WHERE id = :id';
+
+        return $db->execute() ? $this->id : false;
     }
 
     /**
@@ -209,12 +281,10 @@ abstract class Model
      */
     public function delete(): bool
     {
-        $sql = 'DELETE FROM ' . static::$table . ' WHERE id = :id';
-        $params = [
-            ':id' => $this->id
-        ];
         $db = Db::getInstance();
-        return $db->execute($sql, $params);
+        $db->params = [':id' => $this->id];
+        $db->sql = "DELETE FROM " . self::$db_prefix . static::$db_table . " WHERE id = :id";
+        return $db->execute();
     }
 
     /**
@@ -223,9 +293,9 @@ abstract class Model
      */
     public static function count()
     {
-        $sql = 'SELECT COUNT(*) count FROM ' . static::$table;
         $db = Db::getInstance();
-        $data = $db->query($sql, [], static::class);
+        $db->sql = "SELECT COUNT(*) count FROM " . self::$db_prefix . static::$db_table;
+        $data = $db->query(static::class);
         return !empty($data) ? (int)array_shift($data)->count : false;
     }
 

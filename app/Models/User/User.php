@@ -1,15 +1,14 @@
 <?php
-
 namespace Models\User;
 
 use System\Db;
 use System\Geo;
-use System\Response;
 use System\RSA;
 use Models\Model;
 use Models\Event;
 use System\Access;
 use System\Logger;
+use System\Response;
 use Models\OrderItem;
 use Models\Fias\City;
 use System\Validation;
@@ -18,33 +17,103 @@ use Exceptions\UserException;
 
 /**
  * Class User
- * @package App\Models
+ * @package Models\User
  */
 class User extends Model
 {
-    protected static $table = 'users';
+    protected static $db_table = 'shop.users';
 
     public int $id;
-    public ?bool $active;
-    public ?bool $blocked;
-    public int $group_id = 2; // группа "Пользователи"
-    public string $group_name;
+    public ?int $active = 1;
+    public ?int $blocked = null;
+    public int $group_id = 4;
+    public int $gender_id = 1;
     public string $last_name;
     public string $name;
     public ?string $second_name;
     public string $email;
     public string $phone;
     public string $password;
-    public ?bool $personal_data;
-    public ?bool $mailing = true; // подписание на рассылку
-    public int $mailing_type_id = 2; // тип рассылки html
-    public string $mailing_type; // тип рассылки
-    public int $price_type_id = 2; // розничная
-    public string $price_type; // тип цены, по которой покупает
-    public array $price_types; // разрешенные для просмотра типы цен
-    public string $private_key;
+    public ?int $personal_data_agreement = null;
+    public ?int $mailing = null;
+    public int $mailing_type_id = 2;
+    public int $price_type_id = 2;
+    public int $timezone = 0;
     public string $created;
-    public ?string $updated;
+    public ?string $updated = null;
+
+    /**
+     * Возвращает пользователя по id
+     * @param int $id - id пользователя
+     * @return bool|mixed
+     */
+    public static function getById(int $id, array $params = [])
+    {
+        $params += ['active' => true];
+
+        $db = Db::getInstance();
+        $active = !empty($params['active']) ? 'AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL' : '';
+        $db->params = ['id' => $id];
+
+        $db->sql = "
+            SELECT 
+                u.id, u.active, u.blocked, u.group_id, u.last_name, u.name, u.second_name, u.email, u.phone, u.password, 
+                u.personal_data_agreement, u.mailing, u.mailing_type_id, u.created, u.updated, 
+                ug.name AS group_name, ug.price_type_id, u.gender_id, ugn.name gender, 
+                pt.name AS price_type, tt.name AS mailing_type, u.timezone 
+            FROM users u
+            LEFT JOIN user_sessions us ON u.id = us.user_id 
+            LEFT JOIN user_groups ug ON u.group_id = ug.id 
+            LEFT JOIN price_types pt ON ug.price_type_id = pt.id 
+            LEFT JOIN text_types tt ON u.mailing_type_id = tt.id
+            LEFT JOIN shop.user_genders ugn ON u.gender_id = ugn.id
+            WHERE u.id = :id {$active}";
+
+        $data = $db->query();
+        $user = !empty($data) ? array_shift($data) : null;
+
+        if (!empty($user)) $user['price_types'] = UserPriceType::getListByUser($user['id'], $user['group_id']);
+
+        return $user;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /**
      * Генерирует публичный ключ шифрования (+)
@@ -74,7 +143,7 @@ class User extends Model
      * @return bool
      */
     public static function isAuthorized()
-    {
+    {return false;
         $user = self::getCurrent();
         return !empty($user->id) && $user->id !== 2;
     }
@@ -86,47 +155,14 @@ class User extends Model
      */
     public static function getCurrent()
     {
-        $user = self::getByHash() ?: self::getById(2);
+        $user = self::getByHash() ?: self::getById(2, ['object' => true]);
         $user->price_types = self::getUserPriceTypes($user->group_id, $user->id); // разершенные к просмотру типы цен
-        $_SESSION['user'] = $user;
+        //$_SESSION['user'] = $user;
         //if (!empty($user['cookie_hash'])) UserSession::extend($user);
         return $user ?? null;
     }
 
-    /**
-     * Возвращает пользователя по id (+)
-     * @param int $id - id пользователя
-     * @param bool $active - возвращать активного/любого пользователя
-     * @param bool $object - возвращать объект/массив
-     * @return bool|mixed
-     */
-    public static function getById(int $id, bool $active = true, bool $object = true)
-    {
-        $activity = !empty($active) ? 'AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL' : '';
-        $params = ['id' => $id];
-        $sql = "
-            SELECT 
-                u.id, u.active, u.blocked, u.group_id, u.last_name, u.name, u.second_name, u.email, u.phone, u.password, 
-                u.personal_data, u.mailing, u.mailing_type_id, u.private_key, u.created, u.updated, 
-                ug.name AS group_name, ug.price_type_id, 
-                pt.name AS price_type,
-                tt.name AS mailing_type 
-            FROM users u
-            LEFT JOIN user_sessions us 
-                ON u.id = us.user_id 
-            LEFT JOIN user_groups ug
-                ON u.group_id = ug.id 
-            LEFT JOIN price_types pt
-                ON ug.price_type_id = pt.id 
-            LEFT JOIN text_types tt 
-                ON u.mailing_type_id = tt.id
-            WHERE u.id = :id {$activity}
-            ";
 
-        $db = Db::getInstance();
-        $data = $db->query($sql, $params, $object ? static::class : null);
-        return !empty($data) ? array_shift($data) : false;
-    }
 
     /**
      * Возращает пользователя по session_hash и cookie_hash (+)
@@ -183,13 +219,13 @@ class User extends Model
      */
     public static function getUserPriceTypes(int $group_id, int $user_id)
     {
-        $params = [
+        $db = Db::getInstance();
+        $db->params = [
             'group_id' => $group_id,
             'user_id' => $user_id,
         ];
-        $sql = "SELECT price_type_id FROM shop.user_price_types WHERE user_group_id = :group_id OR user_id = :user_id";
-        $db = Db::getInstance();
-        $data = $db->query($sql, $params);
+        $db->sql = "SELECT price_type_id FROM shop.user_price_types WHERE user_group_id = :group_id OR user_id = :user_id";
+        $data = $db->query();
 
         $res = [2];
         if (!empty($data) && is_array($data)) {

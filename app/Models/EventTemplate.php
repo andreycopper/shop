@@ -9,7 +9,7 @@ use System\Mailer;
 
 class EventTemplate extends Model
 {
-    protected static $table = 'event_templates';
+    protected static $db_table = 'event_templates';
 
     public function filter_id($id)
     {

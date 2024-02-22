@@ -1,14 +1,12 @@
 <?php
-
 namespace Models;
 
 use System\Db;
-use System\Cache;
-use Models\Product\Product;
+use Utils\Cache;
 
 class Page extends Model
 {
-    protected static $table = 'pages';
+    protected static $db_table = 'pages';
 
     public ?int $id;
     public ?bool $active;
@@ -31,16 +29,9 @@ class Page extends Model
      */
     public static function getMenu($type)
     {
-        if (!empty($_SESSION['menu'][$type]) &&
-            !empty($_SESSION['menu']["{$type}_expiration"]) &&
-            $_SESSION['menu']["{$type}_expiration"] > time())
-        {
-            return $_SESSION['menu'][$type];
-        }
-        elseif ($data = Cache::getMenu($type)) return $data;
+        $menu = Cache::getMenu($type);
+        if (!empty($menu)) return $menu;
 
-        $time = time();
-        $time += 60 * 60 * 24;
         switch ($type) {
             case 'main':
                 $data = self::getMainMenu();
@@ -48,66 +39,135 @@ class Page extends Model
             case 'personal':
                 $data = self::getPersonalMenu();
                 break;
+            case 'catalog':
+                $data = self::getCatalogMenu();
+                break;
             default:
                 $data = null;
         }
 
-        if (!empty($data)) {
-            $_SESSION['menu']["{$type}_expiration"] = $time;
-            $_SESSION['menu'][$type] = $data;
-        }
+        if (!empty($data)) Cache::saveMenu($type, $data);
+
         return $data;
     }
 
     /**
-     * Возвращает главное меню (+)
-     * @param string $sort - сортировка
-     * @param string $order - направление сортировки
-     * @param bool $active - активность
-     * @param bool $object - возвращать объект/массив
-     * @return array|bool
+     * Возвращает главное меню
+     * @param ?array $params
+     * @return array
      */
-    public static function getMainMenu(string $sort = 'sort', string $order = 'ASC', bool $active = true, bool $object = true)
+    public static function getMainMenu(?array $params = [])
     {
-        $activity = !empty($active) ? 'AND p.active IS NOT NULL' : '';
-        $sql = "
-            SELECT p.id, p.menu, p.footer, p.parent_id, p.name, p.link, p.description, p.meta_d, p.meta_k, p.sort 
-            FROM pages p 
-            WHERE p.menu IS NOT NULL {$activity} 
-            ORDER BY {$sort} {$order}";
-        $db = Db::getInstance();
-        $data = $db->query($sql, [],$object ? static::class : null);
-        $res = [];
+        $params += ['active' => true];
 
-        if (!empty($data)) {
+        $db = Db::getInstance();
+        $active = !empty($params['active']) ? 'AND active IS NOT NULL' : '';
+        $sort = !empty($params['sort']) ? $params['sort'] : 'sort';
+        $order = !empty($params['order']) ? strtoupper($params['order']) : 'ASC';
+
+        $db->params = [];
+        $db->sql = "
+            SELECT id, menu, footer, parent_id, name, link, description, meta_d, meta_k, sort 
+            FROM pages 
+            WHERE menu IS NOT NULL {$active} 
+            ORDER BY {$sort} {$order}";
+
+        $data = $db->query();
+
+        $menu = [];
+        if (!empty($data) && is_array($data)) {
             foreach ($data as $item) {
-                if (empty($item->parent_id)) $res[0][$item->id] = $item;
-                else $res[$item->parent_id][$item->id] = $item;
+                if (empty($item['parent_id'])) $menu[0][$item['id']] = $item;
+                else $menu[$item['parent_id']][$item['id']] = $item;
             }
         }
-        return $res ?: false;
+
+        return $menu;
     }
 
     /**
-     * Возвращает меню личного кабинета (+)
-     * @param string $sort - сортировка
-     * @param string $order - направление сортировки
-     * @param bool $active - активность
-     * @param bool $object - возвращать объект/массив
-     * @return false
+     * Возвращает меню личного кабинета
+     * @param array|null $params
+     * @return array
      */
-    public static function getPersonalMenu(string $sort = 'sort', string $order = 'ASC', bool $active = true, bool $object = true)
+    public static function getPersonalMenu(?array $params = [])
     {
-        $activity = !empty($active) ? 'AND p.active IS NOT NULL' : '';
-        $sql = "
-            SELECT p.id, p.parent_id, p.name, p.link, p.description, p.meta_d, p.meta_k, p.sort 
-            FROM pages p 
-            WHERE p.personal IS NOT NULL {$activity} 
-            ORDER BY {$sort} {$order}";
+        $params += ['active' => true];
+
         $db = Db::getInstance();
-        $data = $db->query($sql, [],$object ? static::class : null);
-        return $data ?: false;
+        $active = !empty($params['active']) ? 'AND active IS NOT NULL' : '';
+        $sort = !empty($params['sort']) ? $params['sort'] : 'sort';
+        $order = !empty($params['order']) ? strtoupper($params['order']) : 'ASC';
+
+        $db->params = [];
+        $db->sql = "
+            SELECT id, parent_id, name, link, description, meta_d, meta_k, sort 
+            FROM pages  
+            WHERE personal IS NOT NULL {$active} 
+            ORDER BY {$sort} {$order}";
+
+        $data = $db->query();
+        return $data ?: [];
     }
+
+    /**
+     * Возвращает меню каталога
+     * @return array
+     */
+    public static function getCatalogMenu()
+    {
+        $data = Category::getList();
+
+        $menu = [];
+        if (!empty($data) && is_array($data)) {
+            foreach ($data as $item) {
+                if (empty($item['parent_id'])) $menu[0][$item['id']] = $item;
+                else $menu[$item['parent_id']][$item['id']] = $item;
+            }
+        }
+
+        return $menu;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /**
      * Получает информацию по текущей странице. Данные будут только у тех страниц, которые в shop.pages (+)
@@ -135,6 +195,23 @@ class Page extends Model
         if ($data = Cache::getPage($name)) return $data;
         return self::getByField('link', $name);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

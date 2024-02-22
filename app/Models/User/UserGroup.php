@@ -6,7 +6,7 @@ use Models\Model;
 
 class UserGroup extends Model
 {
-    protected static $table = 'user_groups';
+    protected static $db_table = 'user_groups';
 
     const ADMINISTRATOR = 'Администраторы';
     const USERS = 'Пользователи';

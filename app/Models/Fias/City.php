@@ -8,7 +8,7 @@ use Exceptions\DbException;
 
 class City extends Model
 {
-    protected static $table = 'fias.cities';
+    protected static $db_table = 'fias.cities';
     public int $id;
     public ?bool $active;
     public $region_id;
@@ -39,17 +39,23 @@ class City extends Model
      * @return false|mixed
      * @throws DbException
      */
-    public static function getCityLocationByName(string $city, bool $active = true, bool $object = true)
+    public static function getCityLocationByName(string $city, ?array $params = [])
     {
-        $activity = !empty($active) ? ' AND c.active IS NOT NULL AND r.active IS NOT NULL' : '';
-        $sql = "
+        $params += ['active' => true, 'object' => false];
+
+        $db = Db::getInstance();
+        $active = !empty($params['active']) ? 'AND c.active IS NOT NULL AND r.active IS NOT NULL' : '';
+        $db->params = ['city' => $city];
+
+
+        $db->sql = "
             SELECT c.id, c.active, c.name, r.name AS region, s.shortname 
             FROM fias.cities c 
             LEFT JOIN fias.regions r 
                 ON c.region_id = r.id 
             LEFT JOIN fias.shortnames s 
                 ON c.shortname_id = s.id 
-            WHERE c.name = :city {$activity} 
+            WHERE c.name = :city {$active} 
             UNION ALL 
             SELECT c.id, c.active, c.name, r.name AS region, s.shortname 
             FROM fias.cities c 
@@ -57,13 +63,10 @@ class City extends Model
                 ON c.region_id = r.id 
             LEFT JOIN fias.shortnames s 
                 ON c.shortname_id = s.id
-            WHERE NOT EXISTS(SELECT * FROM fias.cities WHERE name = :city) AND c.name = 'Москва' {$activity}";
-        $params = [
-            ':city' => $city
-        ];
-        $db = Db::getInstance();
-        $data = $db->query($sql, $params, $object ? static::class : null);
-        return !empty($data) ? array_shift($data) : false;
+            WHERE NOT EXISTS(SELECT * FROM fias.cities WHERE name = :city) AND c.name = 'Москва' {$active}";
+
+        $data = $db->query(!empty($params['object']) ? static::class : null);
+        return !empty($data) ? array_shift($data) : null;
     }
 
 
@@ -81,29 +84,31 @@ class City extends Model
 
 
 
-    public static function getById(int $id, bool $active = false, bool $object = true)
+    public static function getById(int $id, array $params = [])
     {
-        $where = !empty($active) ? ' AND c.active IS NOT NULL' : '';
-        $sql = "
+        $params += ['active' => true, 'object' => false];
+
+        $db = Db::getInstance();
+        $active = !empty($params['active']) ? 'AND c.active IS NOT NULL' : '';
+        $db->params = ['id' => $id];
+
+        $db->sql = "
             SELECT c.id, c.name AS city, c.lat, c.lng, 
                    r.name AS region 
             FROM cities c 
             LEFT JOIN regions r 
                 ON c.region_id = r.id 
-            WHERE c.id = :id {$where} 
+            WHERE c.id = :id {$active} 
             UNION ALL 
             SELECT c.id, c.name AS city, c.lat, c.lng, 
                    r.name AS region 
             FROM cities c 
             LEFT JOIN regions r 
                 ON c.region_id = r.id 
-            WHERE NOT EXISTS(SELECT * FROM cities WHERE id = :id) AND c.id = 2387 {$where}";
-        $params = [
-            ':id' => $id
-        ];
-        $db = Db::getInstance();
-        $data = $db->query($sql, $params, $object ? static::class : null);
-        return !empty($data) ? array_shift($data) : false;
+            WHERE NOT EXISTS(SELECT * FROM cities WHERE id = :id) AND c.id = 2387 {$active}";
+
+        $data = $db->query(!empty($params['object']) ? static::class : null);
+        return !empty($data) ? array_shift($data) : null;
     }
 
 

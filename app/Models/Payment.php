@@ -4,7 +4,7 @@ namespace Models;
 
 class Payment extends Model
 {
-    protected static $table = 'payments';
+    protected static $db_table = 'payments';
     public $id;          // id
     public $active;      // активность
     public $name;        // название

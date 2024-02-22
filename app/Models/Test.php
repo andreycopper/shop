@@ -6,7 +6,7 @@ use System\Db;
 
 class Test extends Model
 {
-    protected static $table = 'test';
+    protected static $db_table = 'test';
 
     public static function cache($object = null)
     {

@@ -6,7 +6,7 @@ use System\Validation;
 
 class CallBack extends Model
 {
-    protected static $table = 'callbacks';
+    protected static $db_table = 'callbacks';
     public $id;        // id
     public $user_id;   // id пользователя
     public $user_hash; // хэш пользователя

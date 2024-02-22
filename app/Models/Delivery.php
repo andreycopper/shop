@@ -4,7 +4,7 @@ namespace Models;
 
 class Delivery extends Model
 {
-    protected static $table = 'deliveries';
+    protected static $db_table = 'deliveries';
     public $id;          // id
     public $active;      // активность
     public $name;        // название

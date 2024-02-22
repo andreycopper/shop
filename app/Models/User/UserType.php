@@ -6,7 +6,7 @@ use Models\Model;
 
 class UserType extends Model
 {
-    protected static $table = 'user_types';
+    protected static $db_table = 'user_types';
     public $id;            // id
     public $active;        // активность
     public $name;          // контактное лицо

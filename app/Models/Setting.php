@@ -1,33 +1,31 @@
 <?php
-
 namespace Models;
+
+use Utils\Cache;
 
 class Setting extends Model
 {
-    protected static $table = 'settings';
+    protected static $db_table = 'shop.settings';
 
-    public function filter_id($id)
+    /**
+     * Возвращает массив настроек из кэша, БД
+     * @return array
+     */
+    public static function getSiteSettings()
     {
-        return (int)$id;
-    }
+        $settings = Cache::getSettings();
+        if (!empty($settings)) return $settings;
 
-    public function filter_active($value)
-    {
-        return (int)$value;
-    }
+        $data = Setting::getList();
+        $settings = [];
+        if (!empty($data) && is_array($data)) {
+            foreach ($data as $item) {
+                $settings[$item['name']] = $item['value'];
+            }
 
-    public function filter_name($text)
-    {
-        return strip_tags(trim($text));
-    }
+            Cache::saveSettings($settings);
+        }
 
-    public function filter_value($text)
-    {
-        return strip_tags(trim($text));
-    }
-
-    public function filter_description($text)
-    {
-        return strip_tags(trim($text), '<p><div><span><b><strong><i><br><h1><h2><h3><h4><h5><h6><ul><ol><li><a><table><tr><th><td><caption>');
+        return $settings;
     }
 }

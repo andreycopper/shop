@@ -1,230 +1,202 @@
 <?php
-
 namespace Models\Product;
 
-use System\Cache;
 use System\Db;
 use Models\Model;
 
 class Product extends Model
 {
-    protected static $table = 'products';
+    protected static $db_table = 'products';
 
     public int $id;
-    public $xml_id;
-    public $ie_id;
+    public ?int $xml_id = null;
+    public ?int $ie_id = null;
     public string $name;
-    public ?bool $active;
-    public $active_from;
-    public $active_to;
-    public string $articul;
-    public int $group_id;
-    public string $group_name;
-    public string $group_link;
+    public ?int $active = null;
+    public ?string $active_from = null;
+    public ?string $active_to = null;
+
+    public ?string $articul = null;
+    public int $category_id;
     public int $vendor_id;
-    public string $vendor_name;
-    public ?string $vendor_image;
-    public ?string $preview_image;
-    public ?string $preview_text;
-    public int $preview_text_type_id;
-    public string $preview_text_type;
-    public ?string $detail_image;
-    public ?string $detail_text;
-    public int $detail_text_type_id;
-    public string $detail_text_type;
-    public ?bool $is_hit;
-    public ?bool $is_new;
-    public ?bool $is_action;
-    public ?bool $is_recommend;
 
-    public int $tax_id;
-    public ?bool $tax_included;
-    public string $tax_name;
-    public float $tax_value;
-    public int $quantity;
-    public ?float $discount;
-    public ?float $price; // цена товара со скидкой
-    public ?int $price_type_id;
-    public ?string $price_type;
-    public ?string $currency;
-    public ?float $rate;
-    public ?string $iso;
-    public ?string $logo;
+    public ?string $preview_image = null;
+    public ?string $preview_text = null;
+    public int $preview_text_type_id = 1;
+    public ?string $detail_image = null;
+    public ?string $detail_text = null;
+    public int $detail_text_type_id = 1;
 
-    public $prices = []; // цены товара разных типов
-    public $images = []; // изображения товара
-    public $stores = []; // количество на складах
+    public ?int $is_hit = null;
+    public ?int $is_new = null;
+    public ?int $is_action = null;
+    public ?int $is_recommend = null;
 
-    public int $unit_id;
-    public string $unit_name;
-    public string $unit;
-    public int $warranty;
-    public int $warranty_period_id;
-    public string $warranty_name;
-    public int $views;
-    public $sort;
-    public $created;
-    public $updated;
+    public int $tax_id = 1;
+    public ?int $tax_included = null;
+    public int $quantity = 0;
+    public ?int $discount = null;
+    public float $price;
 
-    public static function get($id, $price_type_id)
-    {
-        if ($data = Cache::getProduct($id, $price_type_id)) return $data;
-        return self::getPrice($id, $price_type_id);
-    }
+    public int $currency_id = 1;
+    public int $unit_id = 1;
+    public ?int $is_warranty = null;
+    public int $warranty_period_id = 2;
+
+    public int $views = 0;
+    public int $sort = 500;
+    public string $created;
+    public ?string $updated = null;
 
     /**
-     * Возвращает товар с ценами (+)
+     * Возвращает товар с ценами
      * @param int $id - id товара
-     * @param int $price_type_id - основной тип цен
-     * @param array $price_types - массив типов цен (пустой массив - все типы цен)
-     * @param bool $active - активность
-     * @param bool $object - возвращать объект/массив
-     * @return bool|mixed
+     * @param array $params
+     * @return array
      */
-    public static function getPrice(int $id, int $price_type_id, array $price_types = [], bool $active = true, bool $object = true)
+    public static function get(int $id, array $params = [])
     {
-        $item = self::getByIdWithPrice($id, $price_type_id, $active, $object);
-        if (!empty($item)) {
-            if (!empty(SHOW_ALL_PRICES_PRODUCT) || !empty($price_types)) $item->prices = ProductPrice::getPrices($id, $price_types, $active);
-            $item->images = ProductImage::getByProductId($id);
-            $item->stores = ProductStore::getQuantities($id);
-        }
-        return $item ?: false;
+        $item = self::getById($id, $params);
+        $item['prices'] = self::getPrice($item['id'], $params);
+        //$item['images'] = ProductImage::getByProductId($id);
+        //$item['stores'] = ProductStore::getQuantities($id);
+        return $item;
     }
 
     /**
-     * Возвращает список товаров определенной группы с ценами (+)
-     * @param int|null $group_id - раздел
-     * @param int $price_type_id - основной тип цены для пользователя
-     * @param array $price_types - массив типов цен (пустой массив - все типы цен)
-     * @param int|null $page_number
-     * @param int|null $page_count
-     * @param array $filters - массив фильтров
-     * @param string $order - поле сортировки
-     * @param string $sort - порядок сортировки
-     * @param bool $active - активность
-     * @param bool $object - возвращать объект/массив
-     * @return array|bool|mixed
+     * Возвращает товар по его id с ценами
+     * @param int $product_id - id товара
+     * @param array $params
+     * @return array
      */
-    public static function getPriceList(
-        int $group_id = null,
-        int $price_type_id = 2,
-        array $price_types = [],
-        int $page_number = null,
-        int $page_count = null,
-        array $filters = [],
-        string $sort = 'sort',
-        string $order = 'ASC',
-        bool $active = true,
-        bool $object = true
-    )
+    public static function getPrice(int $product_id, array $params = [])
     {
-        $items = self::getListByGroup($group_id, $price_type_id, $page_number, $page_count, $filters, $sort, $order, $active, $object);
-        if ((!empty(SHOW_ALL_PRICES_CATALOG) || !empty($price_types)) && !empty($items) && is_array($items)) {
-            foreach ($items as $item) {
-                $item->prices = ProductPrice::getPrices($item->id, $price_types, $active);
+        return
+            defined(SHOW_ALL_PRICES_CATALOG) ?
+                ProductPrice::getPrices($product_id, $params['price_types']) :
+                ProductPrice::getPrice($product_id, $params['price_type_id']);
+    }
+
+    /**
+     * Возвращает товар по его id без цен
+     * @param int $id - id товара
+     * @param array $params
+     * @return array|null
+     */
+    public static function getById(int $id, array $params = [])
+    {
+        $params += ['price_type_id' => 2, 'active' => true, 'object' => false];
+
+        $db = Db::getInstance();
+        $db->params = ['id' => $id, 'price_type_id' => $params['price_type_id']];
+        $active = !empty($params['active']) ? 'AND p.active IS NOT NULL AND cat.active IS NOT NULL AND v.active IS NOT NULL' : '';
+
+        $db->sql = "
+            SELECT 
+                p.id, p.xml_id, p.ie_id, p.name, p.active, p.active_from, p.active_to, p.articul, 
+                p.category_id, cat.name AS category, cat.link AS category_link, 
+                p.vendor_id, v.name AS vendor, v.image AS vendor_image, 
+                p.preview_image, p.preview_text, p.preview_text_type_id, ptt.name AS preview_text_type, 
+                p.detail_image, p.detail_text, p.detail_text_type_id, dtt.name AS detail_text_type, 
+                p.is_hit, p.is_new, p.is_action, p.is_recommend, 
+                p.tax_id, p.tax_included, t.name AS tax, t.value AS tax_value, 
+                p.quantity, p.discount,
+                pp.price * cr.rate AS price,    
+                pp.price * cr.rate * (100 - COALESCE(IF(pp.price_type_id = 2, p.discount, 0), 0)) / 100 AS price_discount,    
+                pp.price_type_id, pt.name price_type, 
+                pp.currency_id, c.iso AS currency, c.logo AS currency_logo, c.sign AS currency_sign, cr.rate currency_rate, 
+                p.unit_id, u.name AS unit, u.sign AS unit_sign,
+                p.is_warranty, p.warranty_period_id, wp.name AS warranty, 
+                p.views, p.sort, p.created, p.updated 
+            FROM products p 
+            LEFT JOIN shop.categories cat ON p.category_id = cat.id 
+            LEFT JOIN product_prices pp ON p.id = pp.product_id AND pp.price_type_id = :price_type_id
+            LEFT JOIN price_types pt on pp.price_type_id = pt.id 
+            LEFT JOIN currencies c ON c.id = pp.currency_id 
+            LEFT JOIN currency_rates cr ON pp.currency_id = cr.currency_id
+            LEFT JOIN vendors v ON p.vendor_id = v.id 
+            LEFT JOIN taxes t ON p.tax_id = t.id 
+            LEFT JOIN units u ON p.unit_id = u.id 
+            LEFT JOIN warranty_periods wp ON p.warranty_period_id = wp.id 
+            LEFT JOIN text_types ptt ON p.preview_text_type_id = ptt.id 
+            LEFT JOIN text_types dtt ON p.detail_text_type_id = dtt.id 
+            WHERE p.id = :id {$active}";
+
+        $data = $db->query();
+        return $data ? array_shift($data) : null;
+    }
+
+    /**
+     * Возвращает массив товаров с ценами
+     * @param array $params
+     * @return array
+     */
+    public static function getPriceList(array $params = [])
+    {
+        $items = self::getList($params);
+
+        if (!empty($items) && is_array($items)) {
+            foreach ($items as &$item) {
+                $item['prices'] =
+                    defined(SHOW_ALL_PRICES_CATALOG) ?
+                        ProductPrice::getPrices($item['id'], $params['price_types']) :
+                        ProductPrice::getPrice($item['id'], $item['price_type_id']);
+                //$item['images'] = ProductImage::getImages($item['id'], $params);
+                //$item['stores'] = ProductStore::getStores($item['id'], $params);
             }
         }
-        return $items ?: false;
+
+        return $items;
     }
 
     /**
-     * Возвращает товар по id (+)
-     * @param int $id - id товара
-     * @param int $price_type_id - основной тип цены
-     * @param bool $active - активность
-     * @param bool $object - возвращать объект/массив
-     * @return bool|mixed
+     * Возвращает массив товаров без цен
+     * @param array $params
+     * @return array
      */
-    public static function getByIdWithPrice(int $id, int $price_type_id, bool $active = true, bool $object = true)
+    public static function getList(array $params = [])
     {
-        $params = [':id' => $id, 'price_type_id' => $price_type_id];
-        $activity = !empty($active) ? 'AND p.active IS NOT NULL AND g.active IS NOT NULL AND v.active IS NOT NULL' : '';
-        $sql = "
-            SELECT 
-                p.id, p.active, p.name, p.articul, p.quantity, p.discount, 
-                ROUND(pp.price * cr.rate * (100 - COALESCE(IF(pp.price_type_id = 2, p.discount, 0), 0)) / 100) price,
-                p.views, p.is_hit, p.is_new, p.is_action, p.is_recommend,
-                p.preview_image, p.preview_text, p.preview_text_type_id, ptt.name preview_text_type, 
-                p.detail_image, p.detail_text, p.detail_text_type_id, dtt.name detail_text_type, 
-                p.unit_id, u.name unit_name, u.sign unit, 
-                p.warranty, p.warranty_period_id, wp.name warranty_name,
-                p.group_id, g.name group_name, g.link group_link,
-                p.vendor_id, v.name vendor_name, v.image vendor_image,
-                p.tax_id, p.tax_included, t.name tax_name, t.value tax_value,
-                pp.price_type_id, pt.name price_type, 
-                cr.rate, c.iso, c.logo, c.sign currency 
-            FROM products p  
-            LEFT JOIN `groups` g ON p.group_id = g.id 
-            LEFT JOIN product_prices pp ON p.id = pp.product_id AND pp.price_type_id = :price_type_id
-            LEFT JOIN price_types pt on pp.price_type_id = pt.id 
-            LEFT JOIN currencies c ON c.id = pp.currency_id 
-            LEFT JOIN currency_rates cr ON pp.currency_id = cr.currency_id
-            LEFT JOIN vendors v ON p.vendor_id = v.id 
-            LEFT JOIN taxes t ON p.tax_id = t.id 
-            LEFT JOIN units u ON p.unit_id = u.id 
-            LEFT JOIN warranty_periods wp ON p.warranty_period_id = wp.id 
-            LEFT JOIN text_types ptt ON p.preview_text_type_id = ptt.id 
-            LEFT JOIN text_types dtt ON p.detail_text_type_id = dtt.id 
-            WHERE p.id = :id {$activity}";
+        $params += [
+            'price_type_id' => 2,
+            'page_number' => 0,
+            'elements_per_page' => 20,
+            'sort' => 'sort',
+            'order' => 'ASC',
+            'active' => true,
+            'object' => false,
+        ];
 
         $db = Db::getInstance();
-        $res = $db->query($sql, $params, $object ? static::class : null);
-        return !empty($res) ? array_shift($res) : false;
-    }
+        $db->params = ['price_type_id' => $params['price_type_id']];
 
-    /**
-     * Возвращает список товаров по id группы (+)
-     * @param int|null $group_id - группа товаров (пусто - все товары)
-     * @param int $price_type_id - основной тип цены для пользователя
-     * @param int|null $page_number - номер страницы
-     * @param int|null $page_count - количество товаров на странице
-     * @param array $filters - массив фильтров товара
-     * @param string $sort - порядок сортировки
-     * @param string $order - поле сортировки
-     * @param bool $active - активность
-     * @param bool $object - возвращать объект/массив
-     * @return array|bool
-     */
-    public static function getListByGroup(
-        int $group_id = null,
-        int $price_type_id = 2,
-        int $page_number = null,
-        int $page_count = null,
-        array $filters = [],
-        string $sort = 'sort',
-        string $order = 'ASC',
-        bool $active = true,
-        bool $object = true
-    )
-    {
-        $params = ['price_type_id' => $price_type_id];
-        $filter = self::getFilterString($filters);
-        $params += self::getFilterParams($filters);
+        $category = !empty($params['category_id']) ? 'AND p.category_id = :category_id' : '';
+        $active = !empty($params['active']) ? 'AND p.active IS NOT NULL AND cat.active IS NOT NULL AND v.active IS NOT NULL' : '';
+        if ($params['sort'] !== 'price') $params['sort'] =  "p.{$params['sort']}";
+        $offset = $params['page_number'] * $params['elements_per_page'];
 
-        $group = !empty($group_id) ? 'AND p.group_id = :group' : '';
-        $activity = !empty($active) ? 'AND p.active IS NOT NULL AND g.active IS NOT NULL AND v.active IS NOT NULL' : '';
-        $offset = !empty($page_number) && !empty($page_count) ? $page_count * ($page_number - 1) : 0;
-        $limit = !empty($page_count) ? "LIMIT {$offset}, {$page_count}" : '';
-        if ($sort !== 'price') $sort =  'p.' . $sort;
-        if (!empty($group_id)) $params['group'] = $group_id;
+        if (!empty($params['category_id'])) $db->params['category_id'] = $params['category_id'];
 
-        $sql = "
+        //$filter = self::getFilterString($filters);
+        //$params += self::getFilterParams($filters);
+        $db->sql = "
             SELECT 
-                p.id, p.active, p.name, p.articul, p.quantity, p.discount, 
-                ROUND(pp.price * cr.rate * (100 - COALESCE(IF(pp.price_type_id = 2, p.discount, 0), 0)) / 100) price, 
-                p.views, p.is_hit, p.is_new, p.is_action, p.is_recommend, 
-                p.preview_image, p.preview_text, p.preview_text_type_id, ptt.name preview_text_type, 
-                p.detail_image, p.detail_text, p.detail_text_type_id, dtt.name detail_text_type, 
-                p.unit_id, u.name unit_name, u.sign unit, 
-                p.warranty, p.warranty_period_id, wp.name warranty_name, 
-                p.group_id, g.name group_name, g.link group_link, 
-                p.vendor_id, v.name vendor_name, v.image vendor_image, 
-                p.tax_id, p.tax_included, t.name tax_name, t.value tax_value,
+                p.id, p.xml_id, p.ie_id, p.name, p.active, p.active_from, p.active_to, p.articul, 
+                p.category_id, cat.name AS category, cat.link AS category_link, 
+                p.vendor_id, v.name AS vendor, v.image AS vendor_image, 
+                p.preview_image, p.preview_text, p.preview_text_type_id, ptt.name AS preview_text_type, 
+                p.detail_image, p.detail_text, p.detail_text_type_id, dtt.name AS detail_text_type, 
+                p.is_hit, p.is_new, p.is_action, p.is_recommend, 
+                p.tax_id, p.tax_included, t.name AS tax, t.value AS tax_value, 
+                p.quantity, p.discount,
+                pp.price * cr.rate AS price,    
+                pp.price * cr.rate * (100 - COALESCE(IF(pp.price_type_id = 2, p.discount, 0), 0)) / 100 AS price_discount,    
                 pp.price_type_id, pt.name price_type, 
-                cr.rate, c.iso, c.logo, c.sign currency 
+                pp.currency_id, c.iso AS currency, c.logo AS currency_logo, c.sign AS currency_sign, cr.rate currency_rate, 
+                p.unit_id, u.name AS unit, u.sign AS unit_sign,
+                p.is_warranty, p.warranty_period_id, wp.name AS warranty, 
+                p.views, p.sort, p.created, p.updated 
             FROM products p 
-            LEFT JOIN `groups` g ON p.group_id = g.id 
+            LEFT JOIN shop.categories cat ON p.category_id = cat.id 
             LEFT JOIN product_prices pp ON p.id = pp.product_id AND pp.price_type_id = :price_type_id
             LEFT JOIN price_types pt on pp.price_type_id = pt.id 
             LEFT JOIN currencies c ON c.id = pp.currency_id 
@@ -235,100 +207,142 @@ class Product extends Model
             LEFT JOIN warranty_periods wp ON p.warranty_period_id = wp.id 
             LEFT JOIN text_types ptt ON p.preview_text_type_id = ptt.id 
             LEFT JOIN text_types dtt ON p.detail_text_type_id = dtt.id 
-            WHERE 1 {$group} {$activity} {$filter} 
-            ORDER BY {$sort} {$order}, p.created {$order}, p.id {$order} 
-            {$limit}";
+            WHERE 1 {$category} {$active} 
+            ORDER BY {$params['sort']} {$params['order']}, p.created {$params['order']}, p.id {$params['order']} 
+            LIMIT {$offset}, {$params['elements_per_page']}";
 
-        $db = Db::getInstance();
-        $items = $db->query($sql, $params, $object ? static::class : null);
-        return $items ?: false;
+        $data = $db->query();
+        return $data ?: [];
     }
 
     /**
-     * Возвращает список товаров без цен (+)
-     * (по сути не нужен, т.к. getListByGroup делает тоже самое, но с учетом групп и фильтров товаров.
-     * сделан для совместимости с базовым getList)
-     * @param string $order - поле сортировки
-     * @param string $sort - порядок сортировки
-     * @param bool $active - активность
-     * @param bool $object - возвращать объект/массив
-     * @return array|bool
+     * Возвращает количество товаров в выборке
+     * @param array $params
+     * @return int
      */
-    public static function getList(string $order = 'sort', string $sort = 'ASC', bool $active = true, bool $object = true)
+    public static function getCount(array $params = [])
     {
-        $activity = !empty($active) ? 'WHERE p.active IS NOT NULL AND g.active IS NOT NULL AND v.active IS NOT NULL' : '';
-        $sql = "
-            SELECT 
-                p.id, p.active, p.name, p.articul, p.quantity, p.discount, 
-                p.views, p.is_hit, p.is_new, p.is_action, p.is_recommend,
-                p.preview_image, p.preview_text, p.preview_text_type_id, ptt.name preview_text_type, 
-                p.detail_image, p.detail_text, p.detail_text_type_id, dtt.name detail_text_type, 
-                p.unit_id, u.name unit_name, u.sign unit, 
-                p.warranty, p.warranty_period_id, wp.name warranty_name,
-                p.group_id, g.name group_name, g.link group_link,
-                p.vendor_id, v.name vendor_name, v.image vendor_image,
-                p.tax_id, p.tax_included, t.name tax_name, t.value tax_value 
-            FROM products p  
-            LEFT JOIN `groups` g ON p.group_id = g.id 
-            LEFT JOIN vendors v ON p.vendor_id = v.id 
-            LEFT JOIN taxes t ON p.tax_id = t.id 
-            LEFT JOIN units u ON p.unit_id = u.id 
-            LEFT JOIN warranty_periods wp ON p.warranty_period_id = wp.id 
-            LEFT JOIN text_types ptt ON p.preview_text_type_id = ptt.id 
-            LEFT JOIN text_types dtt ON p.detail_text_type_id = dtt.id 
-            {$activity} 
-            ORDER BY p.{$order}, p.created, p.id {$sort}";
+        $params += ['active' => true, 'object' => false,];
 
         $db = Db::getInstance();
-        $items = $db->query($sql, [], $object ? static::class : null);
-        return $items ?: false;
-    }
+        $db->params = [];
 
-    /**
-     * Возвращает количество товаров в конкретной группе (+)
-     * @param array $group - массив групп товаров (пустой массив - все товары)
-     * @param int $price_type_id - используемый тип цен
-     * @param array $filters - массив фильтров товара
-     * @param bool $active - активность
-     * @return false|string
-     */
-    public static function getCountByGroup(array $group = [], int $price_type_id = 2, array $filters = [], bool $active = true)
-    {
-        $params = ['price_type_id' => $price_type_id];
-        $filter = self::getFilterString($filters);
-        $params += self::getFilterParams($filters);
+        $category = !empty($params['category_id']) ? 'AND p.category_id = :category_id' : '';
+        $active = !empty($params['active']) ? 'AND p.active IS NOT NULL AND cat.active IS NOT NULL AND v.active IS NOT NULL' : '';
 
-        $groups = !empty($group) ? ('AND p.group_id IN (' . implode(',', $group) . ')') : '';
-        $activity = !empty($active) ? ((!empty($groups) ? 'AND ' : '') . 'p.active IS NOT NULL AND g.active IS NOT NULL AND v.active IS NOT NULL') : '';
-        $sql = "
+
+        if (!empty($params['category_id'])) $db->params['category_id'] = $params['category_id'];
+
+        //$filter = self::getFilterString($filters);
+        //$params += self::getFilterParams($filters);
+        $db->sql = "
             SELECT 
                 count(p.id) count 
             FROM products p 
-            LEFT JOIN `groups` g 
-                ON p.group_id = g.id 
+            LEFT JOIN shop.categories cat ON p.category_id = cat.id 
             LEFT JOIN vendors v ON p.vendor_id = v.id 
-            LEFT JOIN product_prices pp ON p.id = pp.product_id AND pp.price_type_id = :price_type_id
-            LEFT JOIN currency_rates cr ON pp.currency_id = cr.currency_id
-            WHERE 1 {$groups} {$activity} {$filter}
-        ";
+            WHERE 1 {$category} {$active}";
 
-        $db = Db::getInstance();
-        $res = $db->query($sql, $params);
-        return $res ? array_shift($res)['count'] : false;
+        $data = $db->query();
+        return $data ? array_shift($data)['count'] : 0;
     }
 
     /**
-     * Добавляет товару просмотр (+)
+     * Возвращает диапазон цен группы товаров для фильтра
+     * @param array $params
+     * @return array|null
+     */
+    public static function getRange(array $params = [])
+    {
+        $params += ['price_type_id' => 2, 'active' => true, 'object' => false,];
+
+        $db = Db::getInstance();
+        $db->params = ['price_type_id' => $params['price_type_id']];
+
+        $category = !empty($params['category_id']) ? 'AND p.category_id = :category_id' : '';
+        $active = !empty($params['active']) ? 'AND p.active IS NOT NULL AND cat.active IS NOT NULL AND v.active IS NOT NULL' : '';
+
+        if (!empty($params['category_id'])) $db->params['category_id'] = $params['category_id'];
+
+        //$filter = self::getFilterString($filters);
+        //$params += self::getFilterParams($filters);
+        $db->sql = "
+            SELECT 
+                min(pp.price * cr.rate * (100 - COALESCE(IF(pp.price_type_id = 2, p.discount, 0), 0)) / 100) AS min,  
+                max(pp.price * cr.rate * (100 - COALESCE(IF(pp.price_type_id = 2, p.discount, 0), 0)) / 100) AS max 
+            FROM products p 
+            LEFT JOIN shop.categories cat ON p.category_id = cat.id 
+            LEFT JOIN product_prices pp ON p.id = pp.product_id AND pp.price_type_id = :price_type_id
+            LEFT JOIN currency_rates cr ON pp.currency_id = cr.currency_id
+            LEFT JOIN vendors v ON p.vendor_id = v.id 
+            WHERE 1 {$category} {$active}";
+
+        $data = $db->query();
+
+        return $data ? array_shift($data) : null;
+    }
+
+    /**
+     * Возвращает массив товаров без цен
+     * @param array $params
+     * @return array|null
+     */
+    public static function getVendors(array $params = [])
+    {
+        $params += ['active' => true, 'object' => false,];
+
+        $db = Db::getInstance();
+        $db->params = [];
+
+        $category = !empty($params['category_id']) ? 'AND p.category_id = :category_id' : '';
+        $active = !empty($params['active']) ? 'AND p.active IS NOT NULL AND cat.active IS NOT NULL AND v.active IS NOT NULL' : '';
+
+        if (!empty($params['category_id'])) $db->params['category_id'] = $params['category_id'];
+
+        //$filter = self::getFilterString($filters);
+        //$params += self::getFilterParams($filters);
+        $db->sql = "
+            SELECT DISTINCT 
+                v.id, v.name 
+            FROM products p 
+            LEFT JOIN shop.categories cat ON p.category_id = cat.id 
+            LEFT JOIN vendors v ON p.vendor_id = v.id 
+            WHERE 1 {$category} {$active}";
+
+        $data = $db->query();
+        return $data ?: null;
+    }
+
+    /**
+     * Добавляет товару просмотр
      * @param int $id - id товара
      * @return bool
      */
-    public static function addProductView(int $id)
+    public static function addView(int $id)
     {
-        $params = ['id' => $id];
-        $sql = "UPDATE products SET views = views + 1 WHERE products.id = :id";
         $db = Db::getInstance();
-        return $db->execute($sql, $params);
+        $db->params = ['id' => $id];
+        $db->sql = "UPDATE shop.products SET views = views + 1 WHERE products.id = :id";
+        return $db->execute();
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -396,62 +410,5 @@ class Product extends Model
             }
         }
         return $params;
-    }
-
-    /**
-     * Возвращает диапазон цен группы товаров для фильтра
-     * @param int|null $group_id - группа товаров
-     * @param int $price_type_id - используемый тип цен
-     * @param bool $active - активность
-     * @return false|mixed|null
-     */
-    public static function getRange(int $group_id = null, int $price_type_id = 2, bool $active = true)
-    {
-        $activity = !empty($active) ? 'AND p.active IS NOT NULL AND g.active IS NOT NULL AND v.active IS NOT NULL' : '';
-        $params = ['price_type_id' => $price_type_id];
-        $group = !empty($group_id) ? 'AND p.group_id = :group' : '';
-        if (!empty($group_id)) $params['group'] = $group_id;
-
-        $sql = "
-            SELECT 
-                min(ROUND(pp.price * cr.rate * (100 - COALESCE(p.discount, 0)) / 100)) min,
-                max(ROUND(pp.price * cr.rate * (100 - COALESCE(p.discount, 0)) / 100)) max
-            FROM products p 
-            LEFT JOIN `groups` g ON p.group_id = g.id 
-            LEFT JOIN product_prices pp ON p.id = pp.product_id AND pp.price_type_id = :price_type_id
-            LEFT JOIN currency_rates cr ON pp.currency_id = cr.currency_id 
-            LEFT JOIN vendors v ON p.vendor_id = v.id 
-            WHERE 1 {$group} {$activity}
-        ";
-        $db = Db::getInstance();
-        $res = $db->query($sql, $params);
-
-        return $res ? array_shift($res) : false;
-    }
-
-    /**
-     * Возвращает список производителей группы товаров для фильтра
-     * @param int|null $group_id - группа товаров
-     * @param bool $active - активность
-     * @return false
-     */
-    public static function getVendors(int $group_id = null, bool $active = true)
-    {
-        $activity = !empty($active) ? 'AND p.active IS NOT NULL AND g.active IS NOT NULL AND v.active IS NOT NULL' : '';
-        $group = !empty($group_id) ? 'AND p.group_id = :group' : '';
-        if (!empty($group_id)) $params['group'] = $group_id;
-
-        $sql = "
-            SELECT DISTINCT v.id, v.name 
-            FROM products p 
-            LEFT JOIN `groups` g ON p.group_id = g.id 
-            LEFT JOIN vendors v ON p.vendor_id = v.id 
-            WHERE 1 {$group} {$activity}
-            ORDER BY v.id
-        ";
-        $db = Db::getInstance();
-        $res = $db->query($sql, $params);
-
-        return $res ?: false;
     }
 }

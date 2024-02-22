@@ -8,7 +8,7 @@ use Exceptions\DbException;
 
 class Street extends Model
 {
-    protected static $table = 'fias.streets';
+    protected static $db_table = 'fias.streets';
 
     /**
      * Поиск улицы по строке в указанном городе

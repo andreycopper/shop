@@ -7,7 +7,7 @@ use Models\Model;
 
 class District extends Model
 {
-    protected static $table = 'fias.districts';
+    protected static $db_table = 'fias.districts';
 
     public int $id;
     public ?bool $active;

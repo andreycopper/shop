@@ -13,7 +13,7 @@ use Exceptions\DbException;
  */
 class Event extends Model
 {
-    protected static $table = 'events';
+    protected static $db_table = 'events';
 
     // тип рассылки
     const TYPE_MAIL = 1;

@@ -10,7 +10,7 @@ use Exceptions\UserException;
 
 class Coupon extends Model
 {
-    protected static $table = 'coupons';
+    protected static $db_table = 'coupons';
     public $id;             // id записи
     public $active;         // активность
     public $active_from;    // активность от даты

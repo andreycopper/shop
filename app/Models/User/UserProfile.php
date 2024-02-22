@@ -10,7 +10,7 @@ use Exceptions\DbException;
 
 class UserProfile extends Model
 {
-    protected static $table = 'user_profiles';
+    protected static $db_table = 'user_profiles';
     public $id;              // id
     public $active;              // активность
     public $user_id;         // id пользователя
@@ -173,7 +173,7 @@ class UserProfile extends Model
     public static function getByIdUserId(int $id, int $user_id, bool $active = true, bool $object = true)
     {
         $where = !empty($active) ? ' AND active IS NOT NULL' : '';
-        $sql = "SELECT * FROM " . static::$table . " WHERE id = :id AND user_id = :user_id {$where}";
+        $sql = "SELECT * FROM " . static::$db_table . " WHERE id = :id AND user_id = :user_id {$where}";
         $params = [
             ':id' => $id,
             ':user_id' => $user_id

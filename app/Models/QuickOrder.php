@@ -10,7 +10,7 @@ use Exceptions\UserException;
 
 class QuickOrder extends Model
 {
-    protected static $table = 'quick_orders';
+    protected static $db_table = 'quick_orders';
     public $id;        // id
     public $user_id;   // id пользователя
     public $user_hash; // хэш пользователя

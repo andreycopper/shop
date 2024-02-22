@@ -9,7 +9,7 @@ use Exceptions\DbException;
 
 class UserRestoreRequest extends Model
 {
-    protected static $table = 'user_restore_requests';
+    protected static $db_table = 'user_restore_requests';
 
     /**
      * Получает запрос по коду восстановления
