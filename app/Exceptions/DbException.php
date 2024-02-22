@@ -3,7 +3,7 @@
 namespace Exceptions;
 
 use Throwable;
-use System\Logger;
+use System\Loggers\ErrorLogger;
 
 /**
  * Class DbException
@@ -11,7 +11,9 @@ use System\Logger;
  */
 class DbException extends BaseException
 {
-    protected $code = 500;
-    protected $error = 'Внутренняя ошибка сервера';
-    protected $message = 'Что-то пошло не так. Зайдите позже';
+    public function __construct($message = 'Something went wrong. Come in later.', $code = 500, Throwable $previous = null)
+    {
+        parent::__construct($message, $code, $previous);
+        ErrorLogger::getInstance()->error($this);
+    }
 }

@@ -1,9 +1,8 @@
 <?php
-
 namespace Exceptions;
 
 use Throwable;
-use System\Access;
+use System\Loggers\AccessLogger;
 
 /**
  * Class ForbiddenException
@@ -11,13 +10,9 @@ use System\Access;
  */
 class ForbiddenException extends BaseException
 {
-    protected $code = 403;
-    protected $error = 'Доступ запрещен';
-    protected $message = 'У вас нет доступа к данному разделу';
-
-    public function __construct($message = "", $code = 0, Throwable $previous = null)
+    public function __construct($message = 'Forbidden', $code = 403, Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
-        Access::getInstance()->error($this);
+        AccessLogger::getInstance()->error($this);
     }
 }
