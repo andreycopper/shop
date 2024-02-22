@@ -188,7 +188,7 @@ class Product extends Model
                 p.is_hit, p.is_new, p.is_action, p.is_recommend, 
                 p.tax_id, p.tax_included, t.name AS tax, t.value AS tax_value, 
                 p.quantity, p.discount,
-                pp.price * cr.rate AS price,    
+                pp.price * cr.rate AS price, 
                 pp.price * cr.rate * (100 - COALESCE(IF(pp.price_type_id = 2, p.discount, 0), 0)) / 100 AS price_discount,    
                 pp.price_type_id, pt.name price_type, 
                 pp.currency_id, c.iso AS currency, c.logo AS currency_logo, c.sign AS currency_sign, cr.rate currency_rate, 
@@ -199,7 +199,7 @@ class Product extends Model
             LEFT JOIN shop.categories cat ON p.category_id = cat.id 
             LEFT JOIN product_prices pp ON p.id = pp.product_id AND pp.price_type_id = :price_type_id
             LEFT JOIN price_types pt on pp.price_type_id = pt.id 
-            LEFT JOIN currencies c ON c.id = pp.currency_id 
+            LEFT JOIN currencies c ON c.id = 1
             LEFT JOIN currency_rates cr ON pp.currency_id = cr.currency_id
             LEFT JOIN vendors v ON p.vendor_id = v.id 
             LEFT JOIN taxes t ON p.tax_id = t.id 
