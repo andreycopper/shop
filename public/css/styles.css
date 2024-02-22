@@ -3638,7 +3638,9 @@ section.main {
     border: 1px solid #f3f3f5;
 }
 .product-slide-item a {
-    display: block;
+    /*display: block;*/
+    display: flex;
+    align-items: center;
     height: 100px;
 }
 .product-slide-item img {

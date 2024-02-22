@@ -2,6 +2,7 @@
 require __DIR__ . '/../config/autoload.php';
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../config/constants.php';
+require __DIR__ . '/../app/System/ErrorSupervisor.php';
 
 session_start();
 
@@ -17,30 +18,22 @@ use Exceptions\MailException;
 use Exceptions\UserException;
 use Exceptions\DeleteException;
 use Exceptions\UploadException;
+use System\Loggers\SystemLogger;
 use Exceptions\NotFoundException;
 use Exceptions\ForbiddenException;
 
-try {
-//    Security::array_xss_clean($_GET);
-//    Security::array_xss_clean($_POST);
+Security::array_xss_clean($_GET);
+Security::array_xss_clean($_POST);
 
+Route::parseUrl($_SERVER['REQUEST_URI']);
+
+try {
     Route::start();
-}
-catch (DbException $e) {
-    if(Request::isAjax()) Response::result(false, $e->getMessage());
-    else (new Errors($e))->action('action500');
-}
-catch (NotFoundException $e) {
-    if(Request::isAjax()) Response::result(false, $e->getMessage());
-    else (new Errors($e))->action('action404');
-}
-catch (ForbiddenException $e) {
-    if(Request::isAjax()) Response::result(false, $e->getMessage());
-    else (new Errors($e))->action('action403');
-}
-catch (DeleteException | EditException | MailException | UploadException | UserException $e) {
-    if(Request::isAjax()) Response::result(false, $e->getMessage());
-    else (new Errors($e))->action('action400');
+} catch (Exception $e) {
+    (new Errors($e))->action('actionError');
+} catch(TypeError $e) {
+    SystemLogger::getInstance()->error($e);
+    (new Errors(new NotFoundException()))->action('actionError');
 }
 
 session_destroy();
