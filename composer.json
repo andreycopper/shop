@@ -1,9 +1,9 @@
 {
   "require": {
-    "php": ">=8.0",
-    "phpoffice/phpexcel": "^1.8",
-    "phpoffice/phpword": "^0.17.0",
-    "dompdf/dompdf": "^0.8.5",
+    "php": ">=7.4",
+    "phpoffice/phpexcel": "*",
+    "phpoffice/phpword": "*",
+    "dompdf/dompdf": "*",
     "ext-mbstring": "*",
     "ext-json": "*",
     "ext-pdo": "*",
@@ -11,7 +11,8 @@
     "ext-iconv": "*",
     "ext-simplexml": "*",
     "ext-openssl": "*",
-    "mpdf/mpdf": "^8.0",
-    "phpoffice/phpspreadsheet": "^1.25"
+    "mpdf/mpdf": "*",
+    "phpoffice/phpspreadsheet": "*",
+    "firebase/php-jwt": "^6.3"
   }
 }
