@@ -12,6 +12,8 @@ use Exceptions\DbException;
 class Db
 {
     protected $dbh;
+    public $sql;
+    public $params = null;
 
     use Singleton;
 
@@ -20,13 +22,14 @@ class Db
      */
     public function __construct()
     {
-        $config = Config::getInstance()->data;
-        $dsn = "mysql:host={$config['db']['host']};dbname={$config['db']['dbname']}";
+        $dbHost = CONFIG['db']['host'];
+        $dbName = CONFIG['db']['dbprefix'] . CONFIG['db']['dbname'];
+        $dsn = "mysql:host={$dbHost};dbname={$dbName}";
         try {
             $this->dbh = new \PDO(
                 $dsn,
-                $config['db']['user'],
-                $config['db']['password'],
+                CONFIG['db']['user'],
+                CONFIG['db']['password'],
                 [
                     \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES \'UTF8\''
                 ]
@@ -39,40 +42,36 @@ class Db
 
     /**
      * Выполняет запрос к БД
-     * @param string $sql
-     * @param array $params
      * @return bool
      * @throws DbException
      */
-    public function execute(string $sql, array $params = []): bool
+    public function execute(): bool
     {
         try {
-            $sth = $this->dbh->prepare($sql);
-            return $sth->execute($params);
+            $sth = $this->dbh->prepare($this->sql);
+            return $sth->execute($this->params);
         } catch (\PDOException $e) {
-            throw new DbException('Ошибочный запрос', 10000);
+            throw new DbException('Ошибочный запрос', 10001);
         }
     }
 
     /**
      * Выполняет запрос к БД и извлекает данные из запроса
-     * @param string $sql
      * @param string|null $class
-     * @param array $params
      * @return array
      * @throws DbException
      */
-    public function query(string $sql, array $params = [], string $class = null)
+    public function query(string $class = null)
     {
         try {
-            $sth = $this->dbh->prepare($sql);
-            $sth->execute($params);
+            $sth = $this->dbh->prepare($this->sql);
+            $sth->execute($this->params);
             return $class ?
                 $sth->fetchAll(\PDO::FETCH_CLASS, $class) :
                 $sth->fetchAll(\PDO::FETCH_ASSOC);
         }
         catch (\PDOException $e) {
-            throw new DbException('Ошибочный запрос', 10000);
+            throw new DbException('Ошибочный запрос', 10002);
         }
     }
 

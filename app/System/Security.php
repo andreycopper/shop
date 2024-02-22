@@ -7,7 +7,7 @@ class Security
     public static function array_xss_clean(&$array)
     {
         foreach ($array as $k => $v) {
-            if (strpos($k, '__vs__') === false) {
+            if (!str_contains($k, '__vs__')) {
                 if (is_array($v)) self::array_xss_clean($array[$k]);
                 else $array[$k] = self::xss_clean($v);
             }
