@@ -3,16 +3,15 @@
 return [
     'db' => [
         'host'     => 'localhost',
+        'dbprefix' => '',
         'dbname'   => 'shop',
         'user'     => 'root',
         'password' => 'root'
     ],
     'log' => [
-        'error'    => _LOGS . DIRECTORY_SEPARATOR . date('Y-m-d') . '_errors.log',
-        'access'    => _LOGS . DIRECTORY_SEPARATOR . date('Y-m-d') . '_access.log'
-    ],
-    'image' => [
-        'images'     => _IMAGES,
-        'uploads'     => _UPLOADS
+        'error'   => date('d') . '.log',
+        'access'  => date('d') . '.log',
+        'system'  => date('d') . '.log',
+        'warning' => date('d') . '.log',
     ]
 ];
