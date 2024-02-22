@@ -1,51 +1,70 @@
 <?php
-
 namespace Views;
 
-use Traits\Count;
 use Traits\Magic;
-use Traits\Iterator;
-use Traits\ArrayAccess;
 
 /**
  * Class View
  * @package App\Views
  */
-class View implements \Iterator, \Countable, \ArrayAccess
+class View
 {
     public $view; // содержимое страницы для вывода в шаблоне
+    private ?string $template; // используемый шаблон
+    public $user; // пользователь
+    public $crypt; // пользователь
 
     use Magic;
-    use Iterator;
-    use Count;
-    use ArrayAccess;
+
+    /**
+     * View constructor.
+     */
+    public function __construct()
+    {
+        $this->template = defined('TEMPLATE') ? TEMPLATE : 'main';
+    }
+
+    use Magic;
 
     /**
      * Возвращает строку - HTML-код шаблона
-     * @param string $template - шаблон
-     * @param array $vars - передаваемые в шаблон переменные
+     * @param string $file - шаблон
+     * @param array $vars - переданные переменные для рендера в шаблоне
      * @return false|string|null
      */
-    public function render(string $template, array $vars = [])
+    public function render(string $file, $vars = [])
     {
-        $fileinfo = pathinfo($template);
-        $ext = !empty($fileinfo['extension']) ? ".{$fileinfo['extension']}" : '.php';
+        $fileArray = explode('.', $file);
+        $file_name = $fileArray[0];
+        $ext = $fileArray[1] ?? 'php';
 
-        $tmpl = defined('TEMPLATE') ? TEMPLATE : 'main';
-        $file =
-            _TEMPLATES . DIRECTORY_SEPARATOR .
-            $tmpl .
-            (mb_substr($template, 0, 1) === '/' || mb_substr($template, 0, 1) === '\\' ? '' : DIRECTORY_SEPARATOR) .
-            $template . $ext;
+        $filePath =
+            DIR_TEMPLATES . DIRECTORY_SEPARATOR .
+            $this->template .
+            (mb_substr($file_name, 0, 1) === '/' || mb_substr($file_name, 0, 1) === '\\' ? '' : DIRECTORY_SEPARATOR) .
+            $file_name . '.' .
+            $ext;
 
-        if (empty($template) || !is_file($file)) return false;
+        if (empty($file) || !is_file($filePath)) return '';
 
         ob_start();
-        foreach ($this as $name => $value) $$name = $value;
+        foreach ($this as $name => $value) {
+            $$name = $value;
+        }
 
-        if (!empty($vars) && is_array($vars)) foreach ($vars as $key => $var) $$key = $var;
+        if (!empty($this->data) && is_array($this->data)) {
+            foreach ($this->data as $k => $item) {
+                $$k = $item;
+            }
+        }
 
-        include $file;
+        if (!empty($vars) && is_array($vars)) {
+            foreach ($vars as $key => $val) {
+                $$key = $val;
+            }
+        }
+
+        include $filePath;
         $content = ob_get_contents();
         ob_end_clean();
 
@@ -54,22 +73,39 @@ class View implements \Iterator, \Countable, \ArrayAccess
 
     /**
      * Отображает HTML-код шаблона
-     * @param string $file - шаблон
-     * @param array $vars - передаваемые в шаблон переменные
+     * @param string $file
      */
-    public function display(string $file, array $vars = [])
+    public function display(string $file)
     {
-        $this->view = $this->render($file, $vars);
-        echo $this->render('template', $vars);
+        $this->view = $this->render($file);
+        echo $this->render('template');
+        die;
     }
 
     /**
-     * Отображает HTML-код шаблона
-     * @param string $file - шаблон
-     * @param array $vars - передаваемые в шаблон переменные
+     * Отображает HTML-код файла
+     * @param string $file
      */
-    public function display_element(string $file, array $vars = [])
+    public function display_element(string $file)
     {
-        echo $this->render($file, $vars);
+        echo $this->render($file);
+        die;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTemplate(): string
+    {
+        return $this->template;
+    }
+
+    /**
+     * Устанавливает директорию шаблона
+     * @param string $template - имя директории шаблона
+     */
+    public function setTemplate(string $template): void
+    {
+        $this->template = $template;
     }
 }
