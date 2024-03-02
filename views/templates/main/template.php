@@ -17,7 +17,6 @@ use Models\User\User as ModelUser;
     <link rel="stylesheet" href="/css/styles.css?style=<?= microtime() ?>" media="all">
     <link rel="stylesheet" href="/css/media.css" media="all">
     <link rel="stylesheet" href="/css/loader.css" media="all">
-    <link rel="stylesheet" href="/css/colors.css" media="all">
     <link rel="stylesheet" href="/css/fontawesome.min.css" media="all">
     <link rel="stylesheet" href="/css/lightbox.css" media="all">
     <link rel="stylesheet" href="/css/slick-theme.css" media="all">

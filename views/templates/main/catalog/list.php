@@ -6,7 +6,7 @@ use Entity\Category;
  * @var Category $category
  */
 
-$sort = Request::get('sort') ?? 'views';
+$sort = Request::get('sort') ?? 'price';
 $order = Request::get('order') ?? 'asc';
 $display = $_COOKIE['display'] ?? 'blocks';
 ?>
@@ -50,6 +50,14 @@ $display = $_COOKIE['display'] ?? 'blocks';
             ?>
             <div class="product-sort-view">
                 <div class="product-sort">
+                    <div class="sort-product price
+                        <?= ($sort === 'price') ? 'active' : '' ?>
+                        <?= ($sort === 'price' && $order === 'desc') ? 'desc' : '' ?>">
+                        <a href="?<?= $url . ($url ? '&' : '') ?>sort=price<?= ($sort === 'price' && $order === 'asc') ? '&order=desc' : '' ?>">
+                            По цене
+                        </a>
+                    </div>
+
                     <div class="sort-product show
                         <?= ($sort === 'views') ? 'active' : '' ?>
                         <?= ($sort === 'views' && $order === 'desc') ? 'desc' : '' ?>">
@@ -57,18 +65,12 @@ $display = $_COOKIE['display'] ?? 'blocks';
                             По популярности
                         </a>
                     </div>
+
                     <div class="sort-product name
                         <?= ($sort === 'name') ? 'active' : '' ?>
                         <?= ($sort === 'name' && $order === 'desc') ? 'desc' : '' ?>">
                         <a href="?<?= $url . ($url ? '&' : '') ?>sort=name<?= ($sort === 'name' && $order === 'asc') ? '&order=desc' : '' ?>">
                             По алфавиту
-                        </a>
-                    </div>
-                    <div class="sort-product price
-                        <?= ($sort === 'price') ? 'active' : '' ?>
-                        <?= ($sort === 'price' && $order === 'desc') ? 'desc' : '' ?>">
-                        <a href="?<?= $url . ($url ? '&' : '') ?>sort=price<?= ($sort === 'price' && $order === 'asc') ? '&order=desc' : '' ?>">
-                            По цене
                         </a>
                     </div>
                 </div>

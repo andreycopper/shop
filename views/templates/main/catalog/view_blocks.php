@@ -2,19 +2,23 @@
     <?php foreach ($this->items as $item): ?>
         <div class="product-item">
             <div class="product-item-stickers">
-                <?php if (!empty($item['hit'])): ?>
+                <?php if (!empty($item['is_hit'])): ?>
                     <span class="stickers sticker-hit">Хит</span>
                 <?php endif; ?>
-                <?php if (!empty($item['new'])): ?>
+
+                <?php if (!empty($item['is_new'])): ?>
                     <span class="stickers sticker-new">Новинка</span>
                 <?php endif; ?>
-                <?php if (!empty($item['action'])): ?>
+
+                <?php if (!empty($item['is_action'])): ?>
                     <span class="stickers sticker-action">Акция</span>
                 <?php endif; ?>
-                <?php if (!empty($item['recommend'])): ?>
+
+                <?php if (!empty($item['is_recommend'])): ?>
                     <span class="stickers sticker-recomend">Советуем</span>
                 <?php endif; ?>
-                <?php if (!empty($item['discount'])): ?>
+
+                <?php if (!empty($item['is_discount'])): ?>
                     <span class="stickers sticker-sale">Sale</span>
                     <span class="stickers sticker-discount"><?=$item['discount']?>%</span>
                 <?php endif; ?>

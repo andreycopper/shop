@@ -1,9 +1,14 @@
 <?php
-$range_min = $range['min'] ?? 0;
-$range_max = $range['max'] ?? 1000000;
+/**
+ * @var array $priceRange
+ * @var array $filters
+ */
 
-$price_min = $filters['price'][0] ?? $range_min;
-$price_max = $filters['price'][1] ?? $range_max;
+$rangeMin = !empty($priceRange['min']) ? round($priceRange['min']) : 0;
+$rangeMax = !empty($priceRange['max']) ? round($priceRange['max']) : 1000000;
+
+$priceMin = !empty($filters['price'][0]) && !empty($filters['price'][1]) ? min($filters['price'][0], $filters['price'][1]) : $rangeMin;
+$priceMax = !empty($filters['price'][0]) && !empty($filters['price'][1]) ? max($filters['price'][0], $filters['price'][1]) : $rangeMax;
 ?>
 
 <div class="catalog-left-filter">
@@ -14,14 +19,14 @@ $price_max = $filters['price'][1] ?? $range_max;
 
         <div class="catalog-left-filter-item active">
             <a href="" class="catalog-left-filter-title">Розничная цена, р</a>
-            <div class="catalog-left-filter-body" style="display: block;">
+            <div class="catalog-left-filter-body active">
                 <div class="catalog-left-inputrange">
                     <label>
-                        <input type="text" name="price" class="price_min" value="<?= $price_min ?: $range_min ?>">
+                        <input type="text" name="price[]" class="price_min" value="<?= $priceMin ?: $rangeMin ?>">
                     </label>
                     <span class="divider"></span>
                     <label>
-                        <input type="text" name="price" class="price_max" value="<?= $price_max ?: $range_max ?>">
+                        <input type="text" name="price[]" class="price_max" value="<?= $priceMax ?: $rangeMax ?>">
                     </label>
 
                     <div id="slider-range"></div>
@@ -31,23 +36,23 @@ $price_max = $filters['price'][1] ?? $range_max;
 
         <div class="catalog-left-filter-item active">
             <a href="" class="catalog-left-filter-title">Наши предложения</a>
-            <div class="catalog-left-filter-body" style="display: block;">
+            <div class="catalog-left-filter-body active">
                 <div class="catalog-left-check">
-                    <label class="checkbox <?= !empty($filters['actions']) && in_array('new', $filters['actions']) ? 'checked' :'' ?>">
+                    <label class="checkbox <?= !empty($filters['actions']) && in_array('new', $filters['actions']) ? 'checked' : '' ?>">
                         <input type="checkbox" name="actions[]" value="new"
                             <?= !empty($filters['actions']) && in_array('new', $filters['actions']) ? 'checked' :'' ?>> Новинка
                     </label>
-                    <label class="checkbox <?= !empty($filters['actions']) && in_array('hit', $filters['actions']) ? 'checked' :'' ?>">
+                    <label class="checkbox <?= !empty($filters['actions']) && in_array('hit', $filters['actions']) ? 'checked' : '' ?>">
                         <input type="checkbox" name="actions[]" value="hit"
                             <?= !empty($filters['actions']) && in_array('hit', $filters['actions']) ? 'checked' :'' ?>> Хит
                     </label>
-                    <label class="checkbox <?= !empty($filters['actions']) && in_array('recommend', $filters['actions']) ? 'checked' :'' ?>">
+                    <label class="checkbox <?= !empty($filters['actions']) && in_array('recommend', $filters['actions']) ? 'checked' : '' ?>">
                         <input type="checkbox" name="actions[]" value="recommend"
                             <?= !empty($filters['actions']) && in_array('recommend', $filters['actions']) ? 'checked' :'' ?>> Советуем
                     </label>
-                    <label class="checkbox <?= !empty($filters['actions']) && in_array('action', $filters['actions']) ? 'checked' :'' ?>">
+                    <label class="checkbox <?= !empty($filters['actions']) && in_array('action', $filters['actions']) ? 'checked' : '' ?>">
                         <input type="checkbox" name="actions[]" value="action"
-                            <?= !empty($filters['actions']) && in_array('action', $filters['actions']) ? 'checked' :'' ?>> Акция
+                            <?= !empty($filters['actions']) && in_array('action', $filters['actions']) ? 'checked' : '' ?>> Акция
                     </label>
                 </div>
             </div>
@@ -56,7 +61,7 @@ $price_max = $filters['price'][1] ?? $range_max;
         <?php if (!empty($vendors) && is_array($vendors)): ?>
             <div class="catalog-left-filter-item <?= !empty($filters['vendors']) ? 'active' : '' ?>">
                 <a href="" class="catalog-left-filter-title">Бренды</a>
-                <div class="catalog-left-filter-body" style="display: <?= !empty($filters['vendors']) ? 'block' : 'none' ?>">
+                <div class="catalog-left-filter-body <?= !empty($filters['vendors']) ? 'active' : '' ?>">
                     <div class="catalog-left-check">
                         <?php foreach ($vendors as $vendor): ?>
                             <label class="checkbox <?= !empty($filters['vendors']) && in_array($vendor['id'], $filters['vendors']) ? 'checked' :'' ?>">
@@ -70,31 +75,31 @@ $price_max = $filters['price'][1] ?? $range_max;
             </div>
         <?php endif; ?>
 
-        <div class="catalog-left-filter-item">
-            <a href="" class="catalog-left-filter-title">Тип</a>
-            <div class="catalog-left-filter-body">
-                <div class="catalog-left-radio">
-                    <label class="radio">
-                        <input id="type-all" type="radio" name="type"> Все
-                    </label>
-
-                    <label class="radio">
-                        <input id="type-1din" type="radio" name="type"> 1 DIN
-                    </label>
-                </div>
-
-                <div class="catalog-left-select">
-                    <label>
-                        <select name="" id="">
-                            <option value="">Все</option>
-                            <option value="">1 DIN</option>
-                            <option value="">2 DIN</option>
-                            <option value="">3 DIN</option>
-                        </select>
-                    </label>
-                </div>
-            </div>
-        </div>
+<!--        <div class="catalog-left-filter-item">-->
+<!--            <a href="" class="catalog-left-filter-title">Тип</a>-->
+<!--            <div class="catalog-left-filter-body">-->
+<!--                <div class="catalog-left-radio">-->
+<!--                    <label class="radio">-->
+<!--                        <input id="type-all" type="radio" name="type"> Все-->
+<!--                    </label>-->
+<!---->
+<!--                    <label class="radio">-->
+<!--                        <input id="type-1din" type="radio" name="type"> 1 DIN-->
+<!--                    </label>-->
+<!--                </div>-->
+<!---->
+<!--                <div class="catalog-left-select">-->
+<!--                    <label>-->
+<!--                        <select name="" id="">-->
+<!--                            <option value="">Все</option>-->
+<!--                            <option value="">1 DIN</option>-->
+<!--                            <option value="">2 DIN</option>-->
+<!--                            <option value="">3 DIN</option>-->
+<!--                        </select>-->
+<!--                    </label>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
 
         <div class="catalog-left-filter-submit">
             <input type="submit" class="btn" value="Показать">
@@ -108,11 +113,11 @@ $price_max = $filters['price'][1] ?? $range_max;
 
         range.slider({
             range: true,
-            min: <?= $range_min ?>,
-            max: <?= $range_max ?>,
+            min: <?= $rangeMin ?>,
+            max: <?= $rangeMax ?>,
             values: [
-                <?= $price_min ?>,
-                <?= $price_max ?>
+                <?= $priceMin ?>,
+                <?= $priceMax ?>
             ],
             slide: function(e, data) {
                 $('.catalog-left-inputrange .price_min').val(data.values[0]);
@@ -120,9 +125,9 @@ $price_max = $filters['price'][1] ?? $range_max;
             }
         });
 
-        $('.catalog-left-inputrange input[name=price_min]').val(range.slider('values', 0));
+        //$('.catalog-left-inputrange input.price_min').val(range.slider('values', 0));
         //$('.catalog-left-inputrange input[name=price_min]').val(range.slider('values', 0).toLocaleString());
-        $('.catalog-left-inputrange input[name=price_max]').val(range.slider('values', 1));
+        //$('.catalog-left-inputrange input.price_max').val(range.slider('values', 1));
         //$('.catalog-left-inputrange input[name=price_max]').val(range.slider('values', 1).toLocaleString());
 
         /* применение фильтров */
@@ -176,6 +181,6 @@ $price_max = $filters['price'][1] ?? $range_max;
             if (typeof obj[key] === 'object') url.push(key + '=' + obj[key].join('-'));
             else url.push(key + '=' + obj[key]);
         }
-        return '//' + document.location.host + document.location.pathname + '?' + url.join('&');
+        return '?' + url.join('&');
     }
 </script>
