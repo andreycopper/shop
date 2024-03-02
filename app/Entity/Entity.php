@@ -53,4 +53,15 @@ abstract class Entity
 
         return $this;
     }
+
+    public function toArray()
+    {
+        $result = [];
+        foreach ($this as $key => $value) {
+            if ($key === 'data') continue;
+            $result[$key] = $value;
+        }
+
+        return $result;
+    }
 }
