@@ -1,5 +1,5 @@
 <?php
-namespace System;
+namespace Utils;
 
 use phpseclib3\Crypt\RSA;
 use Exceptions\CryptException;
@@ -37,7 +37,7 @@ class Crypt
     }
 
     /**
-     * @throws \Exceptions\CryptException
+     * @throws CryptException
      */
     public function load(int $id)
     {
