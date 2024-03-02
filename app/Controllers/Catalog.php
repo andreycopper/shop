@@ -45,22 +45,29 @@ class Catalog extends Controller
             $category = Category::getByName(preg_replace('/[^a-zA-Z-_]/', '', $elem));
 
             if (!empty($category->id)) {
-                //$filters = $this->getFilterParams();
+                $filters = $this->getFilterParams();
                 $items = ModelProduct::getPriceList([
                     'category_id' => $category->id,
                     'price_type_id' => $this->user->priceTypeId,
                     'price_types' => $this->user->priceTypes,
                     'page_number' => $this->currentPage - 1,
                     'elements_per_page' => $this->elementsPerPage,
+                    'filters' => $filters
+                ]);
+
+                $totalItems = ModelProduct::getCount([
+                    'category_id' => $category->id,
+                    'price_type_id' => $this->user->priceTypeId,
+                    'filters' => $filters
                 ]);
 
 
                 $this->set('category', $category);
+                $this->set('filters', $filters);
                 $this->set('items', $items);
-                $this->set('totalItems', ModelProduct::getCount(['category_id' => $category->id]));
+                $this->set('totalItems', $totalItems);
                 $this->set('priceRange', ModelProduct::getRange(['category_id' => $category->id, 'price_type_id' => $this->user->priceTypeId]));
                 $this->set('vendors', ModelProduct::getVendors(['category_id' => $category->id]));
-                //$this->set('filters', $filters); // производители для фильтра
 
                 $this->display('catalog/list');
             } else throw new NotFoundException('Категория товаров не найдена');

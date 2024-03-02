@@ -1,11 +1,10 @@
 <?php
-
 namespace Controllers;
 
 use System\Request;
-use Models\User\User;
 use Exceptions\DbException;
 use Exceptions\UserException;
+use Models\User\User as ModelUser;
 
 class Auth extends Controller
 {
@@ -25,7 +24,17 @@ class Auth extends Controller
     protected function actionDefault()
     {
         if (Request::isPost()) {
-            if (User::authorization(Request::post('login'), Request::post('password'), (bool)Request::post('remember'))) {
+            $login = Request::post('login');
+            $password = Request::post('password');
+            $remember = (bool)Request::post('remember');
+
+            ModelUser::authorize($login, $password, $remember);
+        }
+
+
+
+        if (Request::isPost()) {
+            if (ModelUser::authorization(Request::post('login'), Request::post('password'), (bool)Request::post('remember'))) {
                 header('Location: /');
                 die;
             }
@@ -33,6 +42,7 @@ class Auth extends Controller
             $this->view->display('auth/auth');
             die;
         }
+
     }
 
     /**

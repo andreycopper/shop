@@ -3,7 +3,7 @@ namespace Controllers;
 
 use Entity\User;
 use Models\Model;
-use System\Crypt;
+use Utils\Crypt;
 use Views\View;
 use Models\Page;
 use System\Logger;
