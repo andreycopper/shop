@@ -17,7 +17,6 @@ input, textarea, button {
     border: 0;
     vertical-align: baseline;
 }
-/* HTML5 display-role reset for older browsers */
 article, aside, details, figcaption, figure,
 footer, header, menu, nav, section, div {
     display: block;
