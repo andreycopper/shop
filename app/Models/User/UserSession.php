@@ -1,23 +1,159 @@
 <?php
-
 namespace Models\User;
 
+use Firebase\JWT\JWT;
 use System\Db;
 use Models\Model;
 use System\Logger;
 use Exceptions\DbException;
+use Entity\User as EntityUser;
+use Entity\UserSession as EntityUserSession;
 
 class UserSession extends Model
 {
-    protected static $db_table = 'user_sessions';
+    const SERVER = SITE_URL; // сервер токена
+    const SERVICE_MOBILE = 1; // сервис мобильный
+    const SERVICE_SITE = 2; // сервис сайт
+    const SERVICES = [self::SERVICE_MOBILE, self::SERVICE_SITE]; // сервисы, использующие авторизацию
+    const LIFE_TIME = 60 * 60 * 24 * AUTH_DAYS; // время жизни токена
+    const KEY = 'MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCVJy2Rg8HeBqFQ'.
+    'fXLDcEhSHobfrkz3I9FqFS1z01q4pJkCC2FLxwyJPdmNFCXo/s1a+D6/20RZmmvr'.
+    'Ma3nzrcs2n7aNpbTIDxXT0XeycWBm+EF5sWb4aMlBUnbHJPKcKb+bN7uynrRq5r4'.
+    'WgnPHLjCNCeNxMfvi7d/6Qtq3RuhRLkTs/2uEFh0TrQIsAq/PFTFqTpensMBCSy4'.
+    'cASSOdujZrTMckay5yTzMOKp7T0ALljsAs0GPRkOWJu++Z1YB4DiUeuqTAxrp4UN'.
+    'qDc+Hye6fVekSHfY1AQcqwMTB33M3ksJXIEw4r3uXqOcOmakzXNt///rhfpSFvRW'.
+    'oR29azgxAgMBAAECggEAJvAMaGGiOek3McEeNcFZT/7iLQDe3OH/6JbQv90cYPmv'.
+    'bCY2Z0b2kdmQstDguLvUNnx6PTHr3QyAQe09PjfsAAymcycvJrzSo+RxFCFOq3Bb'.
+    'RWQikHhOU/rWdho2xvGz1tXrOSGpAJWxJkazKtuPrDtbXBpUK8goxn67WVGRxf65'.
+    '322gtcc/g4zcdvgXtklb9Sln1vdxKrmssj/3W0kGq2XvXriJbRVB8dDPeV9hvP8S'.
+    'XGeABnjkkDb2WBNRqgr3o8iMJWBeUuzdYn7Q6m+Oyng10wRzzX/vhhD4LR0s7rnz'.
+    '99bYBAcuSqImUP6Z1acKOdrPM+N0LqvD9ZoHWOelQQKBgQDESoLvkD5XpkAZCW4V'.
+    'XBhTN2qaUEbA4KhzuopV/D/IgAiG+er1hnWeE4kvAPiGSm7nvWLYBjcGXwDxqJti'.
+    'zjHh1+clPS/UQQttAIRAYwNOQvIzVrY08ww4BnAkU6CQh3KFvSYg0IN6tpc1Cj46'.
+    'y6BQ/4afmsxhF94bfRlsbPTGuQKBgQDChfS1L5ygTB0ehf12lgsW1wxwjupnNpXK'.
+    'J8S1rKt5s89/E3Q1EGSNub4oINsM+vQ5z/TswYZk54UsUuIOOleX94vMm2XPtMYx'.
+    '4wgsC5EFO6Wm0iNrQNGNe2qkmcPgJnMTwE/vbG3kOKe9xEL2l3YQvzpxBLf7Qyuv'.
+    'bU29/SZBOQKBgQCoCcGdpDY6grBMvq3myzhnxQEVqbNoWuraZ88VXSSdWD30ju59'.
+    '0eXOtZqzCnm3PPFEofSESo3AfoQoXNbo9uvtEw9l6cOQST6mydJt7FVgIh+Fo63I'.
+    'FmlXbOuDrbO/BrUbmJmTbe2gl79KQMKVQsyzioyNBdABLpWNosKo9310wQKBgDwt'.
+    '2wXOxALnaT7PLxnn02hugT+1RxlFTtPqt7WIxMfy8+eZaiMcfi9GXmjluT7ryHC2'.
+    'QEyalmxTH+UVgy/ppr2x7MMQ9E9s2sAGP7n4nhXjXR0d960vsWS24Mgpdeq7mnBq'.
+    '14/3mIu5Z1OTCzBkrTcDIh5i2lRWdIZiJ2H2lkYpAoGAO51GRrl+JA13KiNVmJ2R'.
+    'vuwJ5/x8V+lMsMZZWqwO0280j8+0EBGx51RzchNjXk6Ou/yE5JVj57Yf4UgSSjpP'.
+    '2FNDEXFjPnsoggTxK1g4PtbAnfgKRjkwq2aq27phuIVMXcN6m7ZzhYEFdUlG0S5+'.
+    'YVtxgNU+T6sTvs6sl/5BVCU=';
 
-    public $user_id;
-    public $login;
-    public $ip;
-    public $user_agent;
-    public $session_hash;
-    public $cookie_hash;
-    public $expire;
+    protected static $db_table = 'shop.user_sessions';
+
+    public int $id;
+    public ?int $active = null;
+    public string $login;
+    public int $user_id = 2;
+    public int $service_id = 2;
+    public string $ip;
+    public string $device;
+    public string $log_in;
+    public ?string $expire = null;
+    public ?string $token = null;
+    public ?string $comment = null;
+
+    /**
+     * Возвращает количество неудачных попыток залогиниться
+     * @param $user_id
+     * @return int
+     */
+    public static function getCountFailedAttempts($user_id)
+    {
+        $db = Db::getInstance();
+        $db->params = ['user_id' => $user_id];
+        $db->sql = "
+            SELECT count(id) count 
+            FROM shop.user_sessions 
+            WHERE token IS NULL AND active IS NOT NULL AND user_id = :user_id";
+
+        $res = $db->query();
+        return $res[0]['count'] ?? 0;
+    }
+
+    /**
+     * Очищает неудачные попытки залогиниться (!+)
+     * @param $user_id
+     * @return array
+     */
+    public static function clearFailedAttempts($user_id)
+    {
+        $db = Db::getInstance();
+        $db->params = ['user_id' => $user_id];
+        $db->sql = "UPDATE shop.user_sessions SET active = NULL WHERE user_id = :user_id AND token IS NULL";
+        return $db->query();
+    }
+
+    /**
+     * Генерирует токен для пользователя
+     * @param EntityUser $user - пользователь
+     * @param EntityUserSession $userSession - сессия пользователя
+     * @param int $timeStamp - метка времени
+     * @return string
+     */
+    public function getToken(EntityUser $user, EntityUserSession $userSession, int $timeStamp)
+    {
+        $data = [
+            "iss" => SITE_URL, // адрес или имя удостоверяющего центра
+            "aud" => $user->getEmail(), // имя клиента для которого токен выпущен
+            "iat" => $timeStamp, // время, когда был выпущен JWT
+            "nbf" => $timeStamp, // время, начиная с которого может быть использован (не раньше, чем)
+            "exp" => $timeStamp + self::LIFE_TIME, // время истечения срока действия токена
+            "data" => [
+                "id"         => $userSession->getUserId(),
+                "serviceId"  => $userSession->getServiceId(),
+                "ip"         => $userSession->getIp(),
+                "device"     => $userSession->getDevice(),
+                "expired"    => $userSession->getExpire()
+            ]
+        ];
+
+        return JWT::encode($data, self::KEY, 'HS512');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /**
      * Получает сессию пользователя по хэшу сессии
@@ -159,35 +295,5 @@ class UserSession extends Model
         setcookie('cookie_hash', '', (time() - 1000), '/', SITE, 0);
 
         return true;
-    }
-
-    public function filter_id($id)
-    {
-        return (int)$id;
-    }
-
-    public function filter_user_id($value)
-    {
-        return (int)$value;
-    }
-
-    public function filter_ip($text)
-    {
-        return strip_tags(trim($text));
-    }
-
-    public function filter_user_agent($text)
-    {
-        return strip_tags(trim($text));
-    }
-
-    public function filter_session_hash($text)
-    {
-        return strip_tags(trim($text));
-    }
-
-    public function filter_cookie_hash($text)
-    {
-        return strip_tags(trim($text));
     }
 }

@@ -1,6 +1,9 @@
 <?php
 namespace Models\User;
 
+use DateTime;
+use Models\UserBlock;
+use System\Auth;
 use System\Db;
 use System\Geo;
 use System\RSA;
@@ -14,6 +17,8 @@ use Models\Fias\City;
 use System\Validation;
 use Exceptions\DbException;
 use Exceptions\UserException;
+use Entity\User as EntityUser;
+use Entity\UserSession as EntityUserSession;
 
 /**
  * Class User
@@ -21,6 +26,8 @@ use Exceptions\UserException;
  */
 class User extends Model
 {
+    const MAX_COUNT_ATTEMPT = 5;
+
     protected static $db_table = 'shop.users';
 
     public int $id;
@@ -76,6 +83,183 @@ class User extends Model
 
         return $user;
     }
+
+    /**
+     * Возвращает пользователя по номеру телефона
+     * @param string $phone - телефон пользователя
+     * @return bool|mixed
+     */
+    public static function getByPhone(string $phone, array $params = [])
+    {
+        $params += ['active' => true];
+
+        $db = Db::getInstance();
+        $active = !empty($params['active']) ? 'AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL' : '';
+        $db->params = ['phone' => $phone];
+
+        $db->sql = "
+            SELECT 
+                u.id, u.active, u.blocked, u.group_id, u.last_name, u.name, u.second_name, u.email, u.phone, u.password, 
+                u.personal_data_agreement, u.mailing, u.mailing_type_id, u.created, u.updated, 
+                ug.name AS group_name, ug.price_type_id, u.gender_id, ugn.name gender, 
+                pt.name AS price_type, tt.name AS mailing_type, u.timezone 
+            FROM users u
+            LEFT JOIN user_sessions us ON u.id = us.user_id 
+            LEFT JOIN user_groups ug ON u.group_id = ug.id 
+            LEFT JOIN price_types pt ON ug.price_type_id = pt.id 
+            LEFT JOIN text_types tt ON u.mailing_type_id = tt.id
+            LEFT JOIN shop.user_genders ugn ON u.gender_id = ugn.id
+            WHERE u.phone = :phone {$active}";
+
+        $data = $db->query();
+        $user = !empty($data) ? array_shift($data) : null;
+
+        if (!empty($user)) $user['price_types'] = UserPriceType::getListByUser($user['id'], $user['group_id']);
+
+        return $user;
+    }
+
+    /**
+     * Возвращает пользователя по email
+     * @param string $email - email пользователя
+     * @return bool|mixed
+     */
+    public static function getByEmail(string $email, array $params = [])
+    {
+        $params += ['active' => true];
+
+        $db = Db::getInstance();
+        $active = !empty($params['active']) ? 'AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL' : '';
+        $db->params = ['email' => $email];
+
+        $db->sql = "
+            SELECT 
+                u.id, u.active, u.blocked, u.group_id, u.last_name, u.name, u.second_name, u.email, u.phone, u.password, 
+                u.personal_data_agreement, u.mailing, u.mailing_type_id, u.created, u.updated, 
+                ug.name AS group_name, ug.price_type_id, u.gender_id, ugn.name gender, 
+                pt.name AS price_type, tt.name AS mailing_type, u.timezone 
+            FROM users u
+            LEFT JOIN user_sessions us ON u.id = us.user_id 
+            LEFT JOIN user_groups ug ON u.group_id = ug.id 
+            LEFT JOIN price_types pt ON ug.price_type_id = pt.id 
+            LEFT JOIN text_types tt ON u.mailing_type_id = tt.id
+            LEFT JOIN shop.user_genders ugn ON u.gender_id = ugn.id
+            WHERE u.email = :email {$active}";
+
+        $data = $db->query();
+        $user = !empty($data) ? array_shift($data) : null;
+
+        if (!empty($user)) $user['price_types'] = UserPriceType::getListByUser($user['id'], $user['group_id']);
+
+        return $user;
+    }
+
+    public static function authorize($login, $password, $remember): bool
+    {
+        Auth::checkUser($login, $password);
+
+        $auth = new Auth();
+
+        if (Validation::phone($login)) { // телефон в качестве логина
+            $phone = intval(preg_replace('/[^0-9]/', '', $login));
+            $phone = mb_strlen($phone) === 11 ? mb_substr($phone, 1) : $phone;
+
+            $auth->user = \Entity\User::get(['phone' => "+7{$phone}"]);
+        }
+        elseif (Validation::email($login)) { // email в качестве логина
+            $email = strip_tags($login);
+
+            $auth->user = \Entity\User::get(['email' => $email]);
+        }
+        else {
+            throw new UserException("Введен невалидный логин. Login: {$login}.");
+        }
+
+
+
+        if (!empty($auth->user->getId())) { // найден активный пользователь
+            $auth->userSession = self::setUserSession($auth->user, $login);
+            $countFailedAttempts = UserSession::getCountFailedAttempts($auth->user->getId());
+
+            if ($countFailedAttempts < self::MAX_COUNT_ATTEMPT) { // меньше 5 активных попыток входа
+
+
+
+
+
+
+                if (password_verify($password, $auth->user->getPassword())) $auth->login($remember);
+
+
+
+
+
+
+
+
+
+                else {
+                    $auth->userSession->comment = Auth::WRONG_LOGIN_PASSWORD;
+                    $auth->userSession->save();
+                    throw new UserException(Auth::WRONG_LOGIN_PASSWORD, 401);
+                }
+
+            } else {
+                UserSession::clearFailedAttempts($auth->user->getLogin());
+                $auth->user->block(UserBlock::INTERVAL_DAY, Auth::TOO_MANY_FAILED_ATTEMPTS);
+                throw new UserException(Auth::TOO_MANY_FAILED_ATTEMPTS, 401);
+            }
+        }
+        throw new UserException(Auth::USER_NOT_FOUND, 401);
+
+
+
+
+        $user = self::getFullInfoById($user_id, true, true);
+        $_SESSION['user'] = $user;
+
+
+        return !empty($user->id) && (new UserSession())->set($user, $remember);
+    }
+
+    /**
+     * Создает пользовательскую сессию
+     * @param EntityUser $user
+     * @param string $login
+     * @return EntityUserSession
+     */
+    protected static function setUserSession(EntityUser $user, string $login)
+    {
+        $userSession = new EntityUserSession();
+        $userSession->isActive = 1;
+        $userSession->login = $login;
+        $userSession->userId = $user->getId();
+        $userSession->serviceId = EntityUserSession::SERVICE_SITE;
+        $userSession->ip = $_SERVER['REMOTE_ADDR'];
+        $userSession->device = $_SERVER['HTTP_USER_AGENT'];
+        $userSession->logIn = new DateTime();
+        $userSession->expire = null;
+        $userSession->token = null;
+        $userSession->comment = null;
+        return $userSession;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -323,58 +507,6 @@ class User extends Model
         return !empty($data) ? array_shift($data) : false;
     }
 
-
-
-    /**
-     * Получает пользователя по номеру телефона
-     * @param int $phone
-     * @param bool $active
-     * @param bool $object
-     * @return bool|mixed
-     */
-    public static function getByPhone(int $phone, bool $active = false, $object = true)
-    {
-        $where = !empty($active) ? ' AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL' : '';
-        $sql = "
-            SELECT u.* 
-            FROM users u 
-            LEFT JOIN user_groups ug
-                ON u.group_id = ug.id
-            WHERE u.phone = :phone {$where}
-            ";
-        $params = [
-            ':phone' => $phone
-        ];
-        $db = Db::getInstance();
-        $data = $db->query($sql, $params, $object ? static::class : null);
-        return !empty($data) ? array_shift($data) : false;
-    }
-
-    /**
-     * Получает пользователя по email
-     * @param string $email
-     * @param bool $active
-     * @param bool $object
-     * @return bool|mixed
-     */
-    public static function getByEmail(string $email, bool $active = false, $object = true)
-    {
-        $where = !empty($active) ? ' AND u.active IS NOT NULL AND u.blocked IS NULL AND ug.active IS NOT NULL' : '';
-        $sql = "
-            SELECT u.* 
-            FROM users u 
-            LEFT JOIN user_groups ug
-                ON u.group_id = ug.id
-            WHERE u.email = :email {$where}
-            ";
-        $params = [
-            ':email' => $email
-        ];
-        $db = Db::getInstance();
-        $data = $db->query($sql, $params, $object ? static::class : null);
-        return !empty($data) ? array_shift($data) : false;
-    }
-
     /**
      * Получает пользователя по коду восстановления пароля
      * @param string $hash
@@ -431,21 +563,7 @@ class User extends Model
         return !empty($data) ? array_shift($data) : false;
     }
 
-    /**
-     * Авторизация пользователя по id
-     * @param int $user_id
-     * @param bool $remember
-     * @return bool
-     * @throws DbException
-     */
-    public static function authorize(int $user_id, bool $remember = false): bool
-    {
-        $user = self::getFullInfoById($user_id, true, true);
-        $_SESSION['user'] = $user;
 
-
-        return !empty($user->id) && (new UserSession())->set($user, $remember);
-    }
 
     /**
      * Выход
@@ -819,45 +937,5 @@ class User extends Model
     public static function getCity()
     {
         return self::getLocation()['city'];
-    }
-
-
-
-
-
-
-
-
-
-
-
-    public function filter_id($id)
-    {
-        return (int)$id;
-    }
-
-    public function filter_group_id($value)
-    {
-        return (int)$value;
-    }
-
-    public function filter_name($text)
-    {
-        return strip_tags(trim($text));
-    }
-
-    public function filter_email($text)
-    {
-        return strip_tags(trim($text));
-    }
-
-    public function filter_phone($value)
-    {
-        return (int)$value;
-    }
-
-    public function filter_password($text)
-    {
-        return strip_tags(trim($text));
     }
 }

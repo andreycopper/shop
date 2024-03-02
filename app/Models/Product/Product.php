@@ -160,7 +160,7 @@ class Product extends Model
             'price_type_id' => 2,
             'page_number' => 0,
             'elements_per_page' => 20,
-            'sort' => 'sort',
+            'sort' => 'price',
             'order' => 'ASC',
             'active' => true,
             'object' => false,
@@ -174,10 +174,12 @@ class Product extends Model
         if ($params['sort'] !== 'price') $params['sort'] =  "p.{$params['sort']}";
         $offset = $params['page_number'] * $params['elements_per_page'];
 
+        $order = strtolower($params['order']) === 'desc' ? 'DESC' : 'ASC';
+
         if (!empty($params['category_id'])) $db->params['category_id'] = $params['category_id'];
 
-        //$filter = self::getFilterString($filters);
-        //$params += self::getFilterParams($filters);
+        $filter = self::getFilterString($params['filters']);
+        $db->params += self::getFilterParams($params['filters']);
         $db->sql = "
             SELECT 
                 p.id, p.xml_id, p.ie_id, p.name, p.active, p.active_from, p.active_to, p.articul, 
@@ -207,8 +209,8 @@ class Product extends Model
             LEFT JOIN warranty_periods wp ON p.warranty_period_id = wp.id 
             LEFT JOIN text_types ptt ON p.preview_text_type_id = ptt.id 
             LEFT JOIN text_types dtt ON p.detail_text_type_id = dtt.id 
-            WHERE 1 {$category} {$active} 
-            ORDER BY {$params['sort']} {$params['order']}, p.created {$params['order']}, p.id {$params['order']} 
+            WHERE 1 {$category} {$active} {$filter} 
+            ORDER BY {$params['sort']} {$order}, p.created {$params['order']}, p.id {$params['order']} 
             LIMIT {$offset}, {$params['elements_per_page']}";
 
         $data = $db->query();
@@ -225,7 +227,7 @@ class Product extends Model
         $params += ['active' => true, 'object' => false,];
 
         $db = Db::getInstance();
-        $db->params = [];
+        $db->params = ['price_type_id' => $params['price_type_id']];
 
         $category = !empty($params['category_id']) ? 'AND p.category_id = :category_id' : '';
         $active = !empty($params['active']) ? 'AND p.active IS NOT NULL AND cat.active IS NOT NULL AND v.active IS NOT NULL' : '';
@@ -233,15 +235,17 @@ class Product extends Model
 
         if (!empty($params['category_id'])) $db->params['category_id'] = $params['category_id'];
 
-        //$filter = self::getFilterString($filters);
-        //$params += self::getFilterParams($filters);
+        $filter = self::getFilterString($params['filters']);
+        $db->params += self::getFilterParams($params['filters']);
         $db->sql = "
             SELECT 
                 count(p.id) count 
             FROM products p 
             LEFT JOIN shop.categories cat ON p.category_id = cat.id 
+            LEFT JOIN product_prices pp ON p.id = pp.product_id AND pp.price_type_id = :price_type_id
+            LEFT JOIN currency_rates cr ON pp.currency_id = cr.currency_id
             LEFT JOIN vendors v ON p.vendor_id = v.id 
-            WHERE 1 {$category} {$active}";
+            WHERE 1 {$category} {$active} {$filter}";
 
         $data = $db->query();
         return $data ? array_shift($data)['count'] : 0;
@@ -314,48 +318,6 @@ class Product extends Model
     }
 
     /**
-     * Добавляет товару просмотр
-     * @param int $id - id товара
-     * @return bool
-     */
-    public static function addView(int $id)
-    {
-        $db = Db::getInstance();
-        $db->params = ['id' => $id];
-        $db->sql = "UPDATE shop.products SET views = views + 1 WHERE products.id = :id";
-        return $db->execute();
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /**
      * Возвращает строку запроса для используемых фильтров
      * @param array $filters - массив фильтров товара
      * @return string
@@ -365,9 +327,11 @@ class Product extends Model
         $filter = '';
         if (!empty($filters) && is_array($filters)) {
             foreach ($filters as $fname => $fvalue) {
+                $fname = preg_replace('/[^a-z]/', '', $fname);
+
                 switch ($fname) {
                     case 'price':
-                        $filter .= ' AND (ROUND(pp.price * cr.rate * (100 - COALESCE(p.discount, 0)) / 100) BETWEEN :price_min AND :price_max)';
+                        $filter .= ' AND (pp.price * cr.rate * (100 - COALESCE(IF(pp.price_type_id = 2, p.discount, 0), 0)) / 100) BETWEEN :price_min AND :price_max';
                         break;
                     case 'actions':
                         if (in_array('new', $fvalue)) $filter .= ' AND p.is_new IS NOT NULL';
@@ -377,6 +341,7 @@ class Product extends Model
                         break;
                     case 'vendors':
                         $str = implode(', ', $fvalue);
+                        $str = preg_replace('/[^0-9,]/', '', $str);
                         $filter .= " AND v.id IN ({$str})";
                         break;
                     default:
@@ -384,6 +349,7 @@ class Product extends Model
                 }
             }
         }
+
         return $filter;
     }
 
@@ -396,19 +362,34 @@ class Product extends Model
     {
         $params = [];
         foreach ($filters as $fname => $fvalue) {
+            $fname = preg_replace('/[^a-z]/', '', $fname);
+
             switch ($fname) {
                 case 'actions':
                 case 'vendors':
                     break;
                 case 'price':
-                    $params['price_min'] = $fvalue[0];
-                    $params['price_max'] = $fvalue[1];
+                    $params['price_min'] = preg_replace('/[^0-9]/', '', min($fvalue[0], $fvalue[1]));
+                    $params['price_max'] = preg_replace('/[^0-9]/', '', max($fvalue[0], $fvalue[1]));
                     break;
                 default:
-                    $filter .= " AND {$fname} = :{$fname}";
-                    $params[$fname] = $fvalue;
+                    $params[$fname] = preg_replace('/[^0-9]/', '', $fvalue);
             }
         }
+
         return $params;
+    }
+
+    /**
+     * Добавляет товару просмотр
+     * @param int $id - id товара
+     * @return bool
+     */
+    public static function addView(int $id)
+    {
+        $db = Db::getInstance();
+        $db->params = ['id' => $id];
+        $db->sql = "UPDATE shop.products SET views = views + 1 WHERE products.id = :id";
+        return $db->execute();
     }
 }
